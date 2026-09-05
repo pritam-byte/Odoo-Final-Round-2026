@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/auth.routes";
 import masterRoutes from "./routes/master.routes.js";
+import transactionRoutes from "./routes/transaction.routes.js";
 import { PORT } from "./config/constants";
 
 dotenv.config();
