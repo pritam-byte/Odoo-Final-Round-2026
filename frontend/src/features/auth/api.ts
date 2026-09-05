@@ -117,7 +117,7 @@ export const createNewUser = async (input: CreateUserInput): Promise<{ success: 
       mockUsers = [mapped, ...mockUsers.filter(u => u.loginId !== mapped.loginId)];
       saveUsers(mockUsers);
       return { success: true, message: `User "${mapped.loginId}" created and stored in PostgreSQL!`, user: mapped };
-    } else if (res.error) {
+    } else if (res.error && !res.isFallback) {
       return { success: false, message: res.error };
     }
   } catch (e: any) {

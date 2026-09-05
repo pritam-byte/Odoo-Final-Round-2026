@@ -82,7 +82,7 @@ export async function apiRequest<T = any>(
     return {
       success: false,
       isFallback: true,
-      error: err.name === 'AbortError' ? 'Backend connection timed out. Using local storage.' : 'Backend server unreachable. Using local storage.',
+      error: undefined,
     };
   }
 }
