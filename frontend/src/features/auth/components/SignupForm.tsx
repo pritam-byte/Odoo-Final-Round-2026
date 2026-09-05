@@ -31,7 +31,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onNavigateToL
     setFormData((prev) => ({ ...prev, role }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) {
       setError('Full name is required.');
@@ -39,7 +39,8 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onNavigateToL
     }
 
     setLoading(true);
-    const res = registerAndLogin(formData);
+    setError('');
+    const res = await registerAndLogin(formData);
     setLoading(false);
 
     if (res.success && res.user) {
@@ -92,12 +93,13 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onNavigateToL
             onChange={handleChange}
             className="form-input"
             required
+            disabled={loading}
           />
         </div>
 
         {/* Login ID */}
         <div className="form-group">
-          <label className="form-label">Login ID (6–12 characters)</label>
+          <label className="form-label">Login ID (3–20 characters)</label>
           <input
             type="text"
             name="loginId"
@@ -105,9 +107,10 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onNavigateToL
             value={formData.loginId}
             onChange={handleChange}
             className="form-input"
-            minLength={6}
-            maxLength={12}
+            minLength={3}
+            maxLength={20}
             required
+            disabled={loading}
           />
         </div>
 
@@ -122,6 +125,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onNavigateToL
             onChange={handleChange}
             className="form-input"
             required
+            disabled={loading}
           />
         </div>
 
@@ -138,6 +142,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onNavigateToL
                   onClick={() => handleRoleSelect(r)}
                   className={`btn btn-sm ${isSelected ? 'btn-primary' : 'btn-outline'}`}
                   style={{ justifyContent: 'center' }}
+                  disabled={loading}
                 >
                   <span>{r}</span>
                 </button>
@@ -163,6 +168,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onNavigateToL
               onChange={handleChange}
               className="form-input"
               required
+              disabled={loading}
             />
           </div>
 
@@ -176,12 +182,10 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onNavigateToL
               onChange={handleChange}
               className="form-input"
               required
+              disabled={loading}
             />
           </div>
         </div>
-        <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '-8px' }}>
-          At least 8 chars with uppercase, lowercase, and special character (!@#$%^&*).
-        </span>
 
         <button
           type="submit"

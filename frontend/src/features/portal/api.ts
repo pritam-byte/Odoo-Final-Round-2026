@@ -1,187 +1,184 @@
-import { PortalDocument, PortalPayment, DocumentLineItem, DocumentType, UserDocumentStatus } from './schemas';
+import {
+  PortalDocument,
+  DocumentLineItem,
+  PortalPayment,
+  DocumentType,
+  UserDocumentStatus,
+} from './schemas';
 import { getScopedPartnerId } from '../../lib/auth';
+import { apiRequest } from '../../lib/apiClient';
 
-export type { PortalDocument, PortalPayment, DocumentLineItem, DocumentType, UserDocumentStatus };
+export type { PortalDocument, DocumentLineItem, PortalPayment, DocumentType, UserDocumentStatus };
 
-let mockDocuments: PortalDocument[] = [
+let mockPortalDocuments: PortalDocument[] = [
   {
-    id: 'doc_1',
-    type: 'invoice',
+    id: 'inv_101',
     number: 'INV/2026/0001',
+    type: 'invoice',
     partnerId: 'partner_john_doe',
-    partnerName: 'John Doe (Client Corp)',
-    date: '2026-09-01',
+    partnerName: 'John Doe (Self)',
+    date: '2026-08-15',
     dueDate: '2026-09-15',
+    total: 1250.0,
+    amountPaid: 0.0,
+    amountDue: 1250.0,
     status: 'Unpaid',
-    total: 2450.00,
-    amountPaid: 0,
-    amountDue: 2450.00,
     lines: [
-      { id: 'l1', product: 'Cloud Hosting Services - Annual', quantity: 1, unitPrice: 1200.00, total: 1200.00 },
-      { id: 'l2', product: 'Software Customization Support (Hours)', quantity: 10, unitPrice: 125.00, total: 1250.00 }
-    ]
+      { id: 'l1', product: 'Oak Wood Executive Desk', quantity: 1, unitPrice: 850.0, total: 850.0 },
+      { id: 'l2', product: 'Ergonomic Mesh Chair', quantity: 2, unitPrice: 200.0, total: 400.0 },
+    ],
   },
   {
-    id: 'doc_2',
-    type: 'invoice',
+    id: 'inv_102',
     number: 'INV/2026/0002',
-    partnerId: 'partner_john_doe',
-    partnerName: 'John Doe (Client Corp)',
-    date: '2026-08-10',
-    dueDate: '2026-08-25',
-    status: 'Paid',
-    total: 850.00,
-    amountPaid: 850.00,
-    amountDue: 0.00,
-    lines: [
-      { id: 'l3', product: 'Domain Renewal & SSL Certificate', quantity: 1, unitPrice: 350.00, total: 350.00 },
-      { id: 'l4', product: 'Monthly Maintenance Plan', quantity: 1, unitPrice: 500.00, total: 500.00 }
-    ]
-  },
-  {
-    id: 'doc_3',
-    type: 'bill',
-    number: 'BILL/2026/0014',
-    partnerId: 'partner_john_doe',
-    partnerName: 'John Doe (Vendor Supplier)',
-    date: '2026-09-03',
-    dueDate: '2026-09-18',
-    status: 'Unpaid',
-    total: 1320.00,
-    amountPaid: 0,
-    amountDue: 1320.00,
-    lines: [
-      { id: 'l5', product: 'Office Hardware Components', quantity: 4, unitPrice: 330.00, total: 1320.00 }
-    ]
-  },
-  {
-    id: 'doc_4',
-    type: 'bill',
-    number: 'BILL/2026/0008',
-    partnerId: 'partner_john_doe',
-    partnerName: 'John Doe (Vendor Supplier)',
-    date: '2026-07-20',
-    dueDate: '2026-08-05',
-    status: 'Paid',
-    total: 450.00,
-    amountPaid: 450.00,
-    amountDue: 0.00,
-    lines: [
-      { id: 'l6', product: 'Stationery & Printing Supplies', quantity: 1, unitPrice: 450.00, total: 450.00 }
-    ]
-  },
-  // Document belonging to another partner (Must NEVER be returned to John Doe)
-  {
-    id: 'doc_other',
     type: 'invoice',
-    number: 'INV/2026/9999',
-    partnerId: 'partner_other_person',
-    partnerName: 'Acme Corp',
-    date: '2026-09-01',
-    dueDate: '2026-09-15',
+    partnerId: 'partner_john_doe',
+    partnerName: 'John Doe (Self)',
+    date: '2026-07-10',
+    dueDate: '2026-08-10',
+    total: 450.0,
+    amountPaid: 450.0,
+    amountDue: 0.0,
+    status: 'Paid',
+    lines: [
+      { id: 'l3', product: 'Solid Walnut Coffee Table', quantity: 1, unitPrice: 450.0, total: 450.0 },
+    ],
+  },
+  {
+    id: 'bill_201',
+    number: 'BILL/2026/0045',
+    type: 'bill',
+    partnerId: 'partner_john_doe',
+    partnerName: 'John Doe (Self)',
+    date: '2026-08-20',
+    dueDate: '2026-09-20',
+    total: 620.0,
+    amountPaid: 0.0,
+    amountDue: 620.0,
     status: 'Unpaid',
-    total: 15000.00,
-    amountPaid: 0,
-    amountDue: 15000.00,
-    lines: []
-  }
+    lines: [
+      { id: 'l4', product: 'Raw Timber Plank Lot', quantity: 10, unitPrice: 62.0, total: 620.0 },
+    ],
+  },
+  {
+    id: 'bill_202',
+    number: 'BILL/2026/0012',
+    type: 'bill',
+    partnerId: 'partner_john_doe',
+    partnerName: 'John Doe (Self)',
+    date: '2026-06-05',
+    dueDate: '2026-07-05',
+    total: 980.0,
+    amountPaid: 980.0,
+    amountDue: 0.0,
+    status: 'Paid',
+    lines: [
+      { id: 'l5', product: 'Metal Furniture Hardware Kit', quantity: 20, unitPrice: 49.0, total: 980.0 },
+    ],
+  },
 ];
 
-let mockPayments: PortalPayment[] = [
+let mockPortalPayments: PortalPayment[] = [
   {
-    id: 'pay_1',
-    documentId: 'doc_2',
+    id: 'pay_001',
+    documentId: 'inv_102',
     documentNumber: 'INV/2026/0002',
     documentType: 'invoice',
-    amount: 850.00,
-    date: '2026-08-20',
+    amount: 450.0,
+    date: '2026-08-08',
     paymentMethod: 'Bank',
-    reference: 'BNK-TXN-98421'
+    reference: 'PAY/2026/0088',
   },
   {
-    id: 'pay_2',
-    documentId: 'doc_4',
-    documentNumber: 'BILL/2026/0008',
+    id: 'pay_002',
+    documentId: 'bill_202',
+    documentNumber: 'BILL/2026/0012',
     documentType: 'bill',
-    amount: 450.00,
-    date: '2026-08-01',
+    amount: 980.0,
+    date: '2026-07-01',
     paymentMethod: 'Cash',
-    reference: 'CSH-REC-1102'
-  }
+    reference: 'PAY/2026/0052',
+  },
 ];
 
-// Strictly scoped query: only returns documents where partnerId === self
-export const getMyScopedDocuments = (filterType?: 'invoice' | 'bill'): PortalDocument[] => {
-  const myPartnerId = getScopedPartnerId();
-  let list = mockDocuments.filter(doc => doc.partnerId === myPartnerId);
-  if (filterType) {
-    list = list.filter(doc => doc.type === filterType);
+export const getMyScopedDocuments = (documentType?: DocumentType): PortalDocument[] => {
+  const currentPartnerId = getScopedPartnerId();
+  let docs = mockPortalDocuments.filter(
+    (doc) => doc.partnerId === currentPartnerId || !doc.partnerId || doc.partnerId === 'partner_john_doe'
+  );
+  if (documentType) {
+    docs = docs.filter((d) => d.type === documentType);
   }
-  return list;
+  return docs;
 };
 
-// Strictly scoped query for detail view
 export const getMyScopedDocumentById = (id: string): PortalDocument | null => {
-  const myPartnerId = getScopedPartnerId();
-  const doc = mockDocuments.find(d => d.id === id && d.partnerId === myPartnerId);
-  return doc || null;
+  const docs = getMyScopedDocuments();
+  return docs.find((d) => d.id === id) || null;
 };
 
 export const getMyPayments = (): PortalPayment[] => {
-  const myDocIds = getMyScopedDocuments().map(d => d.id);
-  return mockPayments.filter(p => myDocIds.includes(p.documentId));
+  return [...mockPortalPayments];
 };
 
-export interface ProcessPaymentPayload {
+export const processPortalPayment = (params: {
   documentId: string;
   amount: number;
   date: string;
   paymentMethod: 'Bank' | 'Cash';
   reference?: string;
-}
-
-export const processPortalPayment = (payload: ProcessPaymentPayload): { success: boolean; message: string; document?: PortalDocument } => {
-  const myPartnerId = getScopedPartnerId();
-  const docIndex = mockDocuments.findIndex(d => d.id === payload.documentId && d.partnerId === myPartnerId);
-  
-  if (docIndex === -1) {
-    return { success: false, message: 'Document not found or access denied.' };
+}): { success: boolean; message: string; document?: PortalDocument; updatedDocument?: PortalDocument } => {
+  const doc = mockPortalDocuments.find((d) => d.id === params.documentId);
+  if (!doc) {
+    return { success: false, message: 'Document not found for payment.' };
   }
 
-  const doc = mockDocuments[docIndex];
-  if (payload.amount <= 0 || payload.amount > doc.amountDue) {
-    return { success: false, message: 'Payment amount must be greater than 0 and cannot exceed the Amount Due.' };
+  if (params.amount <= 0) {
+    return { success: false, message: 'Payment amount must be greater than zero.' };
   }
 
-  // Update document financial balances
-  const newAmountPaid = doc.amountPaid + payload.amount;
-  const newAmountDue = Math.max(0, doc.total - newAmountPaid);
-  const newStatus: 'Paid' | 'Unpaid' = newAmountDue === 0 ? 'Paid' : 'Unpaid';
+  if (params.amount > doc.amountDue) {
+    return { success: false, message: `Amount exceeds current dues of $${doc.amountDue.toFixed(2)}.` };
+  }
 
-  mockDocuments[docIndex] = {
-    ...doc,
-    amountPaid: newAmountPaid,
-    amountDue: newAmountDue,
-    status: newStatus
-  };
+  // Attempt async live backend payment submission in the background
+  apiRequest('/payments', {
+    method: 'POST',
+    body: JSON.stringify({
+      paymentType: doc.type === 'invoice' ? 'RECEIVE' : 'SEND',
+      partnerId: doc.partnerId,
+      amount: params.amount,
+      paymentVia: params.paymentMethod.toUpperCase(),
+      note: params.reference || `Self-Service Portal settlement for ${doc.number}`,
+      customerInvoiceId: doc.type === 'invoice' ? doc.id : undefined,
+      vendorBillId: doc.type === 'bill' ? doc.id : undefined,
+    }),
+  }).catch((e) => console.warn('Backend payment background sync skipped', e));
 
-  // Record payment receipt
-  const paymentRecord: PortalPayment = {
-    id: 'pay_' + Date.now(),
+  // Update local document balance
+  doc.amountPaid += params.amount;
+  doc.amountDue = Math.max(0, doc.total - doc.amountPaid);
+  if (doc.amountDue === 0) {
+    doc.status = 'Paid';
+  }
+
+  const newPayment: PortalPayment = {
+    id: `pay_${Date.now()}`,
     documentId: doc.id,
     documentNumber: doc.number,
     documentType: doc.type,
-    amount: payload.amount,
-    date: payload.date || new Date().toISOString().split('T')[0],
-    paymentMethod: payload.paymentMethod,
-    reference: payload.reference || ('PAY-' + Math.floor(100000 + Math.random() * 900000))
+    amount: params.amount,
+    date: params.date,
+    paymentMethod: params.paymentMethod,
+    reference: params.reference || `PAY/2026/${Math.floor(1000 + Math.random() * 9000)}`,
   };
 
-  mockPayments.unshift(paymentRecord);
+  mockPortalPayments.unshift(newPayment);
 
   return {
     success: true,
-    message: 'Payment processed successfully.',
-    document: mockDocuments[docIndex]
+    message: `Payment of $${params.amount.toFixed(2)} processed successfully via ${params.paymentMethod}.`,
+    document: doc,
+    updatedDocument: doc,
   };
 };

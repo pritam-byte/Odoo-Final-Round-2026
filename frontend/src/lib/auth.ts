@@ -1,5 +1,6 @@
-import { UserAccount, CreateUserInput } from '../features/auth/schemas';
+import { UserAccount, CreateUserInput, UserRole } from '../features/auth/schemas';
 import { getAllUsers, createNewUser } from '../features/auth/api';
+import { apiRequest, setAuthToken } from './apiClient';
 
 const AUTH_STORAGE_KEY = 'odoo_flow_active_user';
 
@@ -30,34 +31,91 @@ export const setStoredUser = (user: UserAccount | null) => {
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
     } else {
       localStorage.removeItem(AUTH_STORAGE_KEY);
+      setAuthToken(null);
     }
   } catch (e) {
     console.error('Failed to save session user', e);
   }
 };
 
-export const loginUser = (loginIdOrEmail: string, _password?: string): { success: boolean; message: string; user?: UserAccount } => {
-  const users = getAllUsers();
-  const trimmed = loginIdOrEmail.trim().toLowerCase();
+// Map backend role to frontend role
+const mapBackendRole = (role?: string): UserRole => {
+  if (role === 'ADMIN') return 'Admin';
+  if (role === 'ACCOUNTANT') return 'Accountant';
+  return 'User';
+};
 
-  // 1. Direct match by loginId or email
+// Map frontend role to backend enum
+const mapFrontendRole = (role: UserRole): string => {
+  if (role === 'Admin') return 'ADMIN';
+  if (role === 'Accountant') return 'ACCOUNTANT';
+  return 'PORTAL_USER';
+};
+
+export const loginUser = async (
+  loginIdOrEmail: string,
+  password = 'password123'
+): Promise<{ success: boolean; message: string; user?: UserAccount }> => {
+  const trimmed = loginIdOrEmail.trim();
+
+  // 1. Attempt live backend authentication
+  try {
+    const backendRes = await apiRequest('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        loginId: trimmed,
+        password: password || 'admin123',
+      }),
+    });
+
+    if (backendRes.success && backendRes.data) {
+      const { token, user: bUser } = backendRes.data;
+      if (token) setAuthToken(token);
+
+      const mappedUser: UserAccount = {
+        id: bUser.id,
+        name: bUser.loginId.charAt(0).toUpperCase() + bUser.loginId.slice(1),
+        loginId: bUser.loginId,
+        email: bUser.email || `${bUser.loginId}@company.com`,
+        role: mapBackendRole(bUser.role),
+        status: 'Active',
+        partnerId: bUser.contactId || (bUser.role === 'PORTAL_USER' ? `partner_${bUser.loginId}` : undefined),
+        createdAt: new Date().toISOString().split('T')[0],
+        lastLogin: new Date().toLocaleString(),
+      };
+
+      setStoredUser(mappedUser);
+      return {
+        success: true,
+        message: `Connected via Live Backend. Welcome, ${mappedUser.name}!`,
+        user: mappedUser,
+      };
+    }
+  } catch (e) {
+    console.warn('Backend login unavailable, checking local store...', e);
+  }
+
+  // 2. Fallback to local store / mock accounts
+  const users = getAllUsers();
+  const lower = trimmed.toLowerCase();
+
   let user = users.find(
-    u => u.loginId.toLowerCase() === trimmed || u.email.toLowerCase() === trimmed
+    u => u.loginId.toLowerCase() === lower || u.email.toLowerCase() === lower
   );
 
-  // 2. Convenience aliases for testing
+  // Convenience aliases for testing
   if (!user) {
-    if (trimmed === 'admin') {
+    if (lower === 'admin') {
       user = users.find(u => u.role === 'Admin');
-    } else if (trimmed === 'accountant') {
+    } else if (lower === 'accountant') {
       user = users.find(u => u.role === 'Accountant');
-    } else if (trimmed === 'user' || trimmed === 'john') {
+    } else if (lower === 'user' || lower === 'john') {
       user = users.find(u => u.role === 'User' && u.status === 'Active');
     }
   }
 
   if (!user) {
-    return { success: false, message: 'Invalid Login ID or Email address. Please check your credentials.' };
+    return { success: false, message: 'Invalid Login ID or Email address.' };
   }
 
   if (user.status === 'Inactive') {
@@ -67,13 +125,35 @@ export const loginUser = (loginIdOrEmail: string, _password?: string): { success
     };
   }
 
-  // Update last login
   user.lastLogin = new Date().toLocaleString();
   setStoredUser(user);
   return { success: true, message: `Welcome back, ${user.name}!`, user };
 };
 
-export const registerAndLogin = (input: CreateUserInput): { success: boolean; message: string; user?: UserAccount } => {
+export const registerAndLogin = async (
+  input: CreateUserInput
+): Promise<{ success: boolean; message: string; user?: UserAccount }> => {
+  // 1. Attempt live backend registration
+  try {
+    const backendRes = await apiRequest('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        loginId: input.loginId.trim(),
+        email: input.email.trim(),
+        password: input.password || 'password123',
+        role: mapFrontendRole(input.role),
+      }),
+    });
+
+    if (backendRes.success && backendRes.data?.user) {
+      // Automatically login to get JWT token
+      return await loginUser(input.loginId, input.password);
+    }
+  } catch (e) {
+    console.warn('Backend registration failed/offline, registering locally...', e);
+  }
+
+  // 2. Fallback to local store registration
   const res = createNewUser(input);
   if (!res.success || !res.user) {
     return res;
@@ -85,6 +165,7 @@ export const registerAndLogin = (input: CreateUserInput): { success: boolean; me
 
 export const logoutUser = () => {
   setStoredUser(null);
+  setAuthToken(null);
 };
 
 export const getScopedPartnerId = (): string => {

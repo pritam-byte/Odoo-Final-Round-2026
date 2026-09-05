@@ -14,7 +14,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!identifier.trim()) {
       setError('Please enter your Login ID or Email.');
@@ -22,7 +22,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
     }
 
     setLoading(true);
-    const res = loginUser(identifier, password);
+    setError('');
+    const res = await loginUser(identifier, password);
     setLoading(false);
 
     if (res.success && res.user) {
@@ -32,9 +33,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
     }
   };
 
-  const handleQuickDemoLogin = (loginId: string) => {
+  const handleQuickDemoLogin = async (loginId: string) => {
     setError('');
-    const res = loginUser(loginId);
+    setLoading(true);
+    const res = await loginUser(loginId);
+    setLoading(false);
     if (res.success && res.user) {
       onSuccess?.(res.user);
     } else {
@@ -84,6 +87,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
             className="btn btn-outline btn-sm"
             onClick={() => handleQuickDemoLogin('admin_pritam')}
             title="Login as System Administrator"
+            disabled={loading}
             style={{ flexDirection: 'column', gap: '4px', padding: '8px 4px' }}
           >
             <ShieldCheck size={16} style={{ color: 'var(--color-danger)' }} />
@@ -95,6 +99,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
             className="btn btn-outline btn-sm"
             onClick={() => handleQuickDemoLogin('sarah_finance')}
             title="Login as Accountant"
+            disabled={loading}
             style={{ flexDirection: 'column', gap: '4px', padding: '8px 4px' }}
           >
             <Briefcase size={16} style={{ color: 'var(--color-warning)' }} />
@@ -106,6 +111,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
             className="btn btn-outline btn-sm"
             onClick={() => handleQuickDemoLogin('jdoe_client')}
             title="Login as Customer User"
+            disabled={loading}
             style={{ flexDirection: 'column', gap: '4px', padding: '8px 4px' }}
           >
             <User size={16} style={{ color: 'var(--color-primary)' }} />
@@ -132,6 +138,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
             onChange={(e) => setIdentifier(e.target.value)}
             className="form-input"
             required
+            disabled={loading}
           />
         </div>
 
@@ -145,6 +152,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="form-input"
+            disabled={loading}
           />
         </div>
 
