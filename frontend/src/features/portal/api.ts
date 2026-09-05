@@ -81,6 +81,32 @@ let mockPortalDocuments: PortalDocument[] = [
 let mockPortalPayments: PortalPayment[] = [
   {
     id: 'pay_001',
+    documentId: 'inv_101',
+    documentNumber: 'INV/2026/0001',
+    documentType: 'invoice',
+    amount: 1250.0,
+    date: '2026-09-05',
+    paymentMethod: 'Bank',
+    reference: 'PAY/2026/3439',
+    partnerName: 'Mr Rahul',
+    note: 'Self-Service settlement for Executive Desk & Mesh Chair',
+    status: 'Confirm',
+  },
+  {
+    id: 'pay_002',
+    documentId: 'bill_201',
+    documentNumber: 'BILL/2026/0045',
+    documentType: 'bill',
+    amount: 620.0,
+    date: '2026-09-05',
+    paymentMethod: 'Bank',
+    reference: 'PAY/2026/7437',
+    partnerName: 'Urban Timbers Ltd',
+    note: 'Supplier invoice payout for Raw Timber Lot',
+    status: 'Confirm',
+  },
+  {
+    id: 'pay_003',
     documentId: 'inv_102',
     documentNumber: 'INV/2026/0002',
     documentType: 'invoice',
@@ -88,9 +114,12 @@ let mockPortalPayments: PortalPayment[] = [
     date: '2026-08-08',
     paymentMethod: 'Bank',
     reference: 'PAY/2026/0088',
+    partnerName: 'Mr Rahul',
+    note: 'Customer advance for Walnut Coffee Table',
+    status: 'Confirm',
   },
   {
-    id: 'pay_002',
+    id: 'pay_004',
     documentId: 'bill_202',
     documentNumber: 'BILL/2026/0012',
     documentType: 'bill',
@@ -98,6 +127,9 @@ let mockPortalPayments: PortalPayment[] = [
     date: '2026-07-01',
     paymentMethod: 'Cash',
     reference: 'PAY/2026/0052',
+    partnerName: 'Acme Hardware Inc',
+    note: 'Cash settlement at counter for Hardware Kit',
+    status: 'Confirm',
   },
 ];
 
@@ -171,6 +203,9 @@ export const processPortalPayment = (params: {
     date: params.date,
     paymentMethod: params.paymentMethod,
     reference: params.reference || `PAY/2026/${Math.floor(1000 + Math.random() * 9000)}`,
+    partnerName: doc.partnerName || 'Mr Rahul',
+    note: params.reference || `Self-Service Portal settlement for ${doc.number}`,
+    status: 'Confirm',
   };
 
   mockPortalPayments.unshift(newPayment);
@@ -181,4 +216,13 @@ export const processPortalPayment = (params: {
     document: doc,
     updatedDocument: doc,
   };
+};
+
+export const updatePortalPaymentStatus = (paymentId: string, status: 'Draft' | 'Confirm' | 'Cancelled'): boolean => {
+  const p = mockPortalPayments.find((pay) => pay.id === paymentId);
+  if (p) {
+    p.status = status;
+    return true;
+  }
+  return false;
 };
