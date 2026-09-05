@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, CreditCard, Receipt, FileText } from 'lucide-react';
 import { StatusBadge } from '../../../components/ui/StatusBadge';
 import { CustomSelect } from '../../../components/ui/CustomSelect';
@@ -22,8 +22,14 @@ export const PortalDocumentListPage: React.FC<PortalDocumentListPageProps> = ({
   const [statusFilter, setStatusFilter] = useState<'ALL' | UserDocumentStatus>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [dateFilter, setDateFilter] = useState<string>('');
+  const [allDocs, setAllDocs] = useState(() => getMyScopedDocuments(documentType));
 
-  const allDocs = getMyScopedDocuments(documentType);
+  useEffect(() => {
+    const reload = () => setAllDocs(getMyScopedDocuments(documentType));
+    reload();
+    window.addEventListener('portal:payment', reload);
+    return () => window.removeEventListener('portal:payment', reload);
+  }, [documentType, currentUser?.partnerType]);
 
   const filteredDocs = allDocs.filter((doc) => {
     const matchesStatus = statusFilter === 'ALL' || doc.status === statusFilter;

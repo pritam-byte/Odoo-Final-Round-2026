@@ -10,151 +10,146 @@ import { apiRequest } from '../../lib/apiClient';
 
 export type { PortalDocument, DocumentLineItem, PortalPayment, DocumentType, UserDocumentStatus };
 
-let mockPortalDocuments: PortalDocument[] = [
-  {
-    id: 'inv_101',
-    number: 'INV/2026/0001',
-    type: 'invoice',
-    partnerId: 'partner_john_doe',
-    partnerName: 'John Doe (Customer)',
-    date: '2026-08-15',
-    dueDate: '2026-09-15',
-    total: 1250.0,
-    amountPaid: 0.0,
-    amountDue: 1250.0,
-    status: 'Unpaid',
-    lines: [
-      { id: 'l1', product: 'Oak Wood Executive Desk', quantity: 1, unitPrice: 850.0, total: 850.0 },
-      { id: 'l2', product: 'Ergonomic Mesh Chair', quantity: 2, unitPrice: 200.0, total: 400.0 },
-    ],
-  },
-  {
-    id: 'inv_102',
-    number: 'INV/2026/0002',
-    type: 'invoice',
-    partnerId: 'partner_john_doe',
-    partnerName: 'John Doe (Customer)',
-    date: '2026-07-10',
-    dueDate: '2026-08-10',
-    total: 450.0,
-    amountPaid: 450.0,
-    amountDue: 0.0,
-    status: 'Paid',
-    lines: [
-      { id: 'l3', product: 'Solid Walnut Coffee Table', quantity: 1, unitPrice: 450.0, total: 450.0 },
-    ],
-  },
-  {
-    id: 'bill_201',
-    number: 'BILL/2026/0045',
-    type: 'bill',
-    partnerId: 'partner_john_doe',
-    partnerName: 'Urban Timbers & Supplies Ltd (Vendor)',
-    date: '2026-08-20',
-    dueDate: '2026-09-20',
-    total: 620.0,
-    amountPaid: 0.0,
-    amountDue: 620.0,
-    status: 'Unpaid',
-    lines: [
-      { id: 'l4', product: 'Raw Timber Plank Lot (Grade A Teak)', quantity: 10, unitPrice: 62.0, total: 620.0 },
-    ],
-  },
-  {
-    id: 'bill_202',
-    number: 'BILL/2026/0012',
-    type: 'bill',
-    partnerId: 'partner_john_doe',
-    partnerName: 'Urban Timbers & Supplies Ltd (Vendor)',
-    date: '2026-06-05',
-    dueDate: '2026-07-05',
-    total: 980.0,
-    amountPaid: 980.0,
-    amountDue: 0.0,
-    status: 'Paid',
-    lines: [
-      { id: 'l5', product: 'Metal Furniture Hardware Kit (Pack of 20)', quantity: 20, unitPrice: 49.0, total: 980.0 },
-    ],
-  },
-];
+// Helper to get active contacts from store/localStorage
+function getStoredContacts(): any[] {
+  try {
+    const s = localStorage.getItem('odoo_contacts');
+    return s ? JSON.parse(s) : [];
+  } catch {
+    return [];
+  }
+}
 
-let mockPortalPayments: PortalPayment[] = [
-  {
-    id: 'pay_001',
-    documentId: 'inv_101',
-    documentNumber: 'INV/2026/0001',
-    documentType: 'invoice',
-    amount: 1250.0,
-    date: '2026-09-05',
-    paymentMethod: 'Bank',
-    reference: 'PAY/2026/3439',
-    partnerName: 'John Doe (Customer)',
-    note: 'Self-Service customer settlement for Executive Desk & Mesh Chair',
-    status: 'Confirm',
-  },
-  {
-    id: 'pay_002',
-    documentId: 'bill_201',
-    documentNumber: 'BILL/2026/0045',
-    documentType: 'bill',
-    amount: 620.0,
-    date: '2026-09-05',
-    paymentMethod: 'Bank',
-    reference: 'PAY/2026/7437',
-    partnerName: 'Urban Timbers & Supplies Ltd',
-    note: 'Supplier invoice payout voucher for Raw Timber Lot',
-    status: 'Confirm',
-  },
-  {
-    id: 'pay_003',
-    documentId: 'inv_102',
-    documentNumber: 'INV/2026/0002',
-    documentType: 'invoice',
-    amount: 450.0,
-    date: '2026-08-08',
-    paymentMethod: 'Bank',
-    reference: 'PAY/2026/0088',
-    partnerName: 'John Doe (Customer)',
-    note: 'Customer advance for Walnut Coffee Table',
-    status: 'Confirm',
-  },
-  {
-    id: 'pay_004',
-    documentId: 'bill_202',
-    documentNumber: 'BILL/2026/0012',
-    documentType: 'bill',
-    amount: 980.0,
-    date: '2026-07-01',
-    paymentMethod: 'Cash',
-    reference: 'PAY/2026/0052',
-    partnerName: 'Urban Timbers & Supplies Ltd',
-    note: 'Cash settlement at counter for Hardware Kit',
-    status: 'Confirm',
-  },
-];
+// Helper to get active invoices from store/localStorage
+function getStoredInvoices(): any[] {
+  try {
+    const s = localStorage.getItem('odoo_invoices');
+    return s ? JSON.parse(s) : [];
+  } catch {
+    return [];
+  }
+}
+
+// Helper to get active bills from store/localStorage
+function getStoredBills(): any[] {
+  try {
+    const s = localStorage.getItem('odoo_bills');
+    return s ? JSON.parse(s) : [];
+  } catch {
+    return [];
+  }
+}
+
+// Helper to get active payments from store/localStorage
+function getStoredPayments(): any[] {
+  try {
+    const s = localStorage.getItem('odoo_payments');
+    return s ? JSON.parse(s) : [];
+  } catch {
+    return [];
+  }
+}
 
 export const getMyScopedDocuments = (documentType?: DocumentType): PortalDocument[] => {
   const current = getStoredUser();
   const partnerType = current?.partnerType || 'Both';
   const currentPartnerId = getScopedPartnerId();
+  const contacts = getStoredContacts();
+  const invoices = getStoredInvoices();
+  const bills = getStoredBills();
 
-  let docs = mockPortalDocuments.filter(
-    (doc) => doc.partnerId === currentPartnerId || !doc.partnerId || doc.partnerId === 'partner_john_doe'
+  // Find linked contact for current user
+  const matchedContact = contacts.find(
+    (c) =>
+      c.id === currentPartnerId ||
+      (current?.email && c.email?.toLowerCase() === current.email.toLowerCase()) ||
+      (current?.name && c.name?.toLowerCase().includes(current.name.toLowerCase()))
   );
+
+  const effectivePartnerId = matchedContact?.id || currentPartnerId || 'c3';
+  const effectivePartnerName = matchedContact?.name || current?.name || 'Valued Partner';
+
+  const docs: PortalDocument[] = [];
+
+  // Map Customer Invoices
+  invoices.forEach((inv) => {
+    const isOwner =
+      inv.partnerId === effectivePartnerId ||
+      inv.partnerName?.toLowerCase() === effectivePartnerName.toLowerCase() ||
+      current?.role === 'Admin' ||
+      current?.role === 'Accountant';
+
+    if (isOwner) {
+      docs.push({
+        id: inv.id,
+        number: inv.invoiceNumber,
+        type: 'invoice',
+        partnerId: inv.partnerId,
+        partnerName: inv.partnerName || effectivePartnerName,
+        date: inv.date,
+        dueDate: inv.dueDate,
+        total: inv.total,
+        amountPaid: inv.amountPaid,
+        amountDue: inv.amountDue,
+        status: inv.amountDue <= 0.01 ? 'Paid' : 'Unpaid',
+        lines: (inv.lines || []).map((l: any, idx: number) => ({
+          id: l.id || `l_${idx}`,
+          product: l.productName || 'Furniture Item',
+          quantity: l.quantity || 1,
+          unitPrice: l.unitPrice || 0,
+          total: l.total || (l.quantity || 1) * (l.unitPrice || 0),
+        })),
+      });
+    }
+  });
+
+  // Map Vendor Bills
+  bills.forEach((bill) => {
+    const isOwner =
+      bill.partnerId === effectivePartnerId ||
+      bill.partnerName?.toLowerCase() === effectivePartnerName.toLowerCase() ||
+      current?.role === 'Admin' ||
+      current?.role === 'Accountant';
+
+    if (isOwner) {
+      docs.push({
+        id: bill.id,
+        number: bill.billNumber,
+        type: 'bill',
+        partnerId: bill.partnerId,
+        partnerName: bill.partnerName || effectivePartnerName,
+        date: bill.date,
+        dueDate: bill.dueDate,
+        total: bill.total,
+        amountPaid: bill.amountPaid,
+        amountDue: bill.amountDue,
+        status: bill.amountDue <= 0.01 ? 'Paid' : 'Unpaid',
+        lines: (bill.lines || []).map((l: any, idx: number) => ({
+          id: l.id || `l_${idx}`,
+          product: l.productName || 'Supply / Hardware Item',
+          quantity: l.quantity || 1,
+          unitPrice: l.unitPrice || 0,
+          total: l.total || (l.quantity || 1) * (l.unitPrice || 0),
+        })),
+      });
+    }
+  });
+
+  let filtered = docs;
 
   // Strict persona isolation
   if (partnerType === 'Customer') {
-    docs = docs.filter((d) => d.type === 'invoice');
+    filtered = filtered.filter((d) => d.type === 'invoice');
   } else if (partnerType === 'Vendor') {
-    docs = docs.filter((d) => d.type === 'bill');
+    filtered = filtered.filter((d) => d.type === 'bill');
   }
 
   // Filter by documentType parameter if requested
   if (documentType) {
-    docs = docs.filter((d) => d.type === documentType);
+    filtered = filtered.filter((d) => d.type === documentType);
   }
 
-  return docs;
+  return filtered;
 };
 
 export const getMyScopedDocumentById = (id: string): PortalDocument | null => {
@@ -165,17 +160,50 @@ export const getMyScopedDocumentById = (id: string): PortalDocument | null => {
 export const getMyPayments = (): PortalPayment[] => {
   const current = getStoredUser();
   const partnerType = current?.partnerType || 'Both';
+  const currentPartnerId = getScopedPartnerId();
+  const contacts = getStoredContacts();
+  const payments = getStoredPayments();
 
-  let payments = [...mockPortalPayments];
+  const matchedContact = contacts.find(
+    (c) =>
+      c.id === currentPartnerId ||
+      (current?.email && c.email?.toLowerCase() === current.email.toLowerCase()) ||
+      (current?.name && c.name?.toLowerCase().includes(current.name.toLowerCase()))
+  );
 
-  // Strict persona isolation
+  const effectivePartnerId = matchedContact?.id || currentPartnerId;
+  const effectivePartnerName = matchedContact?.name || current?.name;
+
+  const mapped: PortalPayment[] = payments
+    .filter((p) => {
+      if (current?.role === 'Admin' || current?.role === 'Accountant') return true;
+      return (
+        p.partnerId === effectivePartnerId ||
+        (effectivePartnerName && p.partnerName?.toLowerCase().includes(effectivePartnerName.toLowerCase()))
+      );
+    })
+    .map((p) => ({
+      id: p.id,
+      documentId: p.sourceDocId || '',
+      documentNumber: p.reference || 'PAYMENT',
+      documentType: p.sourceDocType === 'Bill' ? 'bill' : 'invoice',
+      amount: p.amount,
+      date: p.date,
+      paymentMethod: p.paymentVia || 'Bank',
+      reference: p.reference || `PAY/${p.id.substring(0, 8)}`,
+      partnerName: p.partnerName || effectivePartnerName || 'Partner',
+      note: p.reference || 'Settlement Transaction Voucher',
+      status: 'Confirm',
+    }));
+
+  let result = mapped;
   if (partnerType === 'Customer') {
-    payments = payments.filter((p) => p.documentType === 'invoice');
+    result = result.filter((p) => p.documentType === 'invoice');
   } else if (partnerType === 'Vendor') {
-    payments = payments.filter((p) => p.documentType === 'bill');
+    result = result.filter((p) => p.documentType === 'bill');
   }
 
-  return payments;
+  return result;
 };
 
 export const processPortalPayment = (params: {
@@ -185,7 +213,8 @@ export const processPortalPayment = (params: {
   paymentMethod: 'Bank' | 'Cash';
   reference?: string;
 }): { success: boolean; message: string; document?: PortalDocument; updatedDocument?: PortalDocument } => {
-  const doc = mockPortalDocuments.find((d) => d.id === params.documentId);
+  const docs = getMyScopedDocuments();
+  const doc = docs.find((d) => d.id === params.documentId);
   if (!doc) {
     return { success: false, message: 'Document not found for payment.' };
   }
@@ -198,7 +227,7 @@ export const processPortalPayment = (params: {
     return { success: false, message: `Amount exceeds current dues of ₹${doc.amountDue.toFixed(2)}.` };
   }
 
-  // Attempt async live backend payment submission in the background
+  // Live backend payment submission
   apiRequest('/payments', {
     method: 'POST',
     body: JSON.stringify({
@@ -210,35 +239,68 @@ export const processPortalPayment = (params: {
       customerInvoiceId: doc.type === 'invoice' ? doc.id : undefined,
       vendorBillId: doc.type === 'bill' ? doc.id : undefined,
     }),
-  }).catch((e) => console.warn('Backend payment background sync skipped', e));
+  }).catch((e) => console.warn('Backend payment sync error:', e));
 
-  // Update local document balance
-  doc.amountPaid += params.amount;
-  doc.amountDue = Math.max(0, doc.total - doc.amountPaid);
-  if (doc.amountDue === 0) {
-    doc.status = 'Paid';
+  // Update local invoices or bills
+  if (doc.type === 'invoice') {
+    const invoices = getStoredInvoices();
+    const updatedInvoices = invoices.map((inv) => {
+      if (inv.id === doc.id) {
+        const newPaid = (inv.amountPaid || 0) + params.amount;
+        const newDue = Math.max(0, inv.total - newPaid);
+        return {
+          ...inv,
+          amountPaid: newPaid,
+          amountDue: newDue,
+          status: newDue <= 0.01 ? 'Paid' : 'Confirmed',
+        };
+      }
+      return inv;
+    });
+    localStorage.setItem('odoo_invoices', JSON.stringify(updatedInvoices));
+  } else {
+    const bills = getStoredBills();
+    const updatedBills = bills.map((b) => {
+      if (b.id === doc.id) {
+        const newPaid = (b.amountPaid || 0) + params.amount;
+        const newDue = Math.max(0, b.total - newPaid);
+        return {
+          ...b,
+          amountPaid: newPaid,
+          amountDue: newDue,
+          status: newDue <= 0.01 ? 'Paid' : 'Confirmed',
+        };
+      }
+      return b;
+    });
+    localStorage.setItem('odoo_bills', JSON.stringify(updatedBills));
   }
 
-  const currentUser = getStoredUser();
-  const effectivePartner = doc.type === 'invoice' 
-    ? (currentUser?.name ? `${currentUser.name} (Customer)` : 'John Doe (Customer)')
-    : (doc.partnerName || 'Urban Timbers & Supplies Ltd');
-
-  const newPayment: PortalPayment = {
+  // Create payment record in stored payments
+  const payments = getStoredPayments();
+  const newPayment = {
     id: `pay_${Date.now()}`,
-    documentId: doc.id,
-    documentNumber: doc.number,
-    documentType: doc.type,
-    amount: params.amount,
+    type: doc.type === 'invoice' ? 'Receive' : 'Send',
     date: params.date,
-    paymentMethod: params.paymentMethod,
-    reference: params.reference || `PAY/2026/${Math.floor(1000 + Math.random() * 9000)}`,
-    partnerName: effectivePartner,
-    note: params.reference || `Self-Service Portal settlement for ${doc.number}`,
-    status: 'Confirm',
+    partnerId: doc.partnerId,
+    partnerName: doc.partnerName,
+    paymentVia: params.paymentMethod,
+    amount: params.amount,
+    sourceDocType: doc.type === 'invoice' ? 'Invoice' : 'Bill',
+    sourceDocId: doc.id,
+    reference: params.reference || `PAY/${new Date().getFullYear()}/${Math.floor(1000 + Math.random() * 9000)}`,
   };
+  payments.unshift(newPayment);
+  localStorage.setItem('odoo_payments', JSON.stringify(payments));
 
-  mockPortalPayments.unshift(newPayment);
+  // Trigger custom event so reactive components re-render immediately
+  window.dispatchEvent(new Event('portal:payment'));
+
+  doc.amountPaid += params.amount;
+  doc.amountDue = Math.max(0, doc.total - doc.amountPaid);
+  if (doc.amountDue <= 0.01) {
+    doc.status = 'Paid';
+  }
 
   return {
     success: true,
@@ -249,9 +311,12 @@ export const processPortalPayment = (params: {
 };
 
 export const updatePortalPaymentStatus = (paymentId: string, status: 'Draft' | 'Confirm' | 'Cancelled'): boolean => {
-  const p = mockPortalPayments.find((pay) => pay.id === paymentId);
+  const payments = getStoredPayments();
+  const p = payments.find((pay) => pay.id === paymentId);
   if (p) {
     p.status = status;
+    localStorage.setItem('odoo_payments', JSON.stringify(payments));
+    window.dispatchEvent(new Event('portal:payment'));
     return true;
   }
   return false;

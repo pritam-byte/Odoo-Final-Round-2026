@@ -18,9 +18,12 @@ export const PortalPaymentHistoryPage: React.FC = () => {
   const [dateFilter, setDateFilter] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Reload payments whenever user changes or updates
+  // Reload payments whenever user changes or updates or payment event fires
   useEffect(() => {
-    setPayments(getMyPayments());
+    const reload = () => setPayments(getMyPayments());
+    reload();
+    window.addEventListener('portal:payment', reload);
+    return () => window.removeEventListener('portal:payment', reload);
   }, [currentUser?.partnerType]);
 
   // Auto-open modal if URL has ref query parameter

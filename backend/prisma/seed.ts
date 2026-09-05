@@ -629,16 +629,16 @@ async function main() {
     });
   }
 
-  // PO-00003: Draft PO
+  // PO-00003: Confirmed PO -> Confirmed Bill -> Unpaid / Due (Nordic Timber Suppliers)
   const po3Exists = await prisma.purchaseOrder.findUnique({ where: { poNo: "P00003" } });
   if (!po3Exists) {
-    await prisma.purchaseOrder.create({
+    const po3 = await prisma.purchaseOrder.create({
       data: {
         poNo: "P00003",
         vendorId: contactsMap["Nordic Timber Suppliers"].id,
-        poDate: new Date("2026-09-01"),
-        paymentTerms: "Net 45 Days",
-        status: OrderStatus.DRAFT,
+        poDate: new Date("2026-08-25"),
+        paymentTerms: "Net 15 Days",
+        status: OrderStatus.CONFIRMED,
         totalAmount: new Prisma.Decimal(45000),
         lines: {
           create: [
@@ -653,6 +653,240 @@ async function main() {
         },
       },
     });
+
+    const jeBill3 = await prisma.journalEntry.create({
+      data: {
+        entryNo: "JE/2026/0008",
+        journalId: journalsMap["Purchase"].id,
+        reference: "Bill/2026/0003",
+        status: JournalEntryStatus.POSTED,
+        totalDebit: new Prisma.Decimal(45000),
+        totalCredit: new Prisma.Decimal(45000),
+        items: {
+          create: [
+            {
+              accountId: accountsMap["Purchase Expense"].id,
+              partnerId: contactsMap["Nordic Timber Suppliers"].id,
+              debit: new Prisma.Decimal(45000),
+              credit: new Prisma.Decimal(0),
+            },
+            {
+              accountId: accountsMap["Creditors"].id,
+              partnerId: contactsMap["Nordic Timber Suppliers"].id,
+              debit: new Prisma.Decimal(0),
+              credit: new Prisma.Decimal(45000),
+            },
+          ],
+        },
+      },
+    });
+
+    await prisma.vendorBill.create({
+      data: {
+        billNo: "Bill/2026/0003",
+        billReference: "NTS-2026-990",
+        vendorId: contactsMap["Nordic Timber Suppliers"].id,
+        purchaseOrderId: po3.id,
+        billDate: new Date("2026-08-26"),
+        dueDate: new Date("2026-09-10"),
+        totalAmount: new Prisma.Decimal(45000),
+        amountDue: new Prisma.Decimal(45000),
+        status: InvoiceBillStatus.CONFIRMED,
+        paymentState: PaymentState.NOT_PAID,
+        journalEntryId: jeBill3.id,
+        lines: {
+          create: [
+            {
+              productId: productsMap["Raw Timber Plank Lot (Grade A)"].id,
+              accountId: accountsMap["Purchase Expense"].id,
+              analyticId: analyticsMap["Raw Material Sourcing & Procurement"].id,
+              qty: 10,
+              unitPrice: new Prisma.Decimal(4500),
+              subtotal: new Prisma.Decimal(45000),
+            },
+          ],
+        },
+      },
+    });
+  }
+
+  // PO-00004: Confirmed PO -> Bill 4 (Open Wood Corp) -> Partially Paid (₹20,000 paid, ₹28,000 due)
+  const po4Exists = await prisma.purchaseOrder.findUnique({ where: { poNo: "P00004" } });
+  if (!po4Exists) {
+    const po4 = await prisma.purchaseOrder.create({
+      data: {
+        poNo: "P00004",
+        vendorId: contactsMap["Open Wood Corp"].id,
+        poDate: new Date("2026-08-28"),
+        paymentTerms: "Net 30 Days",
+        status: OrderStatus.CONFIRMED,
+        totalAmount: new Prisma.Decimal(48000),
+        lines: {
+          create: [
+            {
+              productId: productsMap["Scandinavian 5-Tier Bookshelf"].id,
+              analyticId: analyticsMap["Raw Material Sourcing & Procurement"].id,
+              qty: 4,
+              unitPrice: new Prisma.Decimal(12000),
+              subtotal: new Prisma.Decimal(48000),
+            },
+          ],
+        },
+      },
+    });
+
+    const jeBill4 = await prisma.journalEntry.create({
+      data: {
+        entryNo: "JE/2026/0009",
+        journalId: journalsMap["Purchase"].id,
+        reference: "Bill/2026/0004",
+        status: JournalEntryStatus.POSTED,
+        totalDebit: new Prisma.Decimal(48000),
+        totalCredit: new Prisma.Decimal(48000),
+        items: {
+          create: [
+            {
+              accountId: accountsMap["Purchase Expense"].id,
+              partnerId: contactsMap["Open Wood Corp"].id,
+              debit: new Prisma.Decimal(48000),
+              credit: new Prisma.Decimal(0),
+            },
+            {
+              accountId: accountsMap["Creditors"].id,
+              partnerId: contactsMap["Open Wood Corp"].id,
+              debit: new Prisma.Decimal(0),
+              credit: new Prisma.Decimal(48000),
+            },
+          ],
+        },
+      },
+    });
+
+    const bill4 = await prisma.vendorBill.create({
+      data: {
+        billNo: "Bill/2026/0004",
+        billReference: "OWC-INV-9022",
+        vendorId: contactsMap["Open Wood Corp"].id,
+        purchaseOrderId: po4.id,
+        billDate: new Date("2026-08-29"),
+        dueDate: new Date("2026-09-28"),
+        totalAmount: new Prisma.Decimal(48000),
+        amountDue: new Prisma.Decimal(28000),
+        status: InvoiceBillStatus.CONFIRMED,
+        paymentState: PaymentState.PARTIAL,
+        journalEntryId: jeBill4.id,
+        lines: {
+          create: [
+            {
+              productId: productsMap["Scandinavian 5-Tier Bookshelf"].id,
+              accountId: accountsMap["Purchase Expense"].id,
+              analyticId: analyticsMap["Raw Material Sourcing & Procurement"].id,
+              qty: 4,
+              unitPrice: new Prisma.Decimal(12000),
+              subtotal: new Prisma.Decimal(48000),
+            },
+          ],
+        },
+      },
+    });
+
+    const jePay4 = await prisma.journalEntry.create({
+      data: {
+        entryNo: "JE/2026/0010",
+        journalId: journalsMap["Bank"].id,
+        reference: "PAY/OWC/0002",
+        status: JournalEntryStatus.POSTED,
+        totalDebit: new Prisma.Decimal(20000),
+        totalCredit: new Prisma.Decimal(20000),
+        items: {
+          create: [
+            {
+              accountId: accountsMap["Creditors"].id,
+              partnerId: contactsMap["Open Wood Corp"].id,
+              debit: new Prisma.Decimal(20000),
+              credit: new Prisma.Decimal(0),
+            },
+            {
+              accountId: accountsMap["Bank"].id,
+              partnerId: contactsMap["Open Wood Corp"].id,
+              debit: new Prisma.Decimal(0),
+              credit: new Prisma.Decimal(20000),
+            },
+          ],
+        },
+      },
+    });
+
+    await prisma.payment.create({
+      data: {
+        paymentType: PaymentType.SEND,
+        partnerId: contactsMap["Open Wood Corp"].id,
+        amount: new Prisma.Decimal(20000),
+        date: new Date("2026-09-02"),
+        paymentVia: PaymentMethod.BANK,
+        note: "Partial advance settlement for Bill/2026/0004",
+        vendorBillId: bill4.id,
+        journalEntryId: jePay4.id,
+      },
+    });
+  }
+
+  // Bill 5: Deco Addict Studio (Vendor side) -> Unpaid (₹24,000 due)
+  const bill5Exists = await prisma.vendorBill.findUnique({ where: { billNo: "Bill/2026/0005" } });
+  if (!bill5Exists) {
+    const jeBill5 = await prisma.journalEntry.create({
+      data: {
+        entryNo: "JE/2026/0011",
+        journalId: journalsMap["Purchase"].id,
+        reference: "Bill/2026/0005",
+        status: JournalEntryStatus.POSTED,
+        totalDebit: new Prisma.Decimal(24000),
+        totalCredit: new Prisma.Decimal(24000),
+        items: {
+          create: [
+            {
+              accountId: accountsMap["Purchase Expense"].id,
+              partnerId: contactsMap["Deco Addict Studio"].id,
+              debit: new Prisma.Decimal(24000),
+              credit: new Prisma.Decimal(0),
+            },
+            {
+              accountId: accountsMap["Creditors"].id,
+              partnerId: contactsMap["Deco Addict Studio"].id,
+              debit: new Prisma.Decimal(0),
+              credit: new Prisma.Decimal(24000),
+            },
+          ],
+        },
+      },
+    });
+
+    await prisma.vendorBill.create({
+      data: {
+        billNo: "Bill/2026/0005",
+        billReference: "DAS-SUP-410",
+        vendorId: contactsMap["Deco Addict Studio"].id,
+        billDate: new Date("2026-08-30"),
+        dueDate: new Date("2026-09-15"),
+        totalAmount: new Prisma.Decimal(24000),
+        amountDue: new Prisma.Decimal(24000),
+        status: InvoiceBillStatus.CONFIRMED,
+        paymentState: PaymentState.NOT_PAID,
+        journalEntryId: jeBill5.id,
+        lines: {
+          create: [
+            {
+              productId: productsMap["Interior Architecture Consultation"].id,
+              accountId: accountsMap["Purchase Expense"].id,
+              analyticId: analyticsMap["Marketing & Brand Advertising"].id,
+              qty: 2,
+              unitPrice: new Prisma.Decimal(12000),
+              subtotal: new Prisma.Decimal(24000),
+            },
+          ],
+        },
+      },
+    });
   }
 
   // =========================================================================
@@ -660,7 +894,7 @@ async function main() {
   // =========================================================================
   console.log("🏷️ Seeding Sales Orders, Customer Invoices & Ledger Entries...");
 
-  // SO-00001: Confirmed SO -> Confirmed Invoice -> Fully Paid
+  // SO-00001: Confirmed SO -> Confirmed Invoice -> Fully Paid (Joey Wills & Co)
   const so1Exists = await prisma.salesOrder.findUnique({ where: { soNo: "S00001" } });
   if (!so1Exists) {
     const so1 = await prisma.salesOrder.create({
@@ -793,7 +1027,7 @@ async function main() {
     });
   }
 
-  // SO-00002: Customer John Doe (Customer Portal Demo) -> Confirmed Invoice -> Unpaid
+  // SO-00002: Customer John Doe -> Confirmed Invoice -> Unpaid Due (₹67,000)
   const so2Exists = await prisma.salesOrder.findUnique({ where: { soNo: "S00002" } });
   if (!so2Exists) {
     const so2 = await prisma.salesOrder.create({
@@ -877,7 +1111,7 @@ async function main() {
               accountId: accountsMap["Sales Income"].id,
               analyticId: analyticsMap["Residential & Living Room Sales"].id,
               qty: 1,
-              unitPrice: new Prisma.Decimal(4500),
+              unitPrice: new Prisma.Decimal(45000),
               subtotal: new Prisma.Decimal(45000),
             },
           ],
@@ -886,26 +1120,460 @@ async function main() {
     });
   }
 
-  // SO-00003: Draft Quotation for Nexus Tech Parks
-  const so3Exists = await prisma.salesOrder.findUnique({ where: { soNo: "S00003" } });
-  if (!so3Exists) {
-    await prisma.salesOrder.create({
+  // INV/2026/0003: Nexus Tech Parks -> Confirmed Invoice -> Overdue (₹192,000 due, Due: 2026-08-30)
+  const inv3Exists = await prisma.customerInvoice.findUnique({ where: { invoiceNo: "INV/2026/0003" } });
+  if (!inv3Exists) {
+    const jeInv3 = await prisma.journalEntry.create({
       data: {
-        soNo: "S00003",
+        entryNo: "JE/2026/0012",
+        journalId: journalsMap["Sales"].id,
+        reference: "INV/2026/0003",
+        status: JournalEntryStatus.POSTED,
+        totalDebit: new Prisma.Decimal(192000),
+        totalCredit: new Prisma.Decimal(192000),
+        items: {
+          create: [
+            {
+              accountId: accountsMap["Debtors"].id,
+              partnerId: contactsMap["Nexus Tech Parks"].id,
+              debit: new Prisma.Decimal(192000),
+              credit: new Prisma.Decimal(0),
+            },
+            {
+              accountId: accountsMap["Sales Income"].id,
+              partnerId: contactsMap["Nexus Tech Parks"].id,
+              debit: new Prisma.Decimal(0),
+              credit: new Prisma.Decimal(192000),
+            },
+          ],
+        },
+      },
+    });
+
+    await prisma.customerInvoice.create({
+      data: {
+        invoiceNo: "INV/2026/0003",
+        reference: "NTP-BULK-2026",
         customerId: contactsMap["Nexus Tech Parks"].id,
-        soDate: new Date("2026-09-02"),
-        status: OrderStatus.DRAFT,
+        invoiceDate: new Date("2026-08-10"),
+        dueDate: new Date("2026-08-30"),
         totalAmount: new Prisma.Decimal(192000),
+        amountDue: new Prisma.Decimal(192000),
+        status: InvoiceBillStatus.CONFIRMED,
+        paymentState: PaymentState.NOT_PAID,
+        journalEntryId: jeInv3.id,
         lines: {
           create: [
             {
               productId: productsMap["Full Executive Office Suite Combo"].id,
+              accountId: accountsMap["Sales Income"].id,
+              analyticId: analyticsMap["Enterprise Corporate Sales"].id,
               qty: 4,
               unitPrice: new Prisma.Decimal(48000),
               subtotal: new Prisma.Decimal(192000),
             },
           ],
         },
+      },
+    });
+  }
+
+  // INV/2026/0004: Joey Wills & Co -> Partial (₹56,000 total, ₹30,000 paid, ₹26,000 due)
+  const inv4Exists = await prisma.customerInvoice.findUnique({ where: { invoiceNo: "INV/2026/0004" } });
+  if (!inv4Exists) {
+    const jeInv4 = await prisma.journalEntry.create({
+      data: {
+        entryNo: "JE/2026/0013",
+        journalId: journalsMap["Sales"].id,
+        reference: "INV/2026/0004",
+        status: JournalEntryStatus.POSTED,
+        totalDebit: new Prisma.Decimal(56000),
+        totalCredit: new Prisma.Decimal(56000),
+        items: {
+          create: [
+            {
+              accountId: accountsMap["Debtors"].id,
+              partnerId: contactsMap["Joey Wills & Co"].id,
+              debit: new Prisma.Decimal(56000),
+              credit: new Prisma.Decimal(0),
+            },
+            {
+              accountId: accountsMap["Sales Income"].id,
+              partnerId: contactsMap["Joey Wills & Co"].id,
+              debit: new Prisma.Decimal(0),
+              credit: new Prisma.Decimal(56000),
+            },
+          ],
+        },
+      },
+    });
+
+    const inv4 = await prisma.customerInvoice.create({
+      data: {
+        invoiceNo: "INV/2026/0004",
+        reference: "JW-ADDON-99",
+        customerId: contactsMap["Joey Wills & Co"].id,
+        invoiceDate: new Date("2026-08-28"),
+        dueDate: new Date("2026-09-28"),
+        totalAmount: new Prisma.Decimal(56000),
+        amountDue: new Prisma.Decimal(26000),
+        status: InvoiceBillStatus.CONFIRMED,
+        paymentState: PaymentState.PARTIAL,
+        journalEntryId: jeInv4.id,
+        lines: {
+          create: [
+            {
+              productId: productsMap["Executive Solid Oak Desk"].id,
+              accountId: accountsMap["Sales Income"].id,
+              analyticId: analyticsMap["Enterprise Corporate Sales"].id,
+              qty: 2,
+              unitPrice: new Prisma.Decimal(28000),
+              subtotal: new Prisma.Decimal(56000),
+            },
+          ],
+        },
+      },
+    });
+
+    const jePay4 = await prisma.journalEntry.create({
+      data: {
+        entryNo: "JE/2026/0014",
+        journalId: journalsMap["Bank"].id,
+        reference: "PAY/JW/0002",
+        status: JournalEntryStatus.POSTED,
+        totalDebit: new Prisma.Decimal(30000),
+        totalCredit: new Prisma.Decimal(30000),
+        items: {
+          create: [
+            {
+              accountId: accountsMap["Bank"].id,
+              partnerId: contactsMap["Joey Wills & Co"].id,
+              debit: new Prisma.Decimal(30000),
+              credit: new Prisma.Decimal(0),
+            },
+            {
+              accountId: accountsMap["Debtors"].id,
+              partnerId: contactsMap["Joey Wills & Co"].id,
+              debit: new Prisma.Decimal(0),
+              credit: new Prisma.Decimal(30000),
+            },
+          ],
+        },
+      },
+    });
+
+    await prisma.payment.create({
+      data: {
+        paymentType: PaymentType.RECEIVE,
+        partnerId: contactsMap["Joey Wills & Co"].id,
+        amount: new Prisma.Decimal(30000),
+        date: new Date("2026-09-01"),
+        paymentVia: PaymentMethod.BANK,
+        note: "Partial payment for INV/2026/0004",
+        customerInvoiceId: inv4.id,
+        journalEntryId: jePay4.id,
+      },
+    });
+  }
+
+  // INV/2026/0005: John Doe -> Fully Paid (₹38,000)
+  const inv5Exists = await prisma.customerInvoice.findUnique({ where: { invoiceNo: "INV/2026/0005" } });
+  if (!inv5Exists) {
+    const jeInv5 = await prisma.journalEntry.create({
+      data: {
+        entryNo: "JE/2026/0015",
+        journalId: journalsMap["Sales"].id,
+        reference: "INV/2026/0005",
+        status: JournalEntryStatus.POSTED,
+        totalDebit: new Prisma.Decimal(38000),
+        totalCredit: new Prisma.Decimal(38000),
+        items: {
+          create: [
+            {
+              accountId: accountsMap["Debtors"].id,
+              partnerId: contactsMap["John Doe"].id,
+              debit: new Prisma.Decimal(38000),
+              credit: new Prisma.Decimal(0),
+            },
+            {
+              accountId: accountsMap["Sales Income"].id,
+              partnerId: contactsMap["John Doe"].id,
+              debit: new Prisma.Decimal(0),
+              credit: new Prisma.Decimal(38000),
+            },
+          ],
+        },
+      },
+    });
+
+    const inv5 = await prisma.customerInvoice.create({
+      data: {
+        invoiceNo: "INV/2026/0005",
+        reference: "JD-PORTAL-01",
+        customerId: contactsMap["John Doe"].id,
+        invoiceDate: new Date("2026-08-01"),
+        dueDate: new Date("2026-08-15"),
+        totalAmount: new Prisma.Decimal(38000),
+        amountDue: new Prisma.Decimal(0),
+        status: InvoiceBillStatus.CONFIRMED,
+        paymentState: PaymentState.PAID,
+        journalEntryId: jeInv5.id,
+        lines: {
+          create: [
+            {
+              productId: productsMap["Scandinavian 5-Tier Bookshelf"].id,
+              accountId: accountsMap["Sales Income"].id,
+              analyticId: analyticsMap["Residential & Living Room Sales"].id,
+              qty: 2,
+              unitPrice: new Prisma.Decimal(19000),
+              subtotal: new Prisma.Decimal(38000),
+            },
+          ],
+        },
+      },
+    });
+
+    const jePay5 = await prisma.journalEntry.create({
+      data: {
+        entryNo: "JE/2026/0016",
+        journalId: journalsMap["Bank"].id,
+        reference: "PAY/JD/0001",
+        status: JournalEntryStatus.POSTED,
+        totalDebit: new Prisma.Decimal(38000),
+        totalCredit: new Prisma.Decimal(38000),
+        items: {
+          create: [
+            {
+              accountId: accountsMap["Bank"].id,
+              partnerId: contactsMap["John Doe"].id,
+              debit: new Prisma.Decimal(38000),
+              credit: new Prisma.Decimal(0),
+            },
+            {
+              accountId: accountsMap["Debtors"].id,
+              partnerId: contactsMap["John Doe"].id,
+              debit: new Prisma.Decimal(0),
+              credit: new Prisma.Decimal(38000),
+            },
+          ],
+        },
+      },
+    });
+
+    await prisma.payment.create({
+      data: {
+        paymentType: PaymentType.RECEIVE,
+        partnerId: contactsMap["John Doe"].id,
+        amount: new Prisma.Decimal(38000),
+        date: new Date("2026-08-05"),
+        paymentVia: PaymentMethod.BANK,
+        note: "Settled via Net Banking for INV/2026/0005",
+        customerInvoiceId: inv5.id,
+        journalEntryId: jePay5.id,
+      },
+    });
+  }
+
+  // INV/2026/0006: Luxe Living Interiors -> Partial (₹82,000 total, ₹40,000 paid via Cash, ₹42,000 due)
+  const inv6Exists = await prisma.customerInvoice.findUnique({ where: { invoiceNo: "INV/2026/0006" } });
+  if (!inv6Exists) {
+    const jeInv6 = await prisma.journalEntry.create({
+      data: {
+        entryNo: "JE/2026/0017",
+        journalId: journalsMap["Sales"].id,
+        reference: "INV/2026/0006",
+        status: JournalEntryStatus.POSTED,
+        totalDebit: new Prisma.Decimal(82000),
+        totalCredit: new Prisma.Decimal(82000),
+        items: {
+          create: [
+            {
+              accountId: accountsMap["Debtors"].id,
+              partnerId: contactsMap["Luxe Living Interiors"].id,
+              debit: new Prisma.Decimal(82000),
+              credit: new Prisma.Decimal(0),
+            },
+            {
+              accountId: accountsMap["Sales Income"].id,
+              partnerId: contactsMap["Luxe Living Interiors"].id,
+              debit: new Prisma.Decimal(0),
+              credit: new Prisma.Decimal(82000),
+            },
+          ],
+        },
+      },
+    });
+
+    const inv6 = await prisma.customerInvoice.create({
+      data: {
+        invoiceNo: "INV/2026/0006",
+        reference: "LLI-DELHI-004",
+        customerId: contactsMap["Luxe Living Interiors"].id,
+        invoiceDate: new Date("2026-08-25"),
+        dueDate: new Date("2026-09-18"),
+        totalAmount: new Prisma.Decimal(82000),
+        amountDue: new Prisma.Decimal(42000),
+        status: InvoiceBillStatus.CONFIRMED,
+        paymentState: PaymentState.PARTIAL,
+        journalEntryId: jeInv6.id,
+        lines: {
+          create: [
+            {
+              productId: productsMap["Solid Walnut Coffee Table"].id,
+              accountId: accountsMap["Sales Income"].id,
+              analyticId: analyticsMap["Residential & Living Room Sales"].id,
+              qty: 2,
+              unitPrice: new Prisma.Decimal(22000),
+              subtotal: new Prisma.Decimal(44000),
+            },
+            {
+              productId: productsMap["Scandinavian 5-Tier Bookshelf"].id,
+              accountId: accountsMap["Sales Income"].id,
+              analyticId: analyticsMap["Residential & Living Room Sales"].id,
+              qty: 2,
+              unitPrice: new Prisma.Decimal(19000),
+              subtotal: new Prisma.Decimal(38000),
+            },
+          ],
+        },
+      },
+    });
+
+    const jePay6 = await prisma.journalEntry.create({
+      data: {
+        entryNo: "JE/2026/0018",
+        journalId: journalsMap["Cash"].id,
+        reference: "PAY/LLI/0001",
+        status: JournalEntryStatus.POSTED,
+        totalDebit: new Prisma.Decimal(40000),
+        totalCredit: new Prisma.Decimal(40000),
+        items: {
+          create: [
+            {
+              accountId: accountsMap["Cash"].id,
+              partnerId: contactsMap["Luxe Living Interiors"].id,
+              debit: new Prisma.Decimal(40000),
+              credit: new Prisma.Decimal(0),
+            },
+            {
+              accountId: accountsMap["Debtors"].id,
+              partnerId: contactsMap["Luxe Living Interiors"].id,
+              debit: new Prisma.Decimal(0),
+              credit: new Prisma.Decimal(40000),
+            },
+          ],
+        },
+      },
+    });
+
+    await prisma.payment.create({
+      data: {
+        paymentType: PaymentType.RECEIVE,
+        partnerId: contactsMap["Luxe Living Interiors"].id,
+        amount: new Prisma.Decimal(40000),
+        date: new Date("2026-08-27"),
+        paymentVia: PaymentMethod.CASH,
+        note: "Cash payment at showroom counter for INV/2026/0006",
+        customerInvoiceId: inv6.id,
+        journalEntryId: jePay6.id,
+      },
+    });
+  }
+
+  // INV/2026/0007: Deco Addict Studio (Customer side) -> Fully Paid (₹48,000)
+  const inv7Exists = await prisma.customerInvoice.findUnique({ where: { invoiceNo: "INV/2026/0007" } });
+  if (!inv7Exists) {
+    const jeInv7 = await prisma.journalEntry.create({
+      data: {
+        entryNo: "JE/2026/0019",
+        journalId: journalsMap["Sales"].id,
+        reference: "INV/2026/0007",
+        status: JournalEntryStatus.POSTED,
+        totalDebit: new Prisma.Decimal(48000),
+        totalCredit: new Prisma.Decimal(48000),
+        items: {
+          create: [
+            {
+              accountId: accountsMap["Debtors"].id,
+              partnerId: contactsMap["Deco Addict Studio"].id,
+              debit: new Prisma.Decimal(48000),
+              credit: new Prisma.Decimal(0),
+            },
+            {
+              accountId: accountsMap["Sales Income"].id,
+              partnerId: contactsMap["Deco Addict Studio"].id,
+              debit: new Prisma.Decimal(0),
+              credit: new Prisma.Decimal(48000),
+            },
+          ],
+        },
+      },
+    });
+
+    const inv7 = await prisma.customerInvoice.create({
+      data: {
+        invoiceNo: "INV/2026/0007",
+        reference: "DAS-DESIGN-09",
+        customerId: contactsMap["Deco Addict Studio"].id,
+        invoiceDate: new Date("2026-08-12"),
+        dueDate: new Date("2026-09-12"),
+        totalAmount: new Prisma.Decimal(48000),
+        amountDue: new Prisma.Decimal(0),
+        status: InvoiceBillStatus.CONFIRMED,
+        paymentState: PaymentState.PAID,
+        journalEntryId: jeInv7.id,
+        lines: {
+          create: [
+            {
+              productId: productsMap["Full Executive Office Suite Combo"].id,
+              accountId: accountsMap["Sales Income"].id,
+              analyticId: analyticsMap["Enterprise Corporate Sales"].id,
+              qty: 1,
+              unitPrice: new Prisma.Decimal(48000),
+              subtotal: new Prisma.Decimal(48000),
+            },
+          ],
+        },
+      },
+    });
+
+    const jePay7 = await prisma.journalEntry.create({
+      data: {
+        entryNo: "JE/2026/0020",
+        journalId: journalsMap["Bank"].id,
+        reference: "PAY/DAS/0001",
+        status: JournalEntryStatus.POSTED,
+        totalDebit: new Prisma.Decimal(48000),
+        totalCredit: new Prisma.Decimal(48000),
+        items: {
+          create: [
+            {
+              accountId: accountsMap["Bank"].id,
+              partnerId: contactsMap["Deco Addict Studio"].id,
+              debit: new Prisma.Decimal(48000),
+              credit: new Prisma.Decimal(0),
+            },
+            {
+              accountId: accountsMap["Debtors"].id,
+              partnerId: contactsMap["Deco Addict Studio"].id,
+              debit: new Prisma.Decimal(0),
+              credit: new Prisma.Decimal(48000),
+            },
+          ],
+        },
+      },
+    });
+
+    await prisma.payment.create({
+      data: {
+        paymentType: PaymentType.RECEIVE,
+        partnerId: contactsMap["Deco Addict Studio"].id,
+        amount: new Prisma.Decimal(48000),
+        date: new Date("2026-08-18"),
+        paymentVia: PaymentMethod.BANK,
+        note: "Settled via IMPS for INV/2026/0007",
+        customerInvoiceId: inv7.id,
+        journalEntryId: jePay7.id,
       },
     });
   }

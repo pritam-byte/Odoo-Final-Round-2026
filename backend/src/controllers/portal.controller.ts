@@ -53,3 +53,74 @@ export async function payPortalInvoice(req: Request, res: Response) {
     return res.status(400).json({ error: error.message });
   }
 }
+
+export async function getPortalBills(req: Request, res: Response) {
+  try {
+    const contactId = req.user?.contactId;
+    if (!contactId) {
+      return res.status(403).json({ error: "User is not linked to any Contact" });
+    }
+
+    const bills = await prisma.vendorBill.findMany({
+      where: { vendorId: contactId, status: "CONFIRMED" },
+      include: { lines: { include: { product: true } }, payments: true },
+      orderBy: { billDate: "desc" },
+    });
+
+    return res.json(bills);
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message });
+  }
+}
+
+export async function getPortalPayments(req: Request, res: Response) {
+  try {
+    const contactId = req.user?.contactId;
+    if (!contactId) {
+      return res.status(403).json({ error: "User is not linked to any Contact" });
+    }
+
+    const payments = await prisma.payment.findMany({
+      where: { partnerId: contactId },
+      include: { customerInvoice: true, vendorBill: true },
+      orderBy: { date: "desc" },
+    });
+
+    return res.json(payments);
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message });
+  }
+}
+
+export async function payPortalBill(req: Request, res: Response) {
+  try {
+    const contactId = req.user?.contactId;
+    const billId = req.params.billId as string;
+    const { amount, paymentVia } = req.body;
+
+    if (!contactId) {
+      return res.status(403).json({ error: "User is not linked to any Contact" });
+    }
+
+    const bill = await prisma.vendorBill.findFirst({
+      where: { id: billId, vendorId: contactId, status: "CONFIRMED" },
+    });
+
+    if (!bill) {
+      return res.status(404).json({ error: "Bill not found or unauthorized" });
+    }
+
+    const payment = await TransactionService.registerPayment({
+      paymentType: "SEND",
+      partnerId: contactId,
+      amount: Number(amount),
+      paymentVia: paymentVia || "BANK",
+      vendorBillId: bill.id,
+      note: "Vendor Portal Self-Settlement",
+    });
+
+    return res.status(201).json(payment);
+  } catch (error: any) {
+    return res.status(400).json({ error: error.message });
+  }
+}

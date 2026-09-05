@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   IndianRupee,
   CheckCircle,
@@ -26,8 +26,14 @@ export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavi
   const userName = currentUser?.name || 'User';
 
   const [dualFilter, setDualFilter] = useState<'ALL' | 'invoice' | 'bill'>('ALL');
+  const [allScopedDocs, setAllScopedDocs] = useState(() => getMyScopedDocuments());
 
-  const allScopedDocs = getMyScopedDocuments();
+  useEffect(() => {
+    const reload = () => setAllScopedDocs(getMyScopedDocuments());
+    reload();
+    window.addEventListener('portal:payment', reload);
+    return () => window.removeEventListener('portal:payment', reload);
+  }, [currentUser?.partnerType]);
 
   // Filter based on dual filter if in Dual mode
   const displayedDocs = allScopedDocs.filter((d) => {

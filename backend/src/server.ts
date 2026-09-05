@@ -20,6 +20,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api", masterRoutes);
 app.use("/api", transactionRoutes);
+app.use("/api/transactions", transactionRoutes);
 app.use("/api/reporting", reportingRoutes);
 app.use("/api/budgets", budgetRoutes);
 app.use("/api/portal", portalRoutes);

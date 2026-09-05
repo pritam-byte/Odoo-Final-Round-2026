@@ -1,12 +1,8 @@
 // Accounting Enterprise In-Memory Reactive Store
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { apiRequest, checkBackendHealth } from '../../lib/apiClient';
-import { fetchContactsApi } from '../contacts/api';
-import { fetchProductsApi } from '../products/api';
-import { fetchAnalyticsApi, createAnalyticApi } from '../analytics/api';
-import { fetchAccountsApi } from '../accounts/api';
-import { fetchJournalsApi } from '../journals/api';
-import { fetchBudgetsApi, createBudgetApi, confirmBudgetApi, cancelBudgetApi, reviseBudgetApi } from '../budgets/api';
+import { createAnalyticApi } from '../analytics/api';
+import { createBudgetApi, confirmBudgetApi, cancelBudgetApi, reviseBudgetApi } from '../budgets/api';
 
 
 
@@ -209,12 +205,12 @@ const initialContacts: Contact[] = [
   {
     id: 'c1',
     name: 'Open Wood Corp',
-    email: 'openwood21@example.com',
-    phone: '+91 9090090909',
+    email: 'procurement@openwood.com',
+    phone: '+91 98765 43210',
     imageUrl: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=120&auto=format&fit=crop&q=60',
     type: 'vendor',
     address: {
-      street: '42 Timberland Ave',
+      street: 'Plot 45, Timber Processing Zone',
       city: 'Mumbai',
       state: 'Maharashtra',
       country: 'India',
@@ -224,12 +220,12 @@ const initialContacts: Contact[] = [
   {
     id: 'c2',
     name: 'Joey Wills & Co',
-    email: 'joey.wills@example.com',
-    phone: '+91 8080080808',
+    email: 'joey@willsenterprise.com',
+    phone: '+91 91234 56789',
     imageUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=60',
     type: 'customer',
     address: {
-      street: '15 Sunset Boulevard',
+      street: 'Tower B, Cyber City Hub',
       city: 'Bengaluru',
       state: 'Karnataka',
       country: 'India',
@@ -238,107 +234,224 @@ const initialContacts: Contact[] = [
   },
   {
     id: 'c3',
-    name: 'Apex Global Logistics',
-    email: 'finance@apexlogistics.com',
-    phone: '+91 9123456780',
+    name: 'John Doe',
+    email: 'john.doe@urbanfurniture.com',
+    phone: '+91 98980 12345',
     imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=60',
     type: 'customer',
     address: {
-      street: '88 Cyber Gateway',
+      street: 'Flat 402, Royal Palms Residency',
+      city: 'Mumbai',
+      state: 'Maharashtra',
+      country: 'India',
+      pincode: '400076',
+    },
+  },
+  {
+    id: 'c4',
+    name: 'Nordic Timber Suppliers',
+    email: 'sales@nordictimber.in',
+    phone: '+91 98234 56789',
+    imageUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=120&auto=format&fit=crop&q=60',
+    type: 'vendor',
+    address: {
+      street: 'Industrial Area 4, Phase 2',
+      city: 'Gandhinagar',
+      state: 'Gujarat',
+      country: 'India',
+      pincode: '382010',
+    },
+  },
+  {
+    id: 'c5',
+    name: 'Hardware Hub Ltd',
+    email: 'orders@hardwarehub.com',
+    phone: '+91 91122 33445',
+    imageUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=120&auto=format&fit=crop&q=60',
+    type: 'vendor',
+    address: {
+      street: 'Shop 102, Steel Complex',
+      city: 'Pune',
+      state: 'Maharashtra',
+      country: 'India',
+      pincode: '411001',
+    },
+  },
+  {
+    id: 'c6',
+    name: 'Luxe Living Interiors',
+    email: 'design@luxeliving.co.in',
+    phone: '+91 97766 55443',
+    imageUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&auto=format&fit=crop&q=60',
+    type: 'customer',
+    address: {
+      street: 'Studio 8, High Street Avenue',
+      city: 'New Delhi',
+      state: 'Delhi',
+      country: 'India',
+      pincode: '110001',
+    },
+  },
+  {
+    id: 'c7',
+    name: 'Nexus Tech Parks',
+    email: 'facilities@nexustech.org',
+    phone: '+91 96655 44332',
+    imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=60',
+    type: 'customer',
+    address: {
+      street: 'Campus 3, IT Corridor',
       city: 'Hyderabad',
       state: 'Telangana',
       country: 'India',
       pincode: '500081',
     },
   },
+  {
+    id: 'c8',
+    name: 'Deco Addict Studio',
+    email: 'hello@decoaddict.in',
+    phone: '+91 99887 76655',
+    imageUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=120&auto=format&fit=crop&q=60',
+    type: 'partner',
+    address: {
+      street: 'Shop 12, Design Square Mall',
+      city: 'Ahmedabad',
+      state: 'Gujarat',
+      country: 'India',
+      pincode: '380015',
+    },
+  },
 ];
 
 const initialCategories: ProductCategory[] = [
-  { id: 'cat1', name: 'Electronics & Appliances' },
-  { id: 'cat2', name: 'Raw Materials & Hardware' },
-  { id: 'cat3', name: 'Professional Services' },
+  { id: 'cat1', name: 'Office Furniture' },
+  { id: 'cat2', name: 'Living Furniture' },
+  { id: 'cat3', name: 'Raw Materials & Hardware' },
+  { id: 'cat4', name: 'Professional Services' },
 ];
 
 const initialProducts: Product[] = [
   {
     id: 'p1',
-    name: 'Air Conditioner Pro 2.5T',
+    name: 'Executive Solid Oak Desk',
     type: 'Goods',
     categoryId: 'cat1',
-    categoryName: 'Electronics & Appliances',
-    salesPrice: 45000,
-    cost: 32000,
-    imageUrl: 'https://images.unsplash.com/photo-1614633837774-c2c31e9c20a4?w=120&auto=format&fit=crop&q=60',
+    categoryName: 'Office Furniture',
+    salesPrice: 28000,
+    cost: 18000,
+    imageUrl: 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=120&auto=format&fit=crop&q=60',
   },
   {
     id: 'p2',
-    name: 'Inverter Refrigerator 450L',
+    name: 'Ergonomic High-Back Mesh Chair',
     type: 'Goods',
     categoryId: 'cat1',
-    categoryName: 'Electronics & Appliances',
-    salesPrice: 38000,
-    cost: 26000,
-    imageUrl: 'https://images.unsplash.com/photo-1584992236310-6edddc08acff?w=120&auto=format&fit=crop&q=60',
+    categoryName: 'Office Furniture',
+    salesPrice: 15000,
+    cost: 9500,
+    imageUrl: 'https://images.unsplash.com/photo-1580481077195-2c8eb1642ca8?w=120&auto=format&fit=crop&q=60',
   },
   {
     id: 'p3',
-    name: 'HVAC Maintenance & Audit',
-    type: 'Service',
+    name: 'Solid Walnut Coffee Table',
+    type: 'Goods',
+    categoryId: 'cat2',
+    categoryName: 'Living Furniture',
+    salesPrice: 22000,
+    cost: 14000,
+    imageUrl: 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?w=120&auto=format&fit=crop&q=60',
+  },
+  {
+    id: 'p4',
+    name: 'Modular 3-Seater Velvet Sofa',
+    type: 'Goods',
+    categoryId: 'cat2',
+    categoryName: 'Living Furniture',
+    salesPrice: 45000,
+    cost: 29000,
+    imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=120&auto=format&fit=crop&q=60',
+  },
+  {
+    id: 'p5',
+    name: 'Raw Timber Plank Lot (Grade A)',
+    type: 'Goods',
     categoryId: 'cat3',
-    categoryName: 'Professional Services',
-    salesPrice: 12500,
+    categoryName: 'Raw Materials & Hardware',
+    salesPrice: 6200,
     cost: 4500,
-    imageUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=120&auto=format&fit=crop&q=60',
+    imageUrl: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=120&auto=format&fit=crop&q=60',
+  },
+  {
+    id: 'p6',
+    name: 'Metal Hardware Assembly Kit',
+    type: 'Goods',
+    categoryId: 'cat3',
+    categoryName: 'Raw Materials & Hardware',
+    salesPrice: 4900,
+    cost: 3200,
+    imageUrl: 'https://images.unsplash.com/photo-1581783342308-f792dbdd27c5?w=120&auto=format&fit=crop&q=60',
+  },
+  {
+    id: 'p7',
+    name: 'Interior Architecture Consultation',
+    type: 'Service',
+    categoryId: 'cat4',
+    categoryName: 'Professional Services',
+    salesPrice: 12000,
+    cost: 4000,
+    imageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=120&auto=format&fit=crop&q=60',
   },
 ];
 
 const initialAccounts: Account[] = [
-  { id: 'acc1', code: '4000', name: 'Sales Account', type: 'Income', balance: 145000 },
-  { id: 'acc2', code: '5000', name: 'Purchase Account', type: 'Expense', balance: 78000 },
-  { id: 'acc3', code: '1010', name: 'Bank of India Current A/c', type: 'Bank', balance: 350000 },
-  { id: 'acc4', code: '1020', name: 'Petty Cash A/c', type: 'Cash', balance: 25000 },
-  { id: 'acc5', code: '3000', name: 'Capital Account', type: 'Capital', balance: 400000 },
-  { id: 'acc6', code: '2010', name: 'Creditor Accounts (Payables)', type: 'Liability', balance: 48000 },
-  { id: 'acc7', code: '1050', name: 'Debtor Accounts (Receivables)', type: 'Asset', balance: 96000 },
-  { id: 'acc8', code: '5100', name: 'Office Operational Expenses', type: 'Expense', balance: 12000 },
+  { id: 'acc1', code: '4000', name: 'Sales Income', type: 'Income', balance: 673000 },
+  { id: 'acc2', code: '5000', name: 'Purchase Expense', type: 'Expense', balance: 271000 },
+  { id: 'acc3', code: '1010', name: 'Bank', type: 'Bank', balance: 678000 },
+  { id: 'acc4', code: '1020', name: 'Cash', type: 'Cash', balance: 65000 },
+  { id: 'acc5', code: '3000', name: 'Owner Capital', type: 'Capital', balance: 500000 },
+  { id: 'acc6', code: '2010', name: 'Creditors', type: 'Liability', balance: 131000 },
+  { id: 'acc7', code: '1050', name: 'Debtors', type: 'Asset', balance: 327000 },
 ];
 
 const initialJournals: Journal[] = [
-  { id: 'j1', code: 'INV', name: 'Customer Invoices Journal', type: 'Sales', defaultAccountId: 'acc1', defaultAccountName: 'Sales Account' },
-  { id: 'j2', code: 'BILL', name: 'Vendor Bills Journal', type: 'Purchase', defaultAccountId: 'acc2', defaultAccountName: 'Purchase Account' },
-  { id: 'j3', code: 'BNK1', name: 'Bank Account Journal', type: 'Bank', defaultAccountId: 'acc3', defaultAccountName: 'Bank of India Current A/c' },
-  { id: 'j4', code: 'CSH1', name: 'Cash Register Journal', type: 'Cash', defaultAccountId: 'acc4', defaultAccountName: 'Petty Cash A/c' },
+  { id: 'j1', code: 'SAL', name: 'Sales', type: 'Sales', defaultAccountId: 'acc1', defaultAccountName: 'Sales Income' },
+  { id: 'j2', code: 'PUR', name: 'Purchase', type: 'Purchase', defaultAccountId: 'acc2', defaultAccountName: 'Purchase Expense' },
+  { id: 'j3', code: 'BNK', name: 'Bank', type: 'Bank', defaultAccountId: 'acc3', defaultAccountName: 'Bank' },
+  { id: 'j4', code: 'CSH', name: 'Cash', type: 'Cash', defaultAccountId: 'acc4', defaultAccountName: 'Cash' },
 ];
 
 const initialAnalytics: AnalyticAccount[] = [
-  { id: 'an1', code: 'AN-MKT', name: 'Marketing & Outreach', type: 'Expense' },
-  { id: 'an2', code: 'AN-PROD', name: 'Product Manufacturing & Logistics', type: 'Expense' },
-  { id: 'an3', code: 'AN-ENT', name: 'Enterprise Corporate Sales', type: 'Income' },
+  { id: 'an1', code: 'AN-CORP', name: 'Enterprise Corporate Sales', type: 'Income' },
+  { id: 'an2', code: 'AN-LIV', name: 'Residential & Living Room Sales', type: 'Income' },
+  { id: 'an3', code: 'AN-RAW', name: 'Raw Material Sourcing & Procurement', type: 'Expense' },
+  { id: 'an4', code: 'AN-LOG', name: 'Factory Manufacturing & Logistics', type: 'Expense' },
+  { id: 'an5', code: 'AN-MKT', name: 'Marketing & Brand Advertising', type: 'Expense' },
 ];
 
 const initialBudgets: Budget[] = [
   {
     id: 'b1',
-    name: 'Q3 Enterprise Sales Growth',
+    name: 'Q3 Corporate Enterprise Target',
     startDate: '2026-07-01',
     endDate: '2026-09-30',
-    responsible: 'Pritam Admin',
-    analyticId: 'an3',
+    responsible: 'Joey Wills & Co',
+    analyticId: 'an1',
     analyticName: 'Enterprise Corporate Sales',
     type: 'Income',
-    committedAmount: 200000,
+    committedAmount: 300000,
     state: 'Confirmed',
   },
   {
     id: 'b2',
-    name: 'Q3 Product Sourcing Budget',
+    name: 'Q3 Raw Material Procurement Budget',
     startDate: '2026-07-01',
     endDate: '2026-09-30',
-    responsible: 'Farish Accountant',
-    analyticId: 'an2',
-    analyticName: 'Product Manufacturing & Logistics',
+    responsible: 'Open Wood Corp',
+    analyticId: 'an3',
+    analyticName: 'Raw Material Sourcing & Procurement',
     type: 'Expense',
-    committedAmount: 100000,
+    committedAmount: 150000,
     state: 'Confirmed',
   },
 ];
@@ -347,93 +460,556 @@ const initialInvoices: CustomerInvoice[] = [
   {
     id: 'inv1',
     invoiceNumber: 'INV/2026/0001',
-    reference: 'PO-CLIENT-882',
+    reference: 'PO-JW-2026',
     partnerId: 'c2',
     partnerName: 'Joey Wills & Co',
-    date: '2026-09-01',
-    dueDate: '2026-09-15',
+    date: '2026-08-06',
+    dueDate: '2026-09-06',
     lines: [
       {
         id: 'l1',
         productId: 'p1',
-        productName: 'Air Conditioner Pro 2.5T',
+        productName: 'Executive Solid Oak Desk',
         accountId: 'acc1',
-        accountName: 'Sales Account',
-        analyticId: 'an3',
+        accountName: 'Sales Income',
+        analyticId: 'an1',
         analyticName: 'Enterprise Corporate Sales',
-        quantity: 2,
-        unitPrice: 45000,
-        total: 90000,
+        quantity: 5,
+        unitPrice: 28000,
+        total: 140000,
+      },
+      {
+        id: 'l2',
+        productId: 'p2',
+        productName: 'Ergonomic High-Back Mesh Chair',
+        accountId: 'acc1',
+        accountName: 'Sales Income',
+        analyticId: 'an1',
+        analyticName: 'Enterprise Corporate Sales',
+        quantity: 10,
+        unitPrice: 5000,
+        total: 50000,
       },
     ],
-    total: 90000,
-    amountPaid: 45000,
-    amountDue: 45000,
+    total: 190000,
+    amountPaid: 190000,
+    amountDue: 0,
+    status: 'Paid',
+    journalEntryId: 'je_inv1',
+  },
+  {
+    id: 'inv2',
+    invoiceNumber: 'INV/2026/0002',
+    reference: 'PORTAL-DIRECT-ORDER',
+    partnerId: 'c3',
+    partnerName: 'John Doe',
+    date: '2026-08-21',
+    dueDate: '2026-09-21',
+    lines: [
+      {
+        id: 'l3',
+        productId: 'p3',
+        productName: 'Solid Walnut Coffee Table',
+        accountId: 'acc1',
+        accountName: 'Sales Income',
+        analyticId: 'an2',
+        analyticName: 'Residential & Living Room Sales',
+        quantity: 1,
+        unitPrice: 22000,
+        total: 22000,
+      },
+      {
+        id: 'l4',
+        productId: 'p4',
+        productName: 'Modular 3-Seater Velvet Sofa',
+        accountId: 'acc1',
+        accountName: 'Sales Income',
+        analyticId: 'an2',
+        analyticName: 'Residential & Living Room Sales',
+        quantity: 1,
+        unitPrice: 45000,
+        total: 45000,
+      },
+    ],
+    total: 67000,
+    amountPaid: 0,
+    amountDue: 67000,
     status: 'Confirmed',
-    journalEntryId: 'je1',
+    journalEntryId: 'je_inv2',
+  },
+  {
+    id: 'inv3',
+    invoiceNumber: 'INV/2026/0003',
+    reference: 'NTP-BULK-2026',
+    partnerId: 'c7',
+    partnerName: 'Nexus Tech Parks',
+    date: '2026-08-10',
+    dueDate: '2026-08-30',
+    lines: [
+      {
+        id: 'l5',
+        productId: 'p1',
+        productName: 'Full Executive Office Suite Combo',
+        accountId: 'acc1',
+        accountName: 'Sales Income',
+        analyticId: 'an1',
+        analyticName: 'Enterprise Corporate Sales',
+        quantity: 4,
+        unitPrice: 48000,
+        total: 192000,
+      },
+    ],
+    total: 192000,
+    amountPaid: 0,
+    amountDue: 192000,
+    status: 'Confirmed',
+    journalEntryId: 'je_inv3',
+  },
+  {
+    id: 'inv4',
+    invoiceNumber: 'INV/2026/0004',
+    reference: 'JW-ADDON-99',
+    partnerId: 'c2',
+    partnerName: 'Joey Wills & Co',
+    date: '2026-08-28',
+    dueDate: '2026-09-28',
+    lines: [
+      {
+        id: 'l6',
+        productId: 'p1',
+        productName: 'Executive Solid Oak Desk',
+        accountId: 'acc1',
+        accountName: 'Sales Income',
+        analyticId: 'an1',
+        analyticName: 'Enterprise Corporate Sales',
+        quantity: 2,
+        unitPrice: 28000,
+        total: 56000,
+      },
+    ],
+    total: 56000,
+    amountPaid: 30000,
+    amountDue: 26000,
+    status: 'Confirmed',
+    journalEntryId: 'je_inv4',
+  },
+  {
+    id: 'inv5',
+    invoiceNumber: 'INV/2026/0005',
+    reference: 'JD-PORTAL-01',
+    partnerId: 'c3',
+    partnerName: 'John Doe',
+    date: '2026-08-01',
+    dueDate: '2026-08-15',
+    lines: [
+      {
+        id: 'l7',
+        productId: 'p3',
+        productName: 'Scandinavian 5-Tier Bookshelf',
+        accountId: 'acc1',
+        accountName: 'Sales Income',
+        analyticId: 'an2',
+        analyticName: 'Residential & Living Room Sales',
+        quantity: 2,
+        unitPrice: 19000,
+        total: 38000,
+      },
+    ],
+    total: 38000,
+    amountPaid: 38000,
+    amountDue: 0,
+    status: 'Paid',
+    journalEntryId: 'je_inv5',
+  },
+  {
+    id: 'inv6',
+    invoiceNumber: 'INV/2026/0006',
+    reference: 'LLI-DELHI-004',
+    partnerId: 'c6',
+    partnerName: 'Luxe Living Interiors',
+    date: '2026-08-25',
+    dueDate: '2026-09-18',
+    lines: [
+      {
+        id: 'l8',
+        productId: 'p3',
+        productName: 'Solid Walnut Coffee Table',
+        accountId: 'acc1',
+        accountName: 'Sales Income',
+        analyticId: 'an2',
+        analyticName: 'Residential & Living Room Sales',
+        quantity: 2,
+        unitPrice: 22000,
+        total: 44000,
+      },
+      {
+        id: 'l9',
+        productId: 'p1',
+        productName: 'Scandinavian 5-Tier Bookshelf',
+        accountId: 'acc1',
+        accountName: 'Sales Income',
+        analyticId: 'an2',
+        analyticName: 'Residential & Living Room Sales',
+        quantity: 2,
+        unitPrice: 19000,
+        total: 38000,
+      },
+    ],
+    total: 82000,
+    amountPaid: 40000,
+    amountDue: 42000,
+    status: 'Confirmed',
+    journalEntryId: 'je_inv6',
+  },
+  {
+    id: 'inv7',
+    invoiceNumber: 'INV/2026/0007',
+    reference: 'DAS-DESIGN-09',
+    partnerId: 'c8',
+    partnerName: 'Deco Addict Studio',
+    date: '2026-08-12',
+    dueDate: '2026-09-12',
+    lines: [
+      {
+        id: 'l10',
+        productId: 'p1',
+        productName: 'Full Executive Office Suite Combo',
+        accountId: 'acc1',
+        accountName: 'Sales Income',
+        analyticId: 'an1',
+        analyticName: 'Enterprise Corporate Sales',
+        quantity: 1,
+        unitPrice: 48000,
+        total: 48000,
+      },
+    ],
+    total: 48000,
+    amountPaid: 48000,
+    amountDue: 0,
+    status: 'Paid',
+    journalEntryId: 'je_inv7',
   },
 ];
 
 const initialBills: VendorBill[] = [
   {
     id: 'bill1',
-    billNumber: 'BILL/2026/0001',
-    reference: 'SUPPLIER-INV-9901',
+    billNumber: 'Bill/2026/0001',
+    reference: 'OWC-INV-8891',
     partnerId: 'c1',
     partnerName: 'Open Wood Corp',
-    date: '2026-09-02',
-    dueDate: '2026-09-20',
+    date: '2026-08-02',
+    dueDate: '2026-09-02',
     lines: [
       {
         id: 'bl1',
-        productId: 'p1',
-        productName: 'Air Conditioner Pro 2.5T',
+        productId: 'p5',
+        productName: 'Raw Timber Plank Lot (Grade A)',
         accountId: 'acc2',
-        accountName: 'Purchase Account',
-        analyticId: 'an2',
-        analyticName: 'Product Manufacturing & Logistics',
-        quantity: 1,
-        unitPrice: 32000,
-        total: 32000,
+        accountName: 'Purchase Expense',
+        analyticId: 'an3',
+        analyticName: 'Raw Material Sourcing & Procurement',
+        quantity: 20,
+        unitPrice: 4500,
+        total: 90000,
       },
     ],
-    total: 32000,
-    amountPaid: 0,
-    amountDue: 32000,
+    total: 90000,
+    amountPaid: 90000,
+    amountDue: 0,
+    paidViaBank: 90000,
+    status: 'Paid',
+    journalEntryId: 'je_bill1',
+  },
+  {
+    id: 'bill2',
+    billNumber: 'Bill/2026/0002',
+    reference: 'HH-9021',
+    partnerId: 'c5',
+    partnerName: 'Hardware Hub Ltd',
+    date: '2026-08-16',
+    dueDate: '2026-09-16',
+    lines: [
+      {
+        id: 'bl2',
+        productId: 'p6',
+        productName: 'Metal Hardware Assembly Kit',
+        accountId: 'acc2',
+        accountName: 'Purchase Expense',
+        analyticId: 'an4',
+        analyticName: 'Factory Manufacturing & Logistics',
+        quantity: 20,
+        unitPrice: 3200,
+        total: 64000,
+      },
+    ],
+    total: 64000,
+    amountPaid: 30000,
+    amountDue: 34000,
+    paidViaBank: 30000,
     status: 'Confirmed',
-    journalEntryId: 'je2',
+    journalEntryId: 'je_bill2',
+  },
+  {
+    id: 'bill3',
+    billNumber: 'Bill/2026/0003',
+    reference: 'NTS-2026-990',
+    partnerId: 'c4',
+    partnerName: 'Nordic Timber Suppliers',
+    date: '2026-08-26',
+    dueDate: '2026-09-10',
+    lines: [
+      {
+        id: 'bl3',
+        productId: 'p5',
+        productName: 'Raw Timber Plank Lot (Grade A)',
+        accountId: 'acc2',
+        accountName: 'Purchase Expense',
+        analyticId: 'an3',
+        analyticName: 'Raw Material Sourcing & Procurement',
+        quantity: 10,
+        unitPrice: 4500,
+        total: 45000,
+      },
+    ],
+    total: 45000,
+    amountPaid: 0,
+    amountDue: 45000,
+    status: 'Confirmed',
+    journalEntryId: 'je_bill3',
+  },
+  {
+    id: 'bill4',
+    billNumber: 'Bill/2026/0004',
+    reference: 'OWC-INV-9022',
+    partnerId: 'c1',
+    partnerName: 'Open Wood Corp',
+    date: '2026-08-29',
+    dueDate: '2026-09-28',
+    lines: [
+      {
+        id: 'bl4',
+        productId: 'p3',
+        productName: 'Scandinavian 5-Tier Bookshelf',
+        accountId: 'acc2',
+        accountName: 'Purchase Expense',
+        analyticId: 'an3',
+        analyticName: 'Raw Material Sourcing & Procurement',
+        quantity: 4,
+        unitPrice: 12000,
+        total: 48000,
+      },
+    ],
+    total: 48000,
+    amountPaid: 20000,
+    amountDue: 28000,
+    paidViaBank: 20000,
+    status: 'Confirmed',
+    journalEntryId: 'je_bill4',
+  },
+  {
+    id: 'bill5',
+    billNumber: 'Bill/2026/0005',
+    reference: 'DAS-SUP-410',
+    partnerId: 'c8',
+    partnerName: 'Deco Addict Studio',
+    date: '2026-08-30',
+    dueDate: '2026-09-15',
+    lines: [
+      {
+        id: 'bl5',
+        productId: 'p7',
+        productName: 'Interior Architecture Consultation',
+        accountId: 'acc2',
+        accountName: 'Purchase Expense',
+        analyticId: 'an5',
+        analyticName: 'Marketing & Brand Advertising',
+        quantity: 2,
+        unitPrice: 12000,
+        total: 24000,
+      },
+    ],
+    total: 24000,
+    amountPaid: 0,
+    amountDue: 24000,
+    status: 'Confirmed',
+    journalEntryId: 'je_bill5',
+  },
+];
+
+const initialPayments: PaymentRecord[] = [
+  {
+    id: 'pay1',
+    type: 'Receive',
+    date: '2026-08-15',
+    partnerId: 'c2',
+    partnerName: 'Joey Wills & Co',
+    paymentVia: 'Bank',
+    amount: 190000,
+    sourceDocType: 'Invoice',
+    sourceDocId: 'inv1',
+    reference: 'PAY/INV/0001',
+  },
+  {
+    id: 'pay2',
+    type: 'Send',
+    date: '2026-08-10',
+    partnerId: 'c1',
+    partnerName: 'Open Wood Corp',
+    paymentVia: 'Bank',
+    amount: 90000,
+    sourceDocType: 'Bill',
+    sourceDocId: 'bill1',
+    reference: 'PAY/OWC/0001',
+  },
+  {
+    id: 'pay3',
+    type: 'Send',
+    date: '2026-08-20',
+    partnerId: 'c5',
+    partnerName: 'Hardware Hub Ltd',
+    paymentVia: 'Bank',
+    amount: 30000,
+    sourceDocType: 'Bill',
+    sourceDocId: 'bill2',
+    reference: 'PAY/HH/0001',
+  },
+  {
+    id: 'pay4',
+    type: 'Send',
+    date: '2026-09-02',
+    partnerId: 'c1',
+    partnerName: 'Open Wood Corp',
+    paymentVia: 'Bank',
+    amount: 20000,
+    sourceDocType: 'Bill',
+    sourceDocId: 'bill4',
+    reference: 'PAY/OWC/0002',
+  },
+  {
+    id: 'pay5',
+    type: 'Receive',
+    date: '2026-09-01',
+    partnerId: 'c2',
+    partnerName: 'Joey Wills & Co',
+    paymentVia: 'Bank',
+    amount: 30000,
+    sourceDocType: 'Invoice',
+    sourceDocId: 'inv4',
+    reference: 'PAY/JW/0002',
+  },
+  {
+    id: 'pay6',
+    type: 'Receive',
+    date: '2026-08-05',
+    partnerId: 'c3',
+    partnerName: 'John Doe',
+    paymentVia: 'Bank',
+    amount: 38000,
+    sourceDocType: 'Invoice',
+    sourceDocId: 'inv5',
+    reference: 'PAY/JD/0001',
+  },
+  {
+    id: 'pay7',
+    type: 'Receive',
+    date: '2026-08-27',
+    partnerId: 'c6',
+    partnerName: 'Luxe Living Interiors',
+    paymentVia: 'Cash',
+    amount: 40000,
+    sourceDocType: 'Invoice',
+    sourceDocId: 'inv6',
+    reference: 'PAY/LLI/0001',
+  },
+  {
+    id: 'pay8',
+    type: 'Receive',
+    date: '2026-08-18',
+    partnerId: 'c8',
+    partnerName: 'Deco Addict Studio',
+    paymentVia: 'Bank',
+    amount: 48000,
+    sourceDocType: 'Invoice',
+    sourceDocId: 'inv7',
+    reference: 'PAY/DAS/0001',
   },
 ];
 
 const initialJournalEntries: JournalEntry[] = [
   {
-    id: 'je1',
-    entryNumber: 'JE/2026/0001',
-    date: '2026-09-01',
-    journalId: 'j1',
-    journalName: 'Customer Invoices Journal',
+    id: 'je_cap',
+    entryNumber: 'JE/2026/0000',
+    date: '2026-08-01',
+    journalId: 'j3',
+    journalName: 'Bank',
     status: 'Posted',
-    reference: 'INV/2026/0001',
-    totalDebit: 90000,
-    totalCredit: 90000,
+    reference: 'CAPITAL-INJECTION-2026',
+    totalDebit: 500000,
+    totalCredit: 500000,
     lines: [
-      { id: 'jel1', accountId: 'acc7', accountName: 'Debtor Accounts (Receivables)', partnerId: 'c2', partnerName: 'Joey Wills & Co', debit: 90000, credit: 0 },
-      { id: 'jel2', accountId: 'acc1', accountName: 'Sales Account', partnerId: 'c2', partnerName: 'Joey Wills & Co', debit: 0, credit: 90000 },
+      { id: 'jel_c1', accountId: 'acc3', accountName: 'Bank', debit: 500000, credit: 0 },
+      { id: 'jel_c2', accountId: 'acc5', accountName: 'Owner Capital', debit: 0, credit: 500000 },
     ],
   },
   {
-    id: 'je2',
-    entryNumber: 'JE/2026/0002',
-    date: '2026-09-02',
+    id: 'je_bill1',
+    entryNumber: 'JE/2026/0001',
+    date: '2026-08-02',
     journalId: 'j2',
-    journalName: 'Vendor Bills Journal',
+    journalName: 'Purchase',
     status: 'Posted',
-    reference: 'BILL/2026/0001',
-    totalDebit: 32000,
-    totalCredit: 32000,
+    reference: 'Bill/2026/0001',
+    totalDebit: 90000,
+    totalCredit: 90000,
     lines: [
-      { id: 'jel3', accountId: 'acc2', accountName: 'Purchase Account', partnerId: 'c1', partnerName: 'Open Wood Corp', debit: 32000, credit: 0 },
-      { id: 'jel4', accountId: 'acc6', accountName: 'Creditor Accounts (Payables)', partnerId: 'c1', partnerName: 'Open Wood Corp', debit: 0, credit: 32000 },
+      { id: 'jel1', accountId: 'acc2', accountName: 'Purchase Expense', partnerId: 'c1', partnerName: 'Open Wood Corp', debit: 90000, credit: 0 },
+      { id: 'jel2', accountId: 'acc6', accountName: 'Creditors', partnerId: 'c1', partnerName: 'Open Wood Corp', debit: 0, credit: 90000 },
+    ],
+  },
+  {
+    id: 'je_pay1',
+    entryNumber: 'JE/2026/0002',
+    date: '2026-08-10',
+    journalId: 'j3',
+    journalName: 'Bank',
+    status: 'Posted',
+    reference: 'PAY/OWC/0001',
+    totalDebit: 90000,
+    totalCredit: 90000,
+    lines: [
+      { id: 'jel3', accountId: 'acc6', accountName: 'Creditors', partnerId: 'c1', partnerName: 'Open Wood Corp', debit: 90000, credit: 0 },
+      { id: 'jel4', accountId: 'acc3', accountName: 'Bank', partnerId: 'c1', partnerName: 'Open Wood Corp', debit: 0, credit: 90000 },
+    ],
+  },
+  {
+    id: 'je_inv1',
+    entryNumber: 'JE/2026/0005',
+    date: '2026-08-06',
+    journalId: 'j1',
+    journalName: 'Sales',
+    status: 'Posted',
+    reference: 'INV/2026/0001',
+    totalDebit: 190000,
+    totalCredit: 190000,
+    lines: [
+      { id: 'jel5', accountId: 'acc7', accountName: 'Debtors', partnerId: 'c2', partnerName: 'Joey Wills & Co', debit: 190000, credit: 0 },
+      { id: 'jel6', accountId: 'acc1', accountName: 'Sales Income', partnerId: 'c2', partnerName: 'Joey Wills & Co', debit: 0, credit: 190000 },
+    ],
+  },
+  {
+    id: 'je_pay3',
+    entryNumber: 'JE/2026/0006',
+    date: '2026-08-15',
+    journalId: 'j3',
+    journalName: 'Bank',
+    status: 'Posted',
+    reference: 'PAY/INV/0001',
+    totalDebit: 190000,
+    totalCredit: 190000,
+    lines: [
+      { id: 'jel7', accountId: 'acc3', accountName: 'Bank', partnerId: 'c2', partnerName: 'Joey Wills & Co', debit: 190000, credit: 0 },
+      { id: 'jel8', accountId: 'acc7', accountName: 'Debtors', partnerId: 'c2', partnerName: 'Joey Wills & Co', debit: 0, credit: 190000 },
     ],
   },
 ];
@@ -571,7 +1147,7 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
 
   const [payments, setPayments] = useState<PaymentRecord[]>(() => {
     const s = localStorage.getItem('odoo_payments');
-    return s ? JSON.parse(s) : [];
+    return s ? JSON.parse(s) : initialPayments;
   });
 
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
@@ -774,8 +1350,18 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
   });
 
   // Load all existing backend data once on mount or when token is present
+  // Unified Live Backend Hydration
   const loadBackendData = useCallback(async () => {
+    setIsSyncing(true);
     try {
+      const health = await checkBackendHealth();
+      setIsBackendConnected(health.isOnline);
+
+      if (!health.isOnline) {
+        setIsSyncing(false);
+        return;
+      }
+
       const [
         contactsRes,
         productsRes,
@@ -796,12 +1382,12 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
         apiRequest<any[]>('/journals').catch(() => ({ success: false, data: [] })),
         apiRequest<any[]>('/analytics').catch(() => ({ success: false, data: [] })),
         apiRequest<any[]>('/budgets').catch(() => ({ success: false, data: [] })),
-        apiRequest<any[]>('/transactions/purchase-orders').catch(() => ({ success: false, data: [] })),
-        apiRequest<any[]>('/transactions/vendor-bills').catch(() => ({ success: false, data: [] })),
-        apiRequest<any[]>('/transactions/sales-orders').catch(() => ({ success: false, data: [] })),
-        apiRequest<any[]>('/transactions/customer-invoices').catch(() => ({ success: false, data: [] })),
-        apiRequest<any[]>('/transactions/payments').catch(() => ({ success: false, data: [] })),
-        apiRequest<any[]>('/transactions/journal-entries').catch(() => ({ success: false, data: [] })),
+        apiRequest<any[]>('/purchase-orders').catch(() => ({ success: false, data: [] })),
+        apiRequest<any[]>('/vendor-bills').catch(() => ({ success: false, data: [] })),
+        apiRequest<any[]>('/sales-orders').catch(() => ({ success: false, data: [] })),
+        apiRequest<any[]>('/customer-invoices').catch(() => ({ success: false, data: [] })),
+        apiRequest<any[]>('/payments').catch(() => ({ success: false, data: [] })),
+        apiRequest<any[]>('/journal-entries').catch(() => ({ success: false, data: [] })),
       ]);
 
       if (contactsRes.success && Array.isArray(contactsRes.data) && contactsRes.data.length > 0) {
@@ -841,9 +1427,15 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
         setJournalEntries(entriesRes.data.map(mapBackendJournalEntry));
       }
     } catch (e) {
-      console.warn('Backend data sync encountered an issue, using local storage fallback:', e);
+      console.warn('Backend data sync encountered an issue, continuing:', e);
+    } finally {
+      setIsSyncing(false);
     }
   }, []);
+
+  const refreshFromBackend = useCallback(async () => {
+    await loadBackendData();
+  }, [loadBackendData]);
 
   useEffect(() => {
     loadBackendData();
@@ -870,119 +1462,6 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
   useEffect(() => { localStorage.setItem('odoo_purchase_orders', JSON.stringify(purchaseOrders)); }, [purchaseOrders]);
   useEffect(() => { localStorage.setItem('odoo_bills', JSON.stringify(bills)); }, [bills]);
   useEffect(() => { localStorage.setItem('odoo_payments', JSON.stringify(payments)); }, [payments]);
-
-  // Live Backend Hydration
-  const refreshFromBackend = useCallback(async () => {
-    setIsSyncing(true);
-    try {
-      const health = await checkBackendHealth();
-      setIsBackendConnected(health.isOnline);
-
-      if (health.isOnline) {
-        // 1. Fetch Contacts
-        const contactsRes = await fetchContactsApi();
-        if (contactsRes.success && contactsRes.data && contactsRes.data.length > 0) {
-          const mappedContacts: Contact[] = contactsRes.data.map((c) => ({
-            id: c.id,
-            name: c.name,
-            email: c.email,
-            phone: c.phone || '',
-            imageUrl: c.image || undefined,
-            address: {
-              street: c.address || '',
-              city: c.city || '',
-              state: c.state || '',
-              country: 'India',
-              pincode: c.pincode || '',
-            },
-            type: c.type === 'CUSTOMER' ? 'customer' : c.type === 'VENDOR' ? 'vendor' : 'partner',
-          }));
-          setContacts(mappedContacts);
-        }
-
-        // 2. Fetch Products
-        const prodRes = await fetchProductsApi();
-        if (prodRes.success && prodRes.data && prodRes.data.length > 0) {
-          const mappedProducts: Product[] = prodRes.data.map((p) => ({
-            id: p.id,
-            name: p.name,
-            type: p.type === 'GOODS' ? 'Goods' : p.type === 'SERVICE' ? 'Service' : 'Combo',
-            categoryId: 'cat1',
-            categoryName: p.category || 'General',
-            salesPrice: Number(p.salesPrice) || 0,
-            cost: Number(p.cost) || 0,
-            imageUrl: p.image || undefined,
-          }));
-          setProducts(mappedProducts);
-        }
-
-        // 3. Fetch Analytics
-        const analyticsRes = await fetchAnalyticsApi();
-        if (analyticsRes.success && analyticsRes.data && analyticsRes.data.length > 0) {
-          const mappedAnalytics: AnalyticAccount[] = analyticsRes.data.map((a) => ({
-            id: a.id,
-            name: a.name,
-            type: a.type === 'INCOME' ? 'Income' : 'Expense',
-            code: a.name.substring(0, 4).toUpperCase(),
-          }));
-          setAnalytics(mappedAnalytics);
-        }
-
-        // 4. Fetch Accounts
-        const accRes = await fetchAccountsApi();
-        if (accRes.success && accRes.data && accRes.data.length > 0) {
-          const mappedAccounts: Account[] = accRes.data.map((a, idx) => ({
-            id: a.id,
-            code: (1000 + idx * 100).toString(),
-            name: a.name,
-            type: a.type === 'ASSET' ? 'Asset' : a.type === 'LIABILITY' ? 'Liability' : a.type === 'INCOME' ? 'Income' : a.type === 'EXPENSE' ? 'Expense' : 'Capital',
-            balance: 0,
-          }));
-          setAccounts(mappedAccounts);
-        }
-
-        // 5. Fetch Journals
-        const jRes = await fetchJournalsApi();
-        if (jRes.success && jRes.data && jRes.data.length > 0) {
-          const mappedJournals: Journal[] = jRes.data.map((j) => ({
-            id: j.id,
-            code: j.name.substring(0, 3).toUpperCase(),
-            name: j.name,
-            type: j.type === 'SALES' ? 'Sales' : j.type === 'PURCHASE' ? 'Purchase' : j.type === 'BANK' ? 'Bank' : 'Cash',
-            defaultAccountId: j.defaultAccountId || 'acc1',
-            defaultAccountName: j.defaultAccount?.name || 'Default Account',
-          }));
-          setJournals(mappedJournals);
-        }
-
-        // 6. Fetch Budgets
-        const budgetRes = await fetchBudgetsApi();
-        if (budgetRes.success && budgetRes.data && budgetRes.data.length > 0) {
-          const mappedBudgets: Budget[] = budgetRes.data.map((b) => ({
-            id: b.id,
-            name: b.name,
-            startDate: typeof b.startDate === 'string' ? b.startDate.split('T')[0] : new Date(b.startDate).toISOString().split('T')[0],
-            endDate: typeof b.endDate === 'string' ? b.endDate.split('T')[0] : new Date(b.endDate).toISOString().split('T')[0],
-            responsible: b.responsible?.name || 'Pritam Admin',
-            analyticId: b.analyticId,
-            analyticName: b.analytic?.name || 'General Operations',
-            type: b.type === 'INCOME' ? 'Income' : 'Expense',
-            committedAmount: Number(b.committedAmount) || 0,
-            state: b.status === 'CONFIRMED' ? 'Confirmed' : b.status === 'CANCELLED' ? 'Cancelled' : b.status === 'REVISED' ? 'Revised' : 'Draft',
-          }));
-          setBudgets(mappedBudgets);
-        }
-      }
-    } catch (e) {
-      console.warn('Backend sync failed, continuing offline:', e);
-    } finally {
-      setIsSyncing(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    refreshFromBackend();
-  }, [refreshFromBackend]);
 
   const nextSeq = (prefix: string) => {
     const year = new Date().getFullYear();
@@ -1218,7 +1697,10 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
         const invDate = new Date(inv.date).getTime();
         if (invDate >= start && invDate <= end && inv.status !== 'Cancelled') {
           inv.lines.forEach((l) => {
-            if (l.analyticId === budget.analyticId) {
+            const matches =
+              l.analyticId === budget.analyticId ||
+              (l.analyticName && budget.analyticName && l.analyticName.toLowerCase() === budget.analyticName.toLowerCase());
+            if (matches) {
               sum += l.total;
             }
           });
@@ -1229,7 +1711,10 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
         const billDate = new Date(bill.date).getTime();
         if (billDate >= start && billDate <= end && bill.status !== 'Cancelled') {
           bill.lines.forEach((l) => {
-            if (l.analyticId === budget.analyticId) {
+            const matches =
+              l.analyticId === budget.analyticId ||
+              (l.analyticName && budget.analyticName && l.analyticName.toLowerCase() === budget.analyticName.toLowerCase());
+            if (matches) {
               sum += l.total;
             }
           });
@@ -1248,7 +1733,12 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
       invoices.forEach((inv) => {
         const invDate = new Date(inv.date).getTime();
         if (invDate >= start && invDate <= end && inv.status !== 'Cancelled') {
-          const matchedAmount = inv.lines.reduce((s, l) => (l.analyticId === budget.analyticId ? s + l.total : s), 0);
+          const matchedAmount = inv.lines.reduce((s, l) => {
+            const matches =
+              l.analyticId === budget.analyticId ||
+              (l.analyticName && budget.analyticName && l.analyticName.toLowerCase() === budget.analyticName.toLowerCase());
+            return matches ? s + l.total : s;
+          }, 0);
           if (matchedAmount > 0) {
             list.push({ id: inv.id, type: 'Invoice', number: inv.invoiceNumber, partner: inv.partnerName, date: inv.date, amount: matchedAmount });
           }
@@ -1258,7 +1748,12 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
       bills.forEach((bill) => {
         const billDate = new Date(bill.date).getTime();
         if (billDate >= start && billDate <= end && bill.status !== 'Cancelled') {
-          const matchedAmount = bill.lines.reduce((s, l) => (l.analyticId === budget.analyticId ? s + l.total : s), 0);
+          const matchedAmount = bill.lines.reduce((s, l) => {
+            const matches =
+              l.analyticId === budget.analyticId ||
+              (l.analyticName && budget.analyticName && l.analyticName.toLowerCase() === budget.analyticName.toLowerCase());
+            return matches ? s + l.total : s;
+          }, 0);
           if (matchedAmount > 0) {
             list.push({ id: bill.id, type: 'Bill', number: bill.billNumber, partner: bill.partnerName, date: bill.date, amount: matchedAmount });
           }
