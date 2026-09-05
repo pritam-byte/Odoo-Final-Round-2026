@@ -1,92 +1,165 @@
 import React from 'react';
+import {
+  LayoutDashboard,
+  Receipt,
+  BookOpen,
+  PieChart,
+  ShoppingCart,
+  Package,
+  Users,
+  Wallet,
+  FileText,
+  Settings,
+  HelpCircle,
+} from 'lucide-react';
 
 export interface NavItem {
   id: string;
   label: string;
-  icon?: React.ReactNode;
-  dividerAfter?: boolean;
+  icon: React.ReactNode;
+  path: string;
+  badge?: string | number;
+}
+
+export interface NavGroup {
+  title?: string;
+  items: NavItem[];
 }
 
 export interface SidebarProps {
   currentPath?: string;
-  onNavigate?: (id: string) => void;
+  onNavigate?: (path: string) => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentPath = 'dashboard', onNavigate }) => {
-  const navSections: Array<{ title?: string; items: NavItem[] }> = [
+export const Sidebar: React.FC<SidebarProps> = ({
+  currentPath = '/dashboard',
+  onNavigate,
+}) => {
+  const navGroups: NavGroup[] = [
     {
+      title: 'Overview',
       items: [
-        { id: 'dashboard', label: 'Dashboard', dividerAfter: true },
-        { id: 'orders', label: 'Orders & Sales' },
-        { id: 'documents', label: 'Invoices & Bills' },
-        { id: 'payments', label: 'Payments', dividerAfter: true },
-        { id: 'accounting', label: 'Accounting' },
-        { id: 'budgets', label: 'Budgets' },
-        { id: 'analytics', label: 'Analytics', dividerAfter: true },
-        { id: 'contacts', label: 'Contacts' },
-        { id: 'products', label: 'Products & Stock' },
-        { id: 'reports', label: 'Reports' }
-      ]
-    }
+        {
+          id: 'dashboard',
+          label: 'Dashboard',
+          icon: <LayoutDashboard size={17} strokeWidth={1.75} />,
+          path: '/dashboard',
+        },
+        {
+          id: 'analytics',
+          label: 'Analytics',
+          icon: <PieChart size={17} strokeWidth={1.75} />,
+          path: '/analytics',
+        },
+      ],
+    },
+    {
+      title: 'Finance & Accounting',
+      items: [
+        {
+          id: 'accounting',
+          label: 'Journal Entries',
+          icon: <BookOpen size={17} strokeWidth={1.75} />,
+          path: '/accounting',
+        },
+        {
+          id: 'accounts',
+          label: 'Chart of Accounts',
+          icon: <Receipt size={17} strokeWidth={1.75} />,
+          path: '/accounts',
+        },
+        {
+          id: 'payments',
+          label: 'Payments & Due',
+          icon: <Wallet size={17} strokeWidth={1.75} />,
+          path: '/payments',
+        },
+        {
+          id: 'reports',
+          label: 'Financial Reports',
+          icon: <FileText size={17} strokeWidth={1.75} />,
+          path: '/reports',
+        },
+      ],
+    },
+    {
+      title: 'Operations & CRM',
+      items: [
+        {
+          id: 'orders',
+          label: 'Sales Orders',
+          icon: <ShoppingCart size={17} strokeWidth={1.75} />,
+          path: '/orders',
+        },
+        {
+          id: 'stock',
+          label: 'Inventory & Stock',
+          icon: <Package size={17} strokeWidth={1.75} />,
+          path: '/stock',
+        },
+        {
+          id: 'contacts',
+          label: 'Contacts / CRM',
+          icon: <Users size={17} strokeWidth={1.75} />,
+          path: '/contacts',
+        },
+      ],
+    },
+    {
+      title: 'System',
+      items: [
+        {
+          id: 'settings',
+          label: 'Settings',
+          icon: <Settings size={17} strokeWidth={1.75} />,
+          path: '/settings',
+        },
+        {
+          id: 'help',
+          label: 'Help & Docs',
+          icon: <HelpCircle size={17} strokeWidth={1.75} />,
+          path: '/help',
+        },
+      ],
+    },
   ];
 
+  const handleItemClick = (e: React.MouseEvent, path: string) => {
+    e.preventDefault();
+    onNavigate?.(path);
+  };
+
   return (
-    <aside style={{
-      position: 'fixed',
-      top: 'var(--navbar-height)',
-      left: 0,
-      bottom: 0,
-      width: 'var(--sidebar-width)',
-      backgroundColor: 'var(--color-white)',
-      borderRight: '1px solid var(--color-gray-border)',
-      padding: '16px 12px',
-      overflowY: 'auto',
-      zIndex: 900
-    }}>
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        {navSections.map((section, sIdx) => (
-          <React.Fragment key={sIdx}>
-            {section.items.map((item) => {
-              const isActive = currentPath === item.id;
+    <aside className="left-sidebar">
+      {navGroups.map((group, groupIndex) => (
+        <React.Fragment key={groupIndex}>
+          {groupIndex > 0 && <div className="sidebar-divider" />}
+          <div className="sidebar-group">
+            {group.title && (
+              <span className="sidebar-group-title">{group.title}</span>
+            )}
+            {group.items.map((item) => {
+              const isActive = currentPath === item.path || (item.path !== '/dashboard' && currentPath.startsWith(item.path));
               return (
-                <React.Fragment key={item.id}>
-                  <button
-                    onClick={() => onNavigate?.(item.id)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      width: '100%',
-                      padding: '9px 12px',
-                      borderRadius: '6px',
-                      border: 'none',
-                      backgroundColor: isActive ? 'var(--color-gray-bg)' : 'transparent',
-                      color: isActive ? 'var(--color-charcoal-dark)' : 'var(--color-gray-dark)',
-                      fontWeight: isActive ? 600 : 400,
-                      fontSize: '0.875rem',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    {/* Line icon placeholder */}
-                    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
-                      <rect x="3" y="3" width="7" height="7" rx="1.5" />
-                      <rect x="14" y="3" width="7" height="7" rx="1.5" />
-                      <rect x="14" y="14" width="7" height="7" rx="1.5" />
-                      <rect x="3" y="14" width="7" height="7" rx="1.5" />
-                    </svg>
-                    <span>{item.label}</span>
-                  </button>
-                  {item.dividerAfter && (
-                    <div style={{ height: '1px', backgroundColor: 'var(--color-gray-border)', margin: '8px 4px' }} />
+                <a
+                  key={item.id}
+                  href={`#${item.path}`}
+                  className={`sidebar-item ${isActive ? 'active' : ''}`}
+                  onClick={(e) => handleItemClick(e, item.path)}
+                >
+                  <span className="sidebar-item-icon">{item.icon}</span>
+                  <span style={{ flex: 1 }}>{item.label}</span>
+                  {item.badge && (
+                    <span className="badge-pill badge-neutral" style={{ fontSize: '11px', padding: '1px 6px' }}>
+                      {item.badge}
+                    </span>
                   )}
-                </React.Fragment>
+                </a>
               );
             })}
-          </React.Fragment>
-        ))}
-      </nav>
+          </div>
+        </React.Fragment>
+      ))}
     </aside>
   );
 };

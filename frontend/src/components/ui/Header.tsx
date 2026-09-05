@@ -1,88 +1,104 @@
 import React, { useState, useEffect } from 'react';
+import { Search, Clock, Bell, Layers } from 'lucide-react';
 
 export interface HeaderProps {
-  userName?: string;
-  avatarUrl?: string;
+  onSearch?: (query: string) => void;
+  user?: {
+    name: string;
+    email: string;
+    role?: string;
+    avatarUrl?: string;
+  };
+  onLogout?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ userName = 'Admin User', avatarUrl }) => {
-  const [time, setTime] = useState<string>('');
+export const Header: React.FC<HeaderProps> = ({
+  onSearch,
+  user = { name: 'Pritam Admin', email: 'admin@odoo-flow.com', role: 'Administrator' },
+  onLogout,
+}) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentTime, setCurrentTime] = useState<string>('');
 
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      setTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      setCurrentTime(
+        now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })
+      );
     };
     updateTime();
     const timer = setInterval(updateTime, 1000);
     return () => clearInterval(timer);
   }, []);
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    onSearch?.(e.target.value);
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  };
+
   return (
-    <header style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      height: 'var(--navbar-height)',
-      backgroundColor: 'var(--color-white)',
-      borderBottom: '1px solid var(--color-gray-border)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '0 24px',
-      zIndex: 1000
-    }}>
-      {/* Brand / Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 'var(--sidebar-width)' }}>
-        <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-brand-purple)' }}>Odoo</span>
-        <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-charcoal-dark)' }}>ERP</span>
+    <header className="top-navbar">
+      {/* Brand / Logo (Left) */}
+      <div className="navbar-left">
+        <a href="#/dashboard" className="brand-logo" title="Odoo Flow ERP">
+          <div className="brand-logo-icon">
+            <Layers size={18} strokeWidth={2.2} />
+          </div>
+          <div>
+            <span className="brand-word">Odoo</span> <span className="brand-secondary">Flow</span>
+          </div>
+        </a>
       </div>
 
-      {/* Right controls: Search bar, Live clock, User Avatar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+      {/* Search Bar, Live Clock & User Avatar (Center-Right & Far Right) */}
+      <div className="navbar-center-right">
         {/* Search Bar */}
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <svg style={{ position: 'absolute', left: '12px', width: '16px', height: '16px', color: 'var(--color-gray-medium)' }} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
+        <div className="search-bar-wrapper">
+          <div className="search-bar-icon">
+            <Search size={15} strokeWidth={1.75} />
+          </div>
           <input
             type="text"
-            placeholder="Search records, docs, actions..."
-            style={{
-              padding: '7px 14px 7px 36px',
-              borderRadius: 'var(--pill-radius)',
-              border: '1px solid var(--color-gray-border)',
-              backgroundColor: 'var(--color-gray-bg)',
-              fontSize: '0.875rem',
-              width: '260px',
-              outline: 'none',
-              color: 'var(--color-charcoal-dark)'
-            }}
+            className="search-bar-input"
+            placeholder="Search documents, accounts, orders..."
+            value={searchQuery}
+            onChange={handleSearchChange}
           />
         </div>
 
         {/* Live Clock */}
-        <div style={{ fontSize: '0.85rem', color: 'var(--color-gray-medium)', fontWeight: 500, minWidth: '70px', textAlign: 'right' }}>
-          {time}
+        <div className="navbar-clock" title="Current Local Time (Live)">
+          <Clock size={14} strokeWidth={1.75} style={{ color: 'var(--color-primary)' }} />
+          <span>{currentTime || 'Loading...'}</span>
         </div>
 
-        {/* Circular Avatar */}
-        <div style={{
-          width: '36px',
-          height: '36px',
-          borderRadius: '50%',
-          backgroundColor: 'var(--color-brand-purple)',
-          color: 'var(--color-white)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontWeight: 600,
-          fontSize: '0.875rem',
-          cursor: 'pointer'
-        }} title={userName}>
-          {avatarUrl ? <img src={avatarUrl} alt={userName} style={{ width: '100%', height: '100%', borderRadius: '50%' }} /> : userName.charAt(0)}
+        {/* Notification Icon */}
+        <button
+          type="button"
+          className="btn-ghost"
+          style={{ padding: '6px', borderRadius: '50%', color: 'var(--color-text-secondary)' }}
+          title="Notifications"
+        >
+          <Bell size={18} strokeWidth={1.75} />
+        </button>
+
+        {/* Circular User Avatar */}
+        <div
+          className="navbar-avatar"
+          title={`${user.name} (${user.role || 'User'}) - Click to view profile / logout`}
+          onClick={onLogout}
+        >
+          {getInitials(user.name)}
         </div>
       </div>
     </header>

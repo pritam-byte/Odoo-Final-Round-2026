@@ -1,14 +1,23 @@
 import React from 'react';
+import { AuthLayout } from '../../../layouts/AuthLayout';
+import { SignupForm } from '../components/SignupForm';
 
 export interface SignupPageProps {
-  children?: React.ReactNode;
+  onSuccess?: (user: { name: string; email: string; role: string }) => void;
+  onNavigateToLogin?: () => void;
 }
 
-export const SignupPage: React.FC<SignupPageProps> = () => {
+export const SignupPage: React.FC<SignupPageProps> = ({
+  onSuccess,
+  onNavigateToLogin,
+}) => {
   return (
-    <div className="signuppage">
-      <h3>SignupPage</h3>
-    </div>
+    <AuthLayout>
+      <SignupForm
+        onSuccess={onSuccess}
+        onNavigateToLogin={onNavigateToLogin}
+      />
+    </AuthLayout>
   );
 };
 

@@ -1,44 +1,73 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 
-export interface FormFieldProps {
-  label: string;
-  required?: boolean;
+export interface FormFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
+  optional?: boolean;
+  helperText?: string;
   error?: string;
-  hint?: string;
-  children: React.ReactNode;
+  leadingIcon?: React.ReactNode;
+  showPasswordToggle?: boolean;
 }
 
 export const FormField: React.FC<FormFieldProps> = ({
   label,
-  required,
+  optional = false,
+  helperText,
   error,
-  hint,
-  children
+  leadingIcon,
+  showPasswordToggle = false,
+  type = 'text',
+  id,
+  className = '',
+  ...props
 }) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+  const currentType = showPasswordToggle ? (showPassword ? 'text' : 'password') : type;
+
   return (
-    <div style={{ marginBottom: '18px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-      <label style={{
-        fontSize: '0.875rem',
-        fontWeight: 600,
-        color: 'var(--color-charcoal-dark)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '4px'
-      }}>
-        {label}
-        {required && <span style={{ color: 'var(--color-danger-red)' }}>*</span>}
-      </label>
-      {children}
-      {hint && !error && (
-        <span style={{ fontSize: '0.75rem', color: 'var(--color-gray-medium)' }}>
-          {hint}
-        </span>
+    <div className={`form-group ${className}`}>
+      {label && (
+        <label htmlFor={inputId} className="form-label">
+          {label}
+          {optional && <span className="form-label-optional">(optional)</span>}
+        </label>
       )}
-      {error && (
-        <span style={{ fontSize: '0.75rem', color: 'var(--color-danger-red)', fontWeight: 500 }}>
-          {error}
-        </span>
-      )}
+
+      <div className="input-with-icon-wrapper">
+        {leadingIcon && <div className="input-leading-icon">{leadingIcon}</div>}
+
+        <input
+          id={inputId}
+          type={currentType}
+          className={`form-input ${leadingIcon ? 'has-leading-icon' : ''} ${
+            showPasswordToggle ? 'has-trailing-icon' : ''
+          } ${error ? 'is-error' : ''}`}
+          {...props}
+        />
+
+        {showPasswordToggle && (
+          <button
+            type="button"
+            className="input-trailing-action"
+            onClick={() => setShowPassword(!showPassword)}
+            title={showPassword ? 'Hide password' : 'Show password'}
+            tabIndex={-1}
+          >
+            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        )}
+      </div>
+
+      {error ? (
+        <div className="form-error">
+          <AlertCircle size={14} />
+          <span>{error}</span>
+        </div>
+      ) : helperText ? (
+        <div className="form-helper">{helperText}</div>
+      ) : null}
     </div>
   );
 };
