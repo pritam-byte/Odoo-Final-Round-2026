@@ -80,7 +80,7 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
               <Layers size={18} strokeWidth={2.2} />
             </div>
             <div>
-              <span className="brand-word">Odoo</span> <span className="brand-secondary">Flow</span>
+              <span className="brand-word">Urban</span> <span className="brand-secondary">Furniture</span>
             </div>
           </div>
           <span className="badge-pill badge-paid" style={{ fontSize: '11px', padding: '2px 8px' }}>
@@ -181,8 +181,8 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
 
           {/* Page Footer */}
           <footer className="page-footer">
-            <p>Odoo Flow Enterprise • Partner Self-Service Settlement Portal</p>
-            <p>© {new Date().getFullYear()} Odoo Flow Inc. All transactions securely recorded.</p>
+            <p>Urban Furniture Enterprise • Partner Self-Service Settlement Portal</p>
+            <p>© {new Date().getFullYear()} Urban Furniture Inc. All transactions securely recorded.</p>
           </footer>
         </main>
       </div>

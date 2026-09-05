@@ -14,7 +14,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
             <Layers size={18} strokeWidth={2.2} />
           </div>
           <div>
-            <span className="brand-word">Odoo</span> <span className="brand-secondary">Flow</span>
+            <span className="brand-word">Urban</span> <span className="brand-secondary">Furniture</span>
           </div>
         </a>
 
@@ -41,8 +41,8 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
 
       {/* Page Footer (Centered, small light-gray text, two lines) */}
       <footer className="page-footer">
-        <p>Odoo Enterprise Resource Planning • Connected Intelligent Workspace</p>
-        <p>© 2026 Odoo Flow Inc. All rights reserved. System Operational.</p>
+        <p>Urban Furniture Resource Planning • Connected Intelligent Workspace</p>
+        <p>© 2026 Urban Furniture Inc. All rights reserved. System Operational.</p>
       </footer>
     </div>
   );

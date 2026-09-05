@@ -42,9 +42,9 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
     }
     return {
       name: 'Pritam Admin',
-      email: 'admin@odoo-flow.com',
+      email: 'admin@urban-furniture.com',
       role: 'Administrator',
-      company: 'Odoo Global ERP Inc.',
+      company: 'Urban Furniture Inc.',
     };
   });
 

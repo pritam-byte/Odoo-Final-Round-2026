@@ -46,7 +46,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
     <div className="card-panel" style={{ width: '100%', maxWidth: '440px', padding: '36px', margin: '0 auto' }}>
       <div style={{ textAlign: 'center', marginBottom: '24px' }}>
         <h2 className="card-title" style={{ fontSize: '22px', marginBottom: '6px' }}>
-          Sign In to Odoo Flow
+          Sign In to Urban Furniture
         </h2>
         <p className="card-subtitle">
           Enter your credentials or choose a quick role to access your dashboard

@@ -71,12 +71,12 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="top-navbar">
       {/* Brand / Logo (Left) */}
       <div className="navbar-left">
-        <a href="#/dashboard" className="brand-logo" title="Odoo Flow ERP">
+        <a href="#/dashboard" className="brand-logo" title="Urban Furniture ERP">
           <div className="brand-logo-icon">
             <Layers size={18} strokeWidth={2.2} />
           </div>
           <div>
-            <span className="brand-word">Odoo</span> <span className="brand-secondary">Flow</span>
+            <span className="brand-word">Urban</span> <span className="brand-secondary">Furniture</span>
           </div>
         </a>
       </div>
