@@ -87,6 +87,7 @@ async function main() {
       city: "Mumbai",
       state: "Maharashtra",
       pincode: "400001",
+      image: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=120&auto=format&fit=crop&q=60",
     },
     {
       name: "Nordic Timber Suppliers",
@@ -97,6 +98,7 @@ async function main() {
       city: "Gandhinagar",
       state: "Gujarat",
       pincode: "382010",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=60",
     },
     {
       name: "Hardware Hub Ltd",
@@ -107,6 +109,7 @@ async function main() {
       city: "Pune",
       state: "Maharashtra",
       pincode: "411001",
+      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=60",
     },
     // Customers
     {
@@ -118,6 +121,7 @@ async function main() {
       city: "Bengaluru",
       state: "Karnataka",
       pincode: "560001",
+      image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=60",
     },
     {
       name: "John Doe",
@@ -128,6 +132,7 @@ async function main() {
       city: "Mumbai",
       state: "Maharashtra",
       pincode: "400076",
+      image: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=120&auto=format&fit=crop&q=60",
     },
     {
       name: "Luxe Living Interiors",
@@ -138,6 +143,7 @@ async function main() {
       city: "New Delhi",
       state: "Delhi",
       pincode: "110001",
+      image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=60",
     },
     {
       name: "Nexus Tech Parks",
@@ -148,6 +154,7 @@ async function main() {
       city: "Hyderabad",
       state: "Telangana",
       pincode: "500081",
+      image: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=120&auto=format&fit=crop&q=60",
     },
     // Both
     {
@@ -159,6 +166,7 @@ async function main() {
       city: "Ahmedabad",
       state: "Gujarat",
       pincode: "380015",
+      image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=120&auto=format&fit=crop&q=60",
     },
   ];
 
@@ -241,6 +249,7 @@ async function main() {
       salesPrice: 28000,
       cost: 18000,
       type: ProductType.GOODS,
+      image: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=120&auto=format&fit=crop&q=60",
     },
     {
       name: "Ergonomic High-Back Mesh Chair",
@@ -248,6 +257,7 @@ async function main() {
       salesPrice: 15000,
       cost: 9500,
       type: ProductType.GOODS,
+      image: "https://images.unsplash.com/photo-1580481077111-9a74659b87b7?w=120&auto=format&fit=crop&q=60",
     },
     {
       name: "Solid Walnut Coffee Table",
@@ -255,6 +265,7 @@ async function main() {
       salesPrice: 22000,
       cost: 14000,
       type: ProductType.GOODS,
+      image: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=120&auto=format&fit=crop&q=60",
     },
     {
       name: "Modular 3-Seater Velvet Sofa",
@@ -262,6 +273,7 @@ async function main() {
       salesPrice: 45000,
       cost: 29000,
       type: ProductType.GOODS,
+      image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=120&auto=format&fit=crop&q=60",
     },
     {
       name: "Scandinavian 5-Tier Bookshelf",
@@ -269,6 +281,7 @@ async function main() {
       salesPrice: 18500,
       cost: 11000,
       type: ProductType.GOODS,
+      image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=120&auto=format&fit=crop&q=60",
     },
     {
       name: "Raw Timber Plank Lot (Grade A)",
@@ -276,6 +289,7 @@ async function main() {
       salesPrice: 6200,
       cost: 4500,
       type: ProductType.GOODS,
+      image: "https://images.unsplash.com/photo-1546484396-fb3fc6f95f98?w=120&auto=format&fit=crop&q=60",
     },
     {
       name: "Metal Hardware Assembly Kit",
@@ -283,6 +297,7 @@ async function main() {
       salesPrice: 4900,
       cost: 3200,
       type: ProductType.GOODS,
+      image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=120&auto=format&fit=crop&q=60",
     },
     {
       name: "Interior Architecture Consultation",
@@ -290,6 +305,7 @@ async function main() {
       salesPrice: 12000,
       cost: 4000,
       type: ProductType.SERVICE,
+      image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=120&auto=format&fit=crop&q=60",
     },
     {
       name: "Onsite Delivery & Custom Installation",
@@ -297,6 +313,7 @@ async function main() {
       salesPrice: 5000,
       cost: 2000,
       type: ProductType.SERVICE,
+      image: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=120&auto=format&fit=crop&q=60",
     },
     {
       name: "Full Executive Office Suite Combo",
@@ -304,6 +321,7 @@ async function main() {
       salesPrice: 48000,
       cost: 31000,
       type: ProductType.COMBO,
+      image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=120&auto=format&fit=crop&q=60",
     },
   ];
 
