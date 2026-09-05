@@ -61,10 +61,12 @@ export const BalanceSheetPage: React.FC<{ onNavigate: (route: string) => void }>
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <AccountantNav currentRoute="/reports/balance-sheet" onNavigate={onNavigate} />
+      <div className="no-print">
+        <AccountantNav currentRoute="/reports/balance-sheet" onNavigate={onNavigate} />
+      </div>
 
       {/* Main Header matching diagram */}
-      <div className="content-header">
+      <div className="content-header no-print">
         <div>
           <h1 className="page-title">Balance Sheet</h1>
           <p className="page-subtitle">
@@ -106,7 +108,7 @@ export const BalanceSheetPage: React.FC<{ onNavigate: (route: string) => void }>
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(0, 1.2fr)', gap: '24px', alignItems: 'start' }}>
         {/* Left: Balanced Balance Sheet Table Frame */}
         <div
-          className="card-panel"
+          className="card-panel printable-document"
           style={{
             padding: '24px',
             border: '2px solid var(--color-border)',
@@ -223,7 +225,7 @@ export const BalanceSheetPage: React.FC<{ onNavigate: (route: string) => void }>
 
         {/* Right: Field Computation Architecture Card */}
         <div
-          className="card-panel"
+          className="card-panel computation-card no-print"
           style={{
             padding: '24px',
             backgroundColor: 'var(--color-bg)',

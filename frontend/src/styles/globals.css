@@ -1164,3 +1164,84 @@ input, select, textarea {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   CLEAN ENTERPRISE PRINTING STYLES
+   Ensures printed reports, statements, and receipts only display the clean document,
+   hiding headers, navigation bars, search bars, sidebars, buttons, and tools.
+   ========================================================================== */
+@media print {
+  /* Hide all top navigation, sidebars, accountant nav, and action bars */
+  header,
+  nav,
+  .top-header,
+  .accountant-nav,
+  .content-header,
+  .no-print,
+  button,
+  .btn,
+  .select-filter,
+  select,
+  .computation-card,
+  .sidebar,
+  .left-sidebar,
+  .auth-trust-bar {
+    display: none !important;
+  }
+
+  /* Reset layout and background for crisp printing */
+  html,
+  body,
+  #root {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    font-size: 11pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .main-content,
+  .app-container,
+  .page-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Expand printable card and tables to 100% width with clean borders */
+  .printable-document,
+  .card-panel {
+    border: 1px solid #9ca3af !important;
+    box-shadow: none !important;
+    padding: 24px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: #ffffff !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Tables in print */
+  .custom-table,
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  .custom-table th,
+  .custom-table td,
+  th,
+  td {
+    border: 1px solid #e5e7eb !important;
+    padding: 8px 12px !important;
+    color: #111827 !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+  }
+}

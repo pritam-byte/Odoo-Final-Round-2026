@@ -89,9 +89,11 @@ export const BudgetReportPage: React.FC<{ onNavigate: (route: string) => void }>
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <AccountantNav currentRoute="/reports/budget" onNavigate={onNavigate} />
+      <div className="no-print">
+        <AccountantNav currentRoute="/reports/budget" onNavigate={onNavigate} />
+      </div>
 
-      <div className="content-header">
+      <div className="content-header no-print">
         <div>
           <h1 className="page-title">Budget Variance & Performance Report</h1>
           <p className="page-subtitle">
@@ -114,8 +116,8 @@ export const BudgetReportPage: React.FC<{ onNavigate: (route: string) => void }>
         </div>
       </div>
 
-      <div className="card-panel">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+      <div className="card-panel printable-document">
+        <div className="no-print" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
           <input
             type="text"
             className="form-input search-bar-input"
