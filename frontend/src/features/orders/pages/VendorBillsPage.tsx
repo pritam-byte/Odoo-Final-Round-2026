@@ -25,6 +25,7 @@ import { PaymentModal } from '../../../components/ui/PaymentModal';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
 import { exportVendorBillPdf } from '../../../lib/pdfExport';
 import { DocumentSignatureStamp } from '../../../components/ui/DocumentSignatureStamp';
+import { CustomDatePicker } from '../../../components/ui/CustomDatePicker';
 
 export const VendorBillsPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const {
@@ -624,20 +625,24 @@ export const VendorBillsPage: React.FC<{ onNavigate: (route: string) => void }> 
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <FormField
-              label="Bill Date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              required
-            />
-            <FormField
-              label="Due Date"
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              required
-            />
+            <div className="form-group">
+              <label className="form-label">Bill Date *</label>
+              <CustomDatePicker
+                value={date}
+                onChange={setDate}
+                placeholder="Bill Date"
+                width="100%"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Due Date *</label>
+              <CustomDatePicker
+                value={dueDate}
+                onChange={setDueDate}
+                placeholder="Due Date"
+                width="100%"
+              />
+            </div>
           </div>
 
           <LineItemsTable lines={lines} onChange={setLines} defaultAccountType="Expense" />

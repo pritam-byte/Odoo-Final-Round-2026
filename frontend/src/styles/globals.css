@@ -926,6 +926,88 @@ input, select, textarea {
   box-shadow: 0 0 0 1px var(--color-danger);
 }
 
+/* ==========================================================================
+   CUSTOM DROPDOWN & SELECT STYLES (UNIVERSAL THEME)
+   ========================================================================== */
+select,
+.form-select,
+.select-filter {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234b5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px 14px;
+  padding-right: 36px !important;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+select:hover,
+.form-select:hover,
+.select-filter:hover {
+  border-color: #d1d5db;
+  background-color: var(--color-surface-hover);
+}
+
+select:focus,
+.form-select:focus,
+.select-filter:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+  outline: none;
+  background-color: #ffffff;
+}
+
+/* ==========================================================================
+   CUSTOM DATE INPUT STYLES (UNIVERSAL THEME)
+   ========================================================================== */
+input[type="date"],
+.form-date-input {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  background-color: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.7;
+  filter: invert(30%) sepia(20%) saturate(1000%) hue-rotate(130deg) brightness(90%) contrast(90%);
+  transition: opacity var(--transition-fast);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+input[type="date"]:hover,
+.form-date-input:hover {
+  border-color: #d1d5db;
+}
+
+input[type="date"]:focus,
+.form-date-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+  outline: none;
+}
+
 .form-error {
   font-size: var(--font-size-xs);
   color: var(--color-danger);

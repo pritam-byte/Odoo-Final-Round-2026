@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { IndianRupee, Calendar, Wallet } from 'lucide-react';
+import { IndianRupee, Wallet } from 'lucide-react';
 import { Modal } from './Modal';
 import { Button } from './Button';
 import { FormField } from './FormField';
+import { CustomDatePicker } from './CustomDatePicker';
+import { CustomSelect } from './CustomSelect';
 
 export interface PaymentModalProps {
   isOpen: boolean;
@@ -128,15 +130,15 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             <label className="form-label" htmlFor="pay-via">
               Payment Via
             </label>
-            <select
-              id="pay-via"
-              className="form-input select-filter"
+            <CustomSelect<'Bank' | 'Cash'>
               value={paymentVia}
-              onChange={(e) => setPaymentVia(e.target.value as 'Bank' | 'Cash')}
-            >
-              <option value="Bank">Bank (Default)</option>
-              <option value="Cash">Cash</option>
-            </select>
+              onChange={(val) => setPaymentVia(val)}
+              options={[
+                { value: 'Bank', label: 'Bank (Default)' },
+                { value: 'Cash', label: 'Cash' },
+              ]}
+              width="100%"
+            />
           </div>
         </div>
 
@@ -152,14 +154,15 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             required
           />
 
-          <FormField
-            label="Payment Date"
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            leadingIcon={<Calendar size={15} strokeWidth={1.75} />}
-            required
-          />
+          <div className="form-group">
+            <label className="form-label">Payment Date *</label>
+            <CustomDatePicker
+              value={date}
+              onChange={setDate}
+              placeholder="Payment Date"
+              width="100%"
+            />
+          </div>
         </div>
 
         <FormField

@@ -22,6 +22,8 @@ import { DataTable, Column } from '../../../components/ui/DataTable';
 import { BudgetProgressWidget } from '../../../components/ui/BudgetProgressWidget';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
 import { BudgetPieChartModal } from '../components/BudgetPieChartModal';
+import { CustomDatePicker } from '../../../components/ui/CustomDatePicker';
+import { CustomSelect } from '../../../components/ui/CustomSelect';
 
 export const BudgetsPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const {
@@ -822,20 +824,24 @@ export const BudgetsPage: React.FC<{ onNavigate: (route: string) => void }> = ({
           />
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-            <FormField
-              label="Start Date"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              required
-            />
-            <FormField
-              label="End Date"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              required
-            />
+            <div className="form-group">
+              <label className="form-label">Start Date *</label>
+              <CustomDatePicker
+                value={startDate}
+                onChange={setStartDate}
+                placeholder="Start Date"
+                width="100%"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">End Date *</label>
+              <CustomDatePicker
+                value={endDate}
+                onChange={setEndDate}
+                placeholder="End Date"
+                width="100%"
+              />
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
@@ -843,18 +849,15 @@ export const BudgetsPage: React.FC<{ onNavigate: (route: string) => void }> = ({
               <label className="form-label" htmlFor="budget-analytic">
                 Analytic Cost Center
               </label>
-              <select
-                id="budget-analytic"
-                className="form-input select-filter"
+              <CustomSelect
                 value={analyticId}
-                onChange={(e) => setAnalyticId(e.target.value)}
-              >
-                {analytics.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} ({a.type})
-                  </option>
-                ))}
-              </select>
+                onChange={setAnalyticId}
+                options={analytics.map((a) => ({
+                  value: a.id,
+                  label: `${a.name} (${a.type})`,
+                }))}
+                width="100%"
+              />
             </div>
 
             <FormField

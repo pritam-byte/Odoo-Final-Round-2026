@@ -4,11 +4,11 @@ import { useAccountingStore, PurchaseOrder, OrderLine } from '../../accounting/s
 import { Button } from '../../../components/ui/Button';
 import { StatusBadge } from '../../../components/ui/StatusBadge';
 import { Modal } from '../../../components/ui/Modal';
-import { FormField } from '../../../components/ui/FormField';
 import { DataTable, Column } from '../../../components/ui/DataTable';
 import { LineItemsTable } from '../../../components/ui/LineItemsTable';
 import { Many2OneSelect } from '../../../components/ui/Many2OneSelect';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
+import { CustomDatePicker } from '../../../components/ui/CustomDatePicker';
 
 export const PurchaseOrdersPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { purchaseOrders, contacts, products, accounts, analytics, budgets, addPurchaseOrder, confirmPurchaseOrder, addBill } =
@@ -349,13 +349,15 @@ export const PurchaseOrdersPage: React.FC<{ onNavigate: (route: string) => void 
               required
             />
 
-            <FormField
-              label="PO Date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              required
-            />
+            <div className="form-group">
+              <label className="form-label">PO Date *</label>
+              <CustomDatePicker
+                value={date}
+                onChange={setDate}
+                placeholder="PO Date"
+                width="100%"
+              />
+            </div>
           </div>
 
           <LineItemsTable lines={lines} onChange={setLines} defaultAccountType="Expense" hideAccountColumn={true} />

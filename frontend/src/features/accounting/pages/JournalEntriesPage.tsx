@@ -7,6 +7,8 @@ import { Modal } from '../../../components/ui/Modal';
 import { FormField } from '../../../components/ui/FormField';
 import { DataTable, Column } from '../../../components/ui/DataTable';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
+import { CustomDatePicker } from '../../../components/ui/CustomDatePicker';
+import { CustomSelect } from '../../../components/ui/CustomSelect';
 
 export const JournalEntriesPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { journalEntries, journals, accounts, contacts, addJournalEntry, postJournalEntry, cancelJournalEntry } =
@@ -390,30 +392,29 @@ export const JournalEntriesPage: React.FC<{ onNavigate: (route: string) => void 
           )}
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
-            <FormField
-              label="Accounting Date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              required
-            />
+            <div className="form-group">
+              <label className="form-label">Accounting Date *</label>
+              <CustomDatePicker
+                value={date}
+                onChange={setDate}
+                placeholder="Accounting Date"
+                width="100%"
+              />
+            </div>
 
             <div className="form-group">
               <label className="form-label" htmlFor="entry-journal">
                 Journal
               </label>
-              <select
-                id="entry-journal"
-                className="form-input select-filter"
+              <CustomSelect
                 value={journalId}
-                onChange={(e) => setJournalId(e.target.value)}
-              >
-                {journals.map((j) => (
-                  <option key={j.id} value={j.id}>
-                    {j.code} - {j.name}
-                  </option>
-                ))}
-              </select>
+                onChange={setJournalId}
+                options={journals.map((j) => ({
+                  value: j.id,
+                  label: `${j.code} - ${j.name}`,
+                }))}
+                width="100%"
+              />
             </div>
 
             <FormField

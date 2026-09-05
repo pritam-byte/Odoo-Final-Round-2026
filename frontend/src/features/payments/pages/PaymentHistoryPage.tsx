@@ -19,6 +19,7 @@ import { AccountantNav } from '../../../components/ui/AccountantNav';
 import { PaymentStatusBadge, PaymentDirectionBadge, PaymentMethodBadge } from '../components/PaymentStatusBadge';
 import { PaymentReceiptModal } from '../components/PaymentReceiptModal';
 import { RegisterPaymentModal } from '../components/RegisterPaymentModal';
+import { CustomSelect } from '../../../components/ui/CustomSelect';
 
 export const PaymentHistoryPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { payments, invoices, bills, contacts } = useAccountingStore();
@@ -486,27 +487,27 @@ export const PaymentHistoryPage: React.FC<{ onNavigate: (route: string) => void 
                   />
                 </div>
 
-                <select
-                  className="form-input select-filter"
+                <CustomSelect<'All' | 'Receive' | 'Send'>
                   value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value as any)}
-                  style={{ width: '170px' }}
-                >
-                  <option value="All">All Transactions</option>
-                  <option value="Receive">Incoming Collections</option>
-                  <option value="Send">Outgoing Disbursements</option>
-                </select>
+                  onChange={(v) => setTypeFilter(v)}
+                  options={[
+                    { value: 'All', label: 'All Transactions' },
+                    { value: 'Receive', label: 'Incoming Collections' },
+                    { value: 'Send', label: 'Outgoing Disbursements' },
+                  ]}
+                  width={180}
+                />
 
-                <select
-                  className="form-input select-filter"
+                <CustomSelect<'All' | 'Bank' | 'Cash'>
                   value={methodFilter}
-                  onChange={(e) => setMethodFilter(e.target.value as any)}
-                  style={{ width: '150px' }}
-                >
-                  <option value="All">All Methods</option>
-                  <option value="Bank">Bank Account</option>
-                  <option value="Cash">Cash Account</option>
-                </select>
+                  onChange={(v) => setMethodFilter(v)}
+                  options={[
+                    { value: 'All', label: 'All Methods' },
+                    { value: 'Bank', label: 'Bank Account' },
+                    { value: 'Cash', label: 'Cash Account' },
+                  ]}
+                  width={160}
+                />
               </div>
 
               <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
@@ -620,17 +621,17 @@ export const PaymentHistoryPage: React.FC<{ onNavigate: (route: string) => void 
                   />
                 </div>
 
-                <select
-                  className="form-input select-filter"
+                <CustomSelect<'All' | 'Overdue' | 'Partial' | 'Unpaid'>
                   value={dueStatusFilter}
-                  onChange={(e) => setDueStatusFilter(e.target.value as any)}
-                  style={{ width: '160px' }}
-                >
-                  <option value="All">All Outstanding</option>
-                  <option value="Overdue">Overdue Only</option>
-                  <option value="Partial">Partially Paid</option>
-                  <option value="Unpaid">Unpaid Invoices</option>
-                </select>
+                  onChange={(v) => setDueStatusFilter(v)}
+                  options={[
+                    { value: 'All', label: 'All Outstanding' },
+                    { value: 'Overdue', label: 'Overdue Only' },
+                    { value: 'Partial', label: 'Partially Paid' },
+                    { value: 'Unpaid', label: 'Unpaid Invoices' },
+                  ]}
+                  width={170}
+                />
               </div>
 
               <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
@@ -730,17 +731,17 @@ export const PaymentHistoryPage: React.FC<{ onNavigate: (route: string) => void 
                   />
                 </div>
 
-                <select
-                  className="form-input select-filter"
+                <CustomSelect<'All' | 'Overdue' | 'Partial' | 'Unpaid'>
                   value={dueStatusFilter}
-                  onChange={(e) => setDueStatusFilter(e.target.value as any)}
-                  style={{ width: '160px' }}
-                >
-                  <option value="All">All Outstanding</option>
-                  <option value="Overdue">Overdue Only</option>
-                  <option value="Partial">Partially Paid</option>
-                  <option value="Unpaid">Unpaid Bills</option>
-                </select>
+                  onChange={(v) => setDueStatusFilter(v)}
+                  options={[
+                    { value: 'All', label: 'All Outstanding' },
+                    { value: 'Overdue', label: 'Overdue Only' },
+                    { value: 'Partial', label: 'Partially Paid' },
+                    { value: 'Unpaid', label: 'Unpaid Bills' },
+                  ]}
+                  width={170}
+                />
               </div>
 
               <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>

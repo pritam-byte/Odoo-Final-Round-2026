@@ -13,6 +13,7 @@ import { JournalEntryPreview } from '../../../components/ui/JournalEntryPreview'
 import { AccountantNav } from '../../../components/ui/AccountantNav';
 import { exportCustomerInvoicePdf } from '../../../lib/pdfExport';
 import { DocumentSignatureStamp } from '../../../components/ui/DocumentSignatureStamp';
+import { CustomDatePicker } from '../../../components/ui/CustomDatePicker';
 
 export const InvoicesPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { invoices, contacts, products, accounts, analytics, journalEntries, addInvoice, confirmInvoice, payInvoice } =
@@ -392,20 +393,24 @@ export const InvoicesPage: React.FC<{ onNavigate: (route: string) => void }> = (
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <FormField
-              label="Invoice Date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              required
-            />
-            <FormField
-              label="Payment Due Date"
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              required
-            />
+            <div className="form-group">
+              <label className="form-label">Invoice Date *</label>
+              <CustomDatePicker
+                value={date}
+                onChange={setDate}
+                placeholder="Invoice Date"
+                width="100%"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Payment Due Date *</label>
+              <CustomDatePicker
+                value={dueDate}
+                onChange={setDueDate}
+                placeholder="Due Date"
+                width="100%"
+              />
+            </div>
           </div>
 
           <LineItemsTable lines={lines} onChange={setLines} defaultAccountType="Income" />
