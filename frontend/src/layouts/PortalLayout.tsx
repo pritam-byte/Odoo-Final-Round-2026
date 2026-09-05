@@ -8,7 +8,6 @@ import {
   Receipt,
   Wallet,
   LogOut,
-  Users,
 } from 'lucide-react';
 import { UserAccount } from '../features/auth/schemas';
 import { getStoredUser, CURRENT_USER } from '../lib/auth';
@@ -93,33 +92,6 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
             <div>
               <span className="brand-word">Urban</span> <span className="brand-secondary">Furniture</span>
             </div>
-          </div>
-
-          {/* Static Locked Portal Badge (No switch dropdown) */}
-          <div
-            className="badge-pill badge-paid"
-            style={{
-              fontSize: '11px',
-              padding: '4px 10px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              border: '1px solid var(--color-primary-border)',
-              backgroundColor: 'var(--color-primary-light)',
-              color: 'var(--color-primary)',
-              fontWeight: 600,
-              cursor: 'default',
-              userSelect: 'none',
-            }}
-          >
-            <Users size={12} />
-            <span>
-              {pType === 'Vendor'
-                ? 'Vendor Portal'
-                : pType === 'Customer'
-                ? 'Customer Portal'
-                : 'Partner Portal (Customer + Vendor)'}
-            </span>
           </div>
         </div>
 

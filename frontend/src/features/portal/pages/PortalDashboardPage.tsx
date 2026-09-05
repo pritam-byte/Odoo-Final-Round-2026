@@ -12,16 +12,18 @@ import {
 import { StatusBadge } from '../../../components/ui/StatusBadge';
 import { CustomSelect } from '../../../components/ui/CustomSelect';
 import { getMyScopedDocuments } from '../api';
-import { getStoredUser } from '../../../lib/auth';
+import { UserAccount } from '../../auth/schemas';
+import { getStoredUser, CURRENT_USER } from '../../../lib/auth';
 
 export interface PortalDashboardPageProps {
   onNavigate: (view: string, docId?: string) => void;
+  user?: UserAccount | null;
 }
 
-export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavigate }) => {
-  const currentUser = getStoredUser();
+export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavigate, user }) => {
+  const currentUser = user || getStoredUser() || CURRENT_USER;
   const pType = currentUser?.partnerType || 'Both';
-  const userName = currentUser?.name || 'Partner';
+  const userName = currentUser?.name || 'User';
 
   const [dualFilter, setDualFilter] = useState<'ALL' | 'invoice' | 'bill'>('ALL');
 

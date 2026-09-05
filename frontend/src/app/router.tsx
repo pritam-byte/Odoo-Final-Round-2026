@@ -143,7 +143,7 @@ export const AppRouter: React.FC = () => {
         user={currentUser}
         onLogout={handleLogout}
       >
-        {portalView === 'dashboard' && <PortalDashboardPage onNavigate={handlePortalNavigate} />}
+        {portalView === 'dashboard' && <PortalDashboardPage user={currentUser} onNavigate={handlePortalNavigate} />}
         {portalView === 'invoices' && <PortalDocumentListPage documentType="invoice" onNavigate={handlePortalNavigate} />}
         {portalView === 'bills' && <PortalDocumentListPage documentType="bill" onNavigate={handlePortalNavigate} />}
         {portalView === 'payments' && <PortalPaymentHistoryPage />}
