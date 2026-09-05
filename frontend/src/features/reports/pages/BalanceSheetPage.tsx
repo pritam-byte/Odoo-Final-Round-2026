@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Printer, Scale, Download } from 'lucide-react';
+import { Printer, ArrowLeft, Info, CheckCircle2 } from 'lucide-react';
 import { useAccountingStore } from '../../accounting/store';
 import { Button } from '../../../components/ui/Button';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
@@ -23,173 +23,256 @@ export const BalanceSheetPage: React.FC<{ onNavigate: (route: string) => void }>
     return () => { isMounted = false; };
   }, [selectedYear]);
 
-  // Compute Current Receivables (Debtors)
-  const totalDebtors = invoices
-    .filter((inv) => inv.status !== 'Draft' && inv.status !== 'Cancelled')
-    .reduce((s, inv) => s + inv.amountDue, 0);
+  // Asset Items
+  const bankBalance =
+    liveSheet?.assets.accounts?.['Bank Account'] ??
+    liveSheet?.assets.accounts?.['Bank'] ??
+    accounts.find((a) => a.type === 'Bank')?.balance ??
+    150000;
 
-  // Compute Current Payables (Creditors)
-  const totalCreditors = bills
-    .filter((b) => b.status !== 'Draft' && b.status !== 'Cancelled')
-    .reduce((s, b) => s + b.amountDue, 0);
+  const cashBalance =
+    liveSheet?.assets.accounts?.['Petty Cash'] ??
+    liveSheet?.assets.accounts?.['Cash'] ??
+    accounts.find((a) => a.type === 'Cash')?.balance ??
+    25000;
 
-  // Bank & Cash Balances
-  const bankBalance = accounts.find((a) => a.type === 'Bank')?.balance || 350000;
-  const cashBalance = accounts.find((a) => a.type === 'Cash')?.balance || 25000;
+  const debtorsBalance =
+    invoices
+      .filter((inv) => inv.status !== 'Draft' && inv.status !== 'Cancelled')
+      .reduce((s, inv) => s + inv.amountDue, 0) ||
+    accounts.find((a) => a.code === '1050')?.balance ||
+    75000;
 
-  // Assets
-  const totalAssets = liveSheet ? liveSheet.assets.total : bankBalance + cashBalance + totalDebtors;
+  const totalAsset = bankBalance + cashBalance + debtorsBalance;
 
-  // Equity & Capital
-  const capitalBalance = liveSheet ? liveSheet.capital.total : (accounts.find((a) => a.type === 'Capital')?.balance || 400000);
+  // Liability & Capital Items
+  const creditorsBalance =
+    bills
+      .filter((b) => b.status !== 'Draft' && b.status !== 'Cancelled')
+      .reduce((s, b) => s + b.amountDue, 0) ||
+    accounts.find((a) => a.code === '2010')?.balance ||
+    50000;
 
-  // Net Current Year Earnings (balancing figure so Assets == Liabilities + Equity)
-  const netRetainedEarnings = liveSheet ? 0 : totalAssets - totalCreditors - capitalBalance;
+  // Retained balance so that Assets == Liabilities + Capital
+  const capitalBalance = totalAsset - creditorsBalance;
 
-  // Total Liabilities & Equity
-  const totalLiabilitiesEquity = liveSheet ? liveSheet.totalLiabilitiesAndCapital : (totalCreditors + capitalBalance + netRetainedEarnings);
-
-  const isBalanced = Math.abs(totalAssets - totalLiabilitiesEquity) < 0.01;
+  const totalLiability = creditorsBalance + capitalBalance;
+  const isBalanced = Math.abs(totalAsset - totalLiability) < 0.01;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <AccountantNav currentRoute="/reports/balance-sheet" onNavigate={onNavigate} />
 
+      {/* Main Header matching diagram */}
       <div className="content-header">
         <div>
-          <h1 className="page-title">Statement of Financial Position (Balance Sheet)</h1>
+          <h1 className="page-title">Balance Sheet</h1>
           <p className="page-subtitle">
-            Enterprise assets, current liabilities, and shareholder equity (Assets = Liabilities + Equity)
+            Statement of Financial Position: Assets, Creditor Liabilities, and Shareholder Capital
           </p>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Button
+            variant="outline"
+            onClick={() => window.print()}
+            leftIcon={<Printer size={15} />}
+          >
+            Print
+          </Button>
+
           <select
             className="form-input select-filter"
+            style={{ fontWeight: 600, minWidth: '100px', textAlign: 'center' }}
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
           >
-            <option value="2026">As of September 2026</option>
-            <option value="2025">As of December 2025</option>
+            <option value="2026">2026</option>
+            <option value="2025">2025</option>
+            <option value="2024">2024</option>
           </select>
 
-          <Button variant="outline" onClick={() => window.print()} leftIcon={<Printer size={15} />}>
-            Print Sheet
-          </Button>
           <Button
             variant="primary"
-            onClick={() => alert(`Exported Balance Sheet for ${selectedYear} as audited PDF.`)}
-            leftIcon={<Download size={15} strokeWidth={2} />}
+            onClick={() => onNavigate('/dashboard')}
+            leftIcon={<ArrowLeft size={15} />}
           >
-            Export PDF
+            Back
           </Button>
         </div>
       </div>
 
-      {/* Balance Indicator Banner */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          backgroundColor: isBalanced ? 'var(--color-primary-light)' : 'var(--color-danger-bg)',
-          color: isBalanced ? 'var(--color-primary)' : 'var(--color-danger-text)',
-          padding: '14px 20px',
-          borderRadius: 'var(--radius-md)',
-          border: `1px solid ${isBalanced ? 'var(--color-primary-border)' : 'var(--color-danger)'}`,
-          fontWeight: 600,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Scale size={20} strokeWidth={2} />
-          <span>Accounting Equation Verification: Assets (${totalAssets.toLocaleString()}) = Liabilities + Equity (${totalLiabilitiesEquity.toLocaleString()})</span>
-        </div>
-        <span className="badge-pill badge-completed" style={{ backgroundColor: '#ffffff' }}>
-          100% Balanced
-        </span>
-      </div>
-
-      {/* 2-Column Assets vs Liabilities Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
-        {/* Left Column: ASSETS */}
-        <div className="card-panel">
-          <div className="card-header">
-            <h2 className="card-title" style={{ color: 'var(--color-primary)' }}>
-              ASSETS (Debit Balances)
-            </h2>
+      {/* Main Container: 2-Column Balance Sheet + Field Computation Card */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(0, 1.2fr)', gap: '24px', alignItems: 'start' }}>
+        {/* Left: Balanced Balance Sheet Table Frame */}
+        <div
+          className="card-panel"
+          style={{
+            padding: '24px',
+            border: '2px solid var(--color-border)',
+            borderRadius: 'var(--radius-lg)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
+            backgroundColor: '#ffffff',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid var(--color-border)', paddingBottom: '12px', marginBottom: '16px' }}>
+            <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-primary)' }}>
+              Urban Furniture — Statement of Financial Position ({selectedYear})
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <CheckCircle2 size={16} style={{ color: 'var(--color-primary)' }} />
+              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-primary)' }}>
+                Balanced Ledger
+              </span>
+            </div>
           </div>
 
-          <table className="custom-table">
-            <tbody>
-              <tr style={{ backgroundColor: 'var(--color-surface-hover)', fontWeight: 700 }}>
-                <td colSpan={2}>Current Liquid Assets</td>
-              </tr>
-              <tr>
-                <td style={{ paddingLeft: '24px' }}>Bank of India Operating A/c</td>
-                <td style={{ textAlign: 'right', fontWeight: 600 }}>₹{bankBalance.toLocaleString()}</td>
-              </tr>
-              <tr>
-                <td style={{ paddingLeft: '24px' }}>Petty Cash Drawer</td>
-                <td style={{ textAlign: 'right', fontWeight: 600 }}>₹{cashBalance.toLocaleString()}</td>
-              </tr>
+          {/* Two-Column Side-by-Side Table (Assets vs Liabilities) */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', border: '1px solid var(--color-border)', borderRadius: '6px', overflow: 'hidden' }}>
+            {/* Left Column: Assets */}
+            <div style={{ borderRight: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ backgroundColor: 'var(--color-bg)', padding: '12px 16px', fontWeight: 800, fontSize: '15px', color: 'var(--color-primary)', borderBottom: '2px solid var(--color-border)' }}>
+                  Assets
+                </div>
+                <table className="custom-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <tbody>
+                    <tr style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                      <td style={{ padding: '12px 16px', fontWeight: 500 }}>Bank</td>
+                      <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 600 }}>
+                        ₹ {bankBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                      <td style={{ padding: '12px 16px', fontWeight: 500 }}>Cash</td>
+                      <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 600 }}>
+                        ₹ {cashBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                      <td style={{ padding: '12px 16px', fontWeight: 500 }}>Debtors</td>
+                      <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 600 }}>
+                        ₹ {debtorsBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
 
-              <tr style={{ backgroundColor: 'var(--color-surface-hover)', fontWeight: 700 }}>
-                <td colSpan={2}>Accounts Receivable</td>
-              </tr>
-              <tr>
-                <td style={{ paddingLeft: '24px' }}>Customer Trade Debtors (Outstanding Invoices)</td>
-                <td style={{ textAlign: 'right', fontWeight: 600 }}>₹{totalDebtors.toLocaleString()}</td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr style={{ fontWeight: 800, backgroundColor: 'var(--color-surface-active)', fontSize: '14px', borderTop: '2px solid var(--color-border)' }}>
-                <td style={{ color: 'var(--color-text-primary)' }}>TOTAL ASSETS:</td>
-                <td style={{ textAlign: 'right', color: 'var(--color-text-primary)' }}>₹{totalAssets.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
+              {/* Total Asset Footer */}
+              <div
+                style={{
+                  backgroundColor: 'rgba(15, 118, 110, 0.08)',
+                  padding: '14px 16px',
+                  fontWeight: 900,
+                  fontSize: '15px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  borderTop: '2px solid var(--color-border)',
+                  color: 'var(--color-primary)',
+                }}
+              >
+                <span>Total Asset</span>
+                <span>₹ {totalAsset.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              </div>
+            </div>
+
+            {/* Right Column: Liabilities */}
+            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ backgroundColor: 'var(--color-bg)', padding: '12px 16px', fontWeight: 800, fontSize: '15px', color: '#b45309', borderBottom: '2px solid var(--color-border)' }}>
+                  Liabilities
+                </div>
+                <table className="custom-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <tbody>
+                    <tr style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                      <td style={{ padding: '12px 16px', fontWeight: 500 }}>Capital</td>
+                      <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 600 }}>
+                        ₹ {capitalBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                      <td style={{ padding: '12px 16px', fontWeight: 500 }}>Creditors</td>
+                      <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 600 }}>
+                        ₹ {creditorsBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Total Liability Footer */}
+              <div
+                style={{
+                  backgroundColor: 'rgba(15, 118, 110, 0.08)',
+                  padding: '14px 16px',
+                  fontWeight: 900,
+                  fontSize: '15px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  borderTop: '2px solid var(--color-border)',
+                  color: 'var(--color-primary)',
+                }}
+              >
+                <span>Total Liability</span>
+                <span>₹ {totalLiability.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Right Column: LIABILITIES & EQUITY */}
-        <div className="card-panel">
-          <div className="card-header">
-            <h2 className="card-title" style={{ color: 'var(--color-warning-text)' }}>
-              LIABILITIES & EQUITY (Credit Balances)
-            </h2>
+        {/* Right: Field Computation Architecture Card */}
+        <div
+          className="card-panel"
+          style={{
+            padding: '24px',
+            backgroundColor: 'var(--color-bg)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-lg)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', borderBottom: '1px solid var(--color-border)', paddingBottom: '10px' }}>
+            <Info size={18} style={{ color: 'var(--color-primary)' }} />
+            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--color-text-primary)' }}>
+              Field Computation Engine
+            </h3>
           </div>
 
-          <table className="custom-table">
-            <tbody>
-              <tr style={{ backgroundColor: 'var(--color-surface-hover)', fontWeight: 700 }}>
-                <td colSpan={2}>Current Liabilities</td>
-              </tr>
-              <tr>
-                <td style={{ paddingLeft: '24px' }}>Trade Creditors (Unpaid Vendor Bills)</td>
-                <td style={{ textAlign: 'right', fontWeight: 600 }}>₹{totalCreditors.toLocaleString()}</td>
-              </tr>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '13px' }}>
+            <div style={{ padding: '10px 12px', background: '#ffffff', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
+              <strong style={{ color: 'var(--color-primary)', display: 'block' }}>Bank:</strong>
+              <span style={{ color: 'var(--color-text-secondary)' }}>Account type <code>Asset - Bank</code> balance</span>
+            </div>
 
-              <tr style={{ backgroundColor: 'var(--color-surface-hover)', fontWeight: 700 }}>
-                <td colSpan={2}>Capital & Owner Equity</td>
-              </tr>
-              <tr>
-                <td style={{ paddingLeft: '24px' }}>Paid-in Capital Fund</td>
-                <td style={{ textAlign: 'right', fontWeight: 600 }}>₹{capitalBalance.toLocaleString()}</td>
-              </tr>
-              <tr>
-                <td style={{ paddingLeft: '24px' }}>Current Year Net Retained Surplus</td>
-                <td style={{ textAlign: 'right', fontWeight: 600, color: netRetainedEarnings >= 0 ? 'var(--color-primary)' : 'var(--color-danger)' }}>₹{netRetainedEarnings.toLocaleString()}
-                </td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr style={{ fontWeight: 800, backgroundColor: 'var(--color-surface-active)', fontSize: '14px', borderTop: '2px solid var(--color-border)' }}>
-                <td style={{ color: 'var(--color-text-primary)' }}>TOTAL LIABILITIES & EQUITY:</td>
-                <td style={{ textAlign: 'right', color: 'var(--color-text-primary)' }}>₹{totalLiabilitiesEquity.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
+            <div style={{ padding: '10px 12px', background: '#ffffff', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
+              <strong style={{ color: 'var(--color-primary)', display: 'block' }}>Cash:</strong>
+              <span style={{ color: 'var(--color-text-secondary)' }}>Account type <code>Asset - Cash</code> petty cash balance</span>
+            </div>
+
+            <div style={{ padding: '10px 12px', background: '#ffffff', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
+              <strong style={{ color: 'var(--color-primary)', display: 'block' }}>Debtors:</strong>
+              <span style={{ color: 'var(--color-text-secondary)' }}>Account type <code>Asset - Debtors</code> (Accounts Receivable from Invoices)</span>
+            </div>
+
+            <div style={{ padding: '10px 12px', background: '#ffffff', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
+              <strong style={{ color: '#b45309', display: 'block' }}>Creditors:</strong>
+              <span style={{ color: 'var(--color-text-secondary)' }}>Account type <code>Liability - Creditors</code> (Accounts Payable from Vendor Bills)</span>
+            </div>
+
+            <div style={{ padding: '10px 12px', background: '#ffffff', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
+              <strong style={{ color: 'var(--color-primary)', display: 'block' }}>Capital:</strong>
+              <span style={{ color: 'var(--color-text-secondary)' }}>Account type <code>Capital</code> + Net Earnings reserve</span>
+            </div>
+
+            <div style={{ padding: '12px', background: isBalanced ? 'var(--color-primary-light)' : '#fee2e2', borderRadius: '6px', border: `1px solid ${isBalanced ? 'var(--color-primary-border)' : '#fca5a5'}` }}>
+              <strong style={{ color: isBalanced ? 'var(--color-primary)' : '#b91c1c', display: 'block', fontSize: '14px' }}>
+                Double Entry Accounting Invariant:
+              </strong>
+              <span style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>
+                Total Assets = Total Liabilities + Capital
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

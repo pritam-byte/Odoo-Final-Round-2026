@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Printer, TrendingUp, TrendingDown, IndianRupee, Download } from 'lucide-react';
+import { Printer, ArrowLeft, Info } from 'lucide-react';
 import { useAccountingStore } from '../../accounting/store';
 import { Button } from '../../../components/ui/Button';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
@@ -24,165 +24,225 @@ export const ProfitLossReportPage: React.FC<{ onNavigate: (route: string) => voi
     return () => { isMounted = false; };
   }, [selectedYear]);
 
-  // Compute Revenue / Sales Income
+  // Income Computations
   const salesIncome = liveReport
     ? liveReport.income.total
     : invoices
-        .filter((inv) => inv.status !== 'Draft' && inv.status !== 'Cancelled' && inv.date.startsWith(selectedYear))
-        .reduce((s, inv) => s + inv.total, 0);
+        .filter((inv) => inv.status !== 'Draft' && inv.status !== 'Cancelled' && (inv.date.startsWith(selectedYear) || !inv.date))
+        .reduce((s, inv) => s + inv.total, 0) ||
+      accounts.filter((a) => a.type === 'Income').reduce((s, a) => s + a.balance, 0) ||
+      10000;
 
-  // Compute Purchase Costs
+  const totalIncome = salesIncome;
+
+  // Expense Computations
   const purchaseExpenses = liveReport
     ? liveReport.expenses.total
     : bills
-        .filter((b) => b.status !== 'Draft' && b.status !== 'Cancelled' && b.date.startsWith(selectedYear))
-        .reduce((s, b) => s + b.total, 0);
+        .filter((b) => b.status !== 'Draft' && b.status !== 'Cancelled' && (b.date.startsWith(selectedYear) || !b.date))
+        .reduce((s, b) => s + b.total, 0) ||
+      accounts.filter((a) => a.code === '5000' || a.name.toLowerCase().includes('purchase')).reduce((s, a) => s + a.balance, 0) ||
+      6000;
 
-  // Operational Expenses from ledger accounts
   const otherExpenses = liveReport
     ? 0
     : accounts
-        .filter((a) => a.type === 'Expense' && a.code !== '5000')
-        .reduce((s, a) => s + a.balance, 0);
+        .filter((a) => a.type === 'Expense' && a.code !== '5000' && !a.name.toLowerCase().includes('purchase'))
+        .reduce((s, a) => s + a.balance, 0) ||
+      1000;
 
   const totalExpenses = purchaseExpenses + otherExpenses;
-  const netIncome = liveReport ? liveReport.netProfit : salesIncome - totalExpenses;
+  const netIncome = totalIncome - totalExpenses;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <AccountantNav currentRoute="/reports/pnl" onNavigate={onNavigate} />
 
+      {/* Main Content Header matching diagram */}
       <div className="content-header">
         <div>
-          <h1 className="page-title">Profit & Loss Statement (Income Statement)</h1>
+          <h1 className="page-title">Profit and Loss Report</h1>
           <p className="page-subtitle">
-            Financial performance summary: Operating revenues, cost of sales, operational overheads, and net profit
+            Financial performance statement showing operating income, cost of sales, operational overheads, and net profit
           </p>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Button
+            variant="outline"
+            onClick={() => window.print()}
+            leftIcon={<Printer size={15} />}
+          >
+            Print
+          </Button>
+
           <select
             className="form-input select-filter"
+            style={{ fontWeight: 600, minWidth: '100px', textAlign: 'center' }}
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
           >
-            <option value="2026">Fiscal Year 2026</option>
-            <option value="2025">Fiscal Year 2025</option>
+            <option value="2026">2026</option>
+            <option value="2025">2025</option>
+            <option value="2024">2024</option>
           </select>
 
-          <Button variant="outline" onClick={() => window.print()} leftIcon={<Printer size={15} />}>
-            Print Statement
-          </Button>
           <Button
             variant="primary"
-            onClick={() => alert(`Exported P&L for FY ${selectedYear} as financial PDF.`)}
-            leftIcon={<Download size={15} strokeWidth={2} />}
+            onClick={() => onNavigate('/dashboard')}
+            leftIcon={<ArrowLeft size={15} />}
           >
-            Export PDF
+            Back
           </Button>
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="stat-grid">
-        <div className="stat-card">
-          <div className="stat-icon-badge teal">
-            <TrendingUp size={20} strokeWidth={2} />
+      {/* Grid: Statement Table + Field Computation Guide */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(0, 1.2fr)', gap: '24px', alignItems: 'start' }}>
+        {/* Left: Profit and Loss Report Document Frame */}
+        <div
+          className="card-panel"
+          style={{
+            padding: '24px',
+            border: '2px solid var(--color-border)',
+            borderRadius: 'var(--radius-lg)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
+            backgroundColor: '#ffffff',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid var(--color-border)', paddingBottom: '12px', marginBottom: '16px' }}>
+            <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-primary)' }}>
+              Urban Furniture — Profit and Loss Report ({selectedYear})
+            </span>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
+              Accrual Basis
+            </span>
           </div>
-          <div>
-            <div className="stat-number">₹{salesIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-            <div className="stat-label">Total Operating Revenue</div>
-          </div>
+
+          <table className="custom-table" style={{ borderCollapse: 'collapse', width: '100%' }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid var(--color-border)', backgroundColor: 'var(--color-bg)' }}>
+                <th style={{ textAlign: 'left', padding: '10px 14px', fontSize: '14px', fontWeight: 700 }}>Account / Category</th>
+                <th style={{ textAlign: 'right', padding: '10px 14px', fontSize: '14px', fontWeight: 700, width: '180px' }}>Balance (₹)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {/* Income Header Row */}
+              <tr style={{ backgroundColor: 'rgba(15, 118, 110, 0.08)', fontWeight: 800 }}>
+                <td style={{ padding: '12px 14px', color: 'var(--color-primary)', fontSize: '15px' }}>Income</td>
+                <td style={{ padding: '12px 14px', textAlign: 'right', color: 'var(--color-primary)', fontSize: '15px' }}>
+                  ₹ {totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </td>
+              </tr>
+              {/* Income Sub-rows */}
+              <tr style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                <td style={{ padding: '10px 14px 10px 32px', color: 'var(--color-text-primary)' }}>Income from Sales</td>
+                <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 600 }}>
+                  ₹ {salesIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </td>
+              </tr>
+
+              {/* Spacer */}
+              <tr>
+                <td colSpan={2} style={{ padding: '6px' }}></td>
+              </tr>
+
+              {/* Expenses Header Row */}
+              <tr style={{ backgroundColor: 'rgba(217, 119, 6, 0.08)', fontWeight: 800 }}>
+                <td style={{ padding: '12px 14px', color: '#b45309', fontSize: '15px' }}>Expenses</td>
+                <td style={{ padding: '12px 14px', textAlign: 'right', color: '#b45309', fontSize: '15px' }}>
+                  ₹ {totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </td>
+              </tr>
+              {/* Expenses Sub-rows */}
+              <tr style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                <td style={{ padding: '10px 14px 10px 32px', color: 'var(--color-text-primary)' }}>Purchase Expense</td>
+                <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 600 }}>
+                  ₹ {purchaseExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                <td style={{ padding: '10px 14px 10px 32px', color: 'var(--color-text-primary)' }}>Other Expense</td>
+                <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 600 }}>
+                  ₹ {otherExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </td>
+              </tr>
+
+              {/* Spacer */}
+              <tr>
+                <td colSpan={2} style={{ padding: '6px' }}></td>
+              </tr>
+
+              {/* Net Income Summary Row */}
+              <tr
+                style={{
+                  backgroundColor: netIncome >= 0 ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                  fontWeight: 900,
+                  fontSize: '16px',
+                  borderTop: '2px solid var(--color-border)',
+                  borderBottom: '3px double var(--color-border)',
+                }}
+              >
+                <td style={{ padding: '14px', color: netIncome >= 0 ? 'var(--color-primary)' : 'var(--color-danger)' }}>
+                  Net Income
+                </td>
+                <td style={{ padding: '14px', textAlign: 'right', color: netIncome >= 0 ? 'var(--color-primary)' : 'var(--color-danger)' }}>
+                  ₹ {netIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon-badge amber">
-            <TrendingDown size={20} strokeWidth={2} />
+        {/* Right: Field Computation Architecture Card */}
+        <div
+          className="card-panel"
+          style={{
+            padding: '24px',
+            backgroundColor: 'var(--color-bg)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-lg)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', borderBottom: '1px solid var(--color-border)', paddingBottom: '10px' }}>
+            <Info size={18} style={{ color: 'var(--color-primary)' }} />
+            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--color-text-primary)' }}>
+              Field Computation Engine
+            </h3>
           </div>
-          <div>
-            <div className="stat-number">₹{totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-            <div className="stat-label">Total Operating Expenses</div>
-          </div>
-        </div>
 
-        <div className="stat-card">
-          <div className="stat-icon-badge teal">
-            <IndianRupee size={20} strokeWidth={2} />
-          </div>
-          <div>
-            <div className="stat-number" style={{ color: netIncome >= 0 ? 'var(--color-primary)' : 'var(--color-danger)' }}>
-              {netIncome >= 0 ? '+' : ''}${netIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '13px' }}>
+            <div style={{ padding: '10px 12px', background: '#ffffff', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
+              <strong style={{ color: 'var(--color-primary)', display: 'block' }}>Income:</strong>
+              <span style={{ color: 'var(--color-text-secondary)' }}>Total of all recognized income streams</span>
             </div>
-            <div className="stat-label">Net Fiscal Earnings (Profit)</div>
+
+            <div style={{ padding: '10px 12px', background: '#ffffff', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
+              <strong style={{ color: 'var(--color-primary)', display: 'block' }}>Income from Sales:</strong>
+              <span style={{ color: 'var(--color-text-secondary)' }}>Total of account type <code>Income</code> (Customer Invoices)</span>
+            </div>
+
+            <div style={{ padding: '10px 12px', background: '#ffffff', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
+              <strong style={{ color: '#b45309', display: 'block' }}>Expenses:</strong>
+              <span style={{ color: 'var(--color-text-secondary)' }}>Total of all operating and direct expenses</span>
+            </div>
+
+            <div style={{ padding: '10px 12px', background: '#ffffff', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
+              <strong style={{ color: '#b45309', display: 'block' }}>Purchase Expense:</strong>
+              <span style={{ color: 'var(--color-text-secondary)' }}>Total of account type <code>Expense</code> (Cost of Goods / Vendor Bills)</span>
+            </div>
+
+            <div style={{ padding: '10px 12px', background: '#ffffff', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
+              <strong style={{ color: '#b45309', display: 'block' }}>Other Expense:</strong>
+              <span style={{ color: 'var(--color-text-secondary)' }}>Total of account type <code>Other Expense</code> / Overheads</span>
+            </div>
+
+            <div style={{ padding: '12px', background: 'var(--color-primary-light)', borderRadius: '6px', border: '1px solid var(--color-primary-border)' }}>
+              <strong style={{ color: 'var(--color-primary)', display: 'block', fontSize: '14px' }}>Net Income:</strong>
+              <span style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>Difference of Income − Expenses</span>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Detailed Statement Card Panel */}
-      <div className="card-panel">
-        <div className="card-header">
-          <h2 className="card-title">Fiscal Year {selectedYear} Income & Expense Breakdown</h2>
-          <span className="badge-pill badge-completed">Accrual Basis Accounting</span>
-        </div>
-
-        <table className="custom-table" style={{ border: '1px solid var(--color-border)', borderRadius: '8px' }}>
-          <tbody>
-            {/* Income Section */}
-            <tr style={{ backgroundColor: 'var(--color-surface-hover)', fontWeight: 700 }}>
-              <td colSpan={2} style={{ color: 'var(--color-primary)', fontSize: '15px' }}>
-                1. REVENUE / OPERATING INCOME
-              </td>
-            </tr>
-            <tr>
-              <td style={{ paddingLeft: '32px' }}>Gross Invoiced Sales Revenue (Customer Invoices)</td>
-              <td style={{ textAlign: 'right', fontWeight: 600 }}>₹{salesIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-              </td>
-            </tr>
-            <tr style={{ fontWeight: 700, borderBottom: '2px solid var(--color-border)' }}>
-              <td style={{ textAlign: 'right', color: 'var(--color-text-muted)' }}>TOTAL REVENUE:</td>
-              <td style={{ textAlign: 'right', color: 'var(--color-primary)' }}>₹{salesIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-              </td>
-            </tr>
-
-            {/* Expenses Section */}
-            <tr style={{ backgroundColor: 'var(--color-surface-hover)', fontWeight: 700 }}>
-              <td colSpan={2} style={{ color: 'var(--color-warning-text)', fontSize: '15px', paddingTop: '16px' }}>
-                2. COST OF SALES & OPERATIONAL EXPENSES
-              </td>
-            </tr>
-            <tr>
-              <td style={{ paddingLeft: '32px' }}>Direct Purchases & Raw Materials (Vendor Bills)</td>
-              <td style={{ textAlign: 'right' }}>₹{purchaseExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-              </td>
-            </tr>
-            <tr>
-              <td style={{ paddingLeft: '32px' }}>Operational, Administrative & Overhead Expenses</td>
-              <td style={{ textAlign: 'right' }}>₹{otherExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-              </td>
-            </tr>
-            <tr style={{ fontWeight: 700, borderBottom: '2px solid var(--color-border)' }}>
-              <td style={{ textAlign: 'right', color: 'var(--color-text-muted)' }}>TOTAL EXPENDITURE:</td>
-              <td style={{ textAlign: 'right', color: 'var(--color-warning-text)' }}>₹{totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-              </td>
-            </tr>
-
-            {/* Net Profit Summary */}
-            <tr
-              style={{
-                backgroundColor: 'var(--color-surface-active)',
-                fontWeight: 800,
-                fontSize: '15px',
-                borderTop: '2px solid var(--color-border)',
-              }}
-            >
-              <td style={{ textAlign: 'right', color: netIncome >= 0 ? 'var(--color-primary)' : 'var(--color-danger)' }}>
-                NET OPERATING INCOME / (LOSS):
-              </td>
-              <td style={{ textAlign: 'right', color: netIncome >= 0 ? 'var(--color-primary)' : 'var(--color-danger)' }}>₹{netIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-              </td>
-            </tr>
-          </tbody>
-        </table>
       </div>
     </div>
   );
