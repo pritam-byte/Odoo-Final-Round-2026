@@ -1,0 +1,418 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// -------------------------------------------------------------
+// 1. AUTH & USERS
+// -------------------------------------------------------------
+
+enum UserRole {
+  ADMIN
+  ACCOUNTANT
+  PORTAL_USER
+}
+
+model User {
+  id        String   @id @default(uuid())
+  loginId   String   @unique
+  email     String   @unique
+  password  String
+  role      UserRole @default(ACCOUNTANT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contactId String?  @unique
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+}
+
+// -------------------------------------------------------------
+// 2. MASTER DATA
+// -------------------------------------------------------------
+
+enum ContactType {
+  CUSTOMER
+  VENDOR
+  BOTH
+}
+
+model Contact {
+  id        String      @id @default(uuid())
+  name      String
+  type      ContactType @default(BOTH)
+  email     String      @unique
+  phone     String?
+  address   String?
+  city      String?
+  state     String?
+  pincode   String?
+  image     String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  user             User?
+  purchaseOrders   PurchaseOrder[]
+  vendorBills      VendorBill[]
+  salesOrders      SalesOrder[]
+  customerInvoices CustomerInvoice[]
+  payments         Payment[]
+  journalItems     JournalItem[]
+  budgets          Budget[]
+}
+
+enum ProductType {
+  GOODS
+  SERVICE
+  COMBO
+}
+
+model Product {
+  id         String      @id @default(uuid())
+  name       String
+  category   String?
+  salesPrice Decimal     @default(0.0) @db.Decimal(12, 2)
+  cost       Decimal     @default(0.0) @db.Decimal(12, 2)
+  type       ProductType @default(GOODS)
+  image      String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  purchaseOrderLines   PurchaseOrderLine[]
+  vendorBillLines      VendorBillLine[]
+  salesOrderLines      SalesOrderLine[]
+  customerInvoiceLines CustomerInvoiceLine[]
+}
+
+enum AnalyticType {
+  INCOME
+  EXPENSE
+}
+
+model Analytic {
+  id        String       @id @default(uuid())
+  name      String
+  type      AnalyticType
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  purchaseOrderLines   PurchaseOrderLine[]
+  vendorBillLines      VendorBillLine[]
+  customerInvoiceLines CustomerInvoiceLine[]
+  budgets              Budget[]
+}
+
+// -------------------------------------------------------------
+// 3. CHART OF ACCOUNTS & JOURNALS
+// -------------------------------------------------------------
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  INCOME
+  EXPENSE
+  CAPITAL
+}
+
+model ChartOfAccount {
+  id        String      @id @default(uuid())
+  name      String      @unique
+  type      AccountType
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  defaultForJournals   Journal[]
+  vendorBillLines      VendorBillLine[]
+  customerInvoiceLines CustomerInvoiceLine[]
+  journalItems         JournalItem[]
+}
+
+enum JournalType {
+  SALES
+  PURCHASE
+  BANK
+  CASH
+  GENERAL
+}
+
+model Journal {
+  id               String          @id @default(uuid())
+  name             String          @unique
+  type             JournalType
+  defaultAccountId String?
+  defaultAccount   ChartOfAccount? @relation(fields: [defaultAccountId], references: [id], onDelete: Restrict)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  journalEntries JournalEntry[]
+}
+
+// -------------------------------------------------------------
+// 4. TRANSACTION PIPELINE: PURCHASE
+// -------------------------------------------------------------
+
+enum OrderStatus {
+  DRAFT
+  CONFIRMED
+  CANCELLED
+}
+
+model PurchaseOrder {
+  id           String      @id @default(uuid())
+  poNo         String      @unique
+  vendorId     String
+  vendor       Contact     @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+  poDate       DateTime    @default(now())
+  paymentTerms String?
+  status       OrderStatus @default(DRAFT)
+  totalAmount  Decimal     @default(0.0) @db.Decimal(12, 2)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  lines       PurchaseOrderLine[]
+  vendorBills VendorBill[]
+}
+
+model PurchaseOrderLine {
+  id              String        @id @default(uuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+  analyticId      String?
+  analytic        Analytic?     @relation(fields: [analyticId], references: [id], onDelete: SetNull)
+  qty             Int           @default(1)
+  unitPrice       Decimal       @db.Decimal(12, 2)
+  subtotal        Decimal       @db.Decimal(12, 2)
+}
+
+enum InvoiceBillStatus {
+  DRAFT
+  CONFIRMED
+  CANCELLED
+}
+
+enum PaymentState {
+  NOT_PAID
+  PARTIAL
+  PAID
+}
+
+model VendorBill {
+  id              String            @id @default(uuid())
+  billNo          String            @unique
+  billReference   String?
+  vendorId        String
+  vendor          Contact           @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+  purchaseOrderId String?
+  purchaseOrder   PurchaseOrder?    @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
+  billDate        DateTime          @default(now())
+  dueDate         DateTime
+  totalAmount     Decimal           @default(0.0) @db.Decimal(12, 2)
+  amountDue       Decimal           @default(0.0) @db.Decimal(12, 2)
+  status          InvoiceBillStatus @default(DRAFT)
+  paymentState    PaymentState      @default(NOT_PAID)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  lines          VendorBillLine[]
+  payments       Payment[]
+  journalEntryId String?           @unique
+  journalEntry   JournalEntry?     @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
+}
+
+model VendorBillLine {
+  id         String         @id @default(uuid())
+  billId     String
+  bill       VendorBill     @relation(fields: [billId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product        @relation(fields: [productId], references: [id], onDelete: Restrict)
+  accountId  String
+  account    ChartOfAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  analyticId String?
+  analytic   Analytic?      @relation(fields: [analyticId], references: [id], onDelete: SetNull)
+  qty        Int            @default(1)
+  unitPrice  Decimal        @db.Decimal(12, 2)
+  subtotal   Decimal        @db.Decimal(12, 2)
+}
+
+// -------------------------------------------------------------
+// 5. TRANSACTION PIPELINE: SALES
+// -------------------------------------------------------------
+
+model SalesOrder {
+  id          String      @id @default(uuid())
+  soNo        String      @unique
+  customerId  String
+  customer    Contact     @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  soDate      DateTime    @default(now())
+  status      OrderStatus @default(DRAFT)
+  totalAmount Decimal     @default(0.0) @db.Decimal(12, 2)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  lines    SalesOrderLine[]
+  invoices CustomerInvoice[]
+}
+
+model SalesOrderLine {
+  id           String     @id @default(uuid())
+  salesOrderId String
+  salesOrder   SalesOrder @relation(fields: [salesOrderId], references: [id], onDelete: Cascade)
+  productId    String
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Restrict)
+  qty          Int        @default(1)
+  unitPrice    Decimal    @db.Decimal(12, 2)
+  subtotal     Decimal    @db.Decimal(12, 2)
+}
+
+model CustomerInvoice {
+  id             String            @id @default(uuid())
+  invoiceNo      String            @unique
+  reference      String?
+  customerId     String
+  customer       Contact           @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  salesOrderId   String?
+  salesOrder     SalesOrder?       @relation(fields: [salesOrderId], references: [id], onDelete: SetNull)
+  invoiceDate    DateTime          @default(now())
+  dueDate        DateTime
+  totalAmount    Decimal           @default(0.0) @db.Decimal(12, 2)
+  amountDue      Decimal           @default(0.0) @db.Decimal(12, 2)
+  status         InvoiceBillStatus @default(DRAFT)
+  paymentState   PaymentState      @default(NOT_PAID)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  lines          CustomerInvoiceLine[]
+  payments       Payment[]
+  journalEntryId String?               @unique
+  journalEntry   JournalEntry?         @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
+}
+
+model CustomerInvoiceLine {
+  id         String          @id @default(uuid())
+  invoiceId  String
+  invoice    CustomerInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product         @relation(fields: [productId], references: [id], onDelete: Restrict)
+  accountId  String
+  account    ChartOfAccount  @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  analyticId String?
+  analytic   Analytic?       @relation(fields: [analyticId], references: [id], onDelete: SetNull)
+  qty        Int             @default(1)
+  unitPrice  Decimal         @db.Decimal(12, 2)
+  subtotal   Decimal         @db.Decimal(12, 2)
+}
+
+// -------------------------------------------------------------
+// 6. PAYMENTS
+// -------------------------------------------------------------
+
+enum PaymentType {
+  SEND
+  RECEIVE
+}
+
+enum PaymentMethod {
+  BANK
+  CASH
+}
+
+model Payment {
+  id                String          @id @default(uuid())
+  paymentType       PaymentType
+  partnerId         String
+  partner           Contact         @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+  amount            Decimal         @db.Decimal(12, 2)
+  date              DateTime        @default(now())
+  paymentVia        PaymentMethod   @default(BANK)
+  note              String?
+
+  vendorBillId      String?
+  vendorBill        VendorBill?      @relation(fields: [vendorBillId], references: [id], onDelete: SetNull)
+  customerInvoiceId String?
+  customerInvoice   CustomerInvoice? @relation(fields: [customerInvoiceId], references: [id], onDelete: SetNull)
+
+  journalEntryId    String?         @unique
+  journalEntry      JournalEntry?   @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
+
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+// -------------------------------------------------------------
+// 7. DOUBLE-ENTRY ACCOUNTING LEDGER
+// -------------------------------------------------------------
+
+enum JournalEntryStatus {
+  DRAFT
+  POSTED
+  CANCELLED
+}
+
+model JournalEntry {
+  id             String             @id @default(uuid())
+  entryNo        String             @unique
+  journalId      String
+  journal        Journal            @relation(fields: [journalId], references: [id], onDelete: Restrict)
+  accountingDate DateTime           @default(now())
+  reference      String?
+  status         JournalEntryStatus @default(POSTED)
+  totalDebit     Decimal            @db.Decimal(12, 2)
+  totalCredit    Decimal            @db.Decimal(12, 2)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  items           JournalItem[]
+  vendorBill      VendorBill?
+  customerInvoice CustomerInvoice?
+  payment         Payment?
+}
+
+model JournalItem {
+  id             String         @id @default(uuid())
+  journalEntryId String
+  journalEntry   JournalEntry   @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  accountId      String
+  account        ChartOfAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  partnerId      String?
+  partner        Contact?       @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  debit          Decimal        @default(0.0) @db.Decimal(12, 2)
+  credit         Decimal        @default(0.0) @db.Decimal(12, 2)
+  createdAt      DateTime       @default(now())
+}
+
+// -------------------------------------------------------------
+// 8. BUDGETS
+// -------------------------------------------------------------
+
+enum BudgetStatus {
+  DRAFT
+  CONFIRMED
+  CANCELLED
+  REVISED
+}
+
+model Budget {
+  id              String       @id @default(uuid())
+  name            String
+  startDate       DateTime
+  endDate         DateTime
+  analyticId      String
+  analytic        Analytic     @relation(fields: [analyticId], references: [id], onDelete: Restrict)
+  type            AnalyticType
+  responsibleId   String
+  responsible     Contact      @relation(fields: [responsibleId], references: [id], onDelete: Restrict)
+  committedAmount Decimal      @db.Decimal(12, 2)
+  status          BudgetStatus @default(DRAFT)
+
+  revisedFromId   String?      @unique
+  revisedFrom     Budget?      @relation("BudgetRevision", fields: [revisedFromId], references: [id])
+  revisedTo       Budget?      @relation("BudgetRevision")
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
