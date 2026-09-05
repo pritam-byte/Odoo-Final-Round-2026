@@ -29,34 +29,34 @@ export const BalanceSheetPage: React.FC<{ onNavigate: (route: string) => void }>
   const bankBalance =
     liveSheet?.assets.accounts?.['Bank Account'] ??
     liveSheet?.assets.accounts?.['Bank'] ??
-    accounts.find((a) => a.type === 'Bank')?.balance ??
-    150000;
+    accounts.find((a) => a.type === 'Bank' || a.name.toLowerCase().includes('bank'))?.balance ??
+    0;
 
   const cashBalance =
     liveSheet?.assets.accounts?.['Petty Cash'] ??
     liveSheet?.assets.accounts?.['Cash'] ??
-    accounts.find((a) => a.type === 'Cash')?.balance ??
-    25000;
+    accounts.find((a) => a.type === 'Cash' || a.name.toLowerCase().includes('cash'))?.balance ??
+    0;
 
   const debtorsBalance =
+    liveSheet?.assets.accounts?.['Accounts Receivable'] ??
+    liveSheet?.assets.accounts?.['Debtors'] ??
     invoices
       .filter((inv) => inv.status !== 'Draft' && inv.status !== 'Cancelled')
-      .reduce((s, inv) => s + inv.amountDue, 0) ||
-    accounts.find((a) => a.code === '1050')?.balance ||
-    75000;
+      .reduce((s, inv) => s + inv.amountDue, 0);
 
   const totalAsset = bankBalance + cashBalance + debtorsBalance;
 
   // Liability & Capital Items
   const creditorsBalance =
+    liveSheet?.liabilities.accounts?.['Accounts Payable'] ??
+    liveSheet?.liabilities.accounts?.['Creditors'] ??
     bills
       .filter((b) => b.status !== 'Draft' && b.status !== 'Cancelled')
-      .reduce((s, b) => s + b.amountDue, 0) ||
-    accounts.find((a) => a.code === '2010')?.balance ||
-    50000;
+      .reduce((s, b) => s + b.amountDue, 0);
 
-  // Retained balance so that Assets == Liabilities + Capital
-  const capitalBalance = totalAsset - creditorsBalance;
+  // Capital Balance: from live sheet capital or balancing equity
+  const capitalBalance = liveSheet?.capital.total ?? (totalAsset - creditorsBalance);
 
   const totalLiability = creditorsBalance + capitalBalance;
   const isBalanced = Math.abs(totalAsset - totalLiability) < 0.01;

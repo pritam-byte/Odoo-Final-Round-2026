@@ -34,8 +34,8 @@ export const DashboardPage: React.FC<{ onNavigate: (route: string) => void }> = 
     .filter((b) => b.status !== 'Draft' && b.status !== 'Cancelled')
     .reduce((s, b) => s + b.amountDue, 0);
 
-  const bankBalance = accounts.find((a) => a.type === 'Bank')?.balance || 350000;
-  const cashBalance = accounts.find((a) => a.type === 'Cash')?.balance || 25000;
+  const bankBalance = accounts.find((a) => a.type === 'Bank' || a.name.toLowerCase().includes('bank'))?.balance ?? 0;
+  const cashBalance = accounts.find((a) => a.type === 'Cash' || a.name.toLowerCase().includes('cash'))?.balance ?? 0;
   const totalLiquidCash = bankBalance + cashBalance;
 
   // Filter Sales Panel Invoices

@@ -348,7 +348,7 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
       country: 'India',
       pincode: c.pincode || '',
     },
-    type: (c.type?.toLowerCase() as ContactType) || 'partner',
+    type: c.type === 'CUSTOMER' ? 'customer' : c.type === 'VENDOR' ? 'vendor' : 'partner',
   });
 
   const mapBackendProduct = (p: any): Product => ({
@@ -362,13 +362,27 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
     imageUrl: p.image || undefined,
   });
 
-  const mapBackendAccount = (a: any): Account => ({
-    id: a.id,
-    code: a.name.toLowerCase().replace(/\s+/g, '-'),
-    name: a.name,
-    type: (a.type.charAt(0) + a.type.slice(1).toLowerCase()) as AccountCategory,
-    balance: 0,
-  });
+  const mapBackendAccount = (a: any): Account => {
+    let cat: AccountCategory = 'Asset';
+    const rawType = (a.type || '').toUpperCase();
+    const nameLower = (a.name || '').toLowerCase();
+
+    if (rawType === 'INCOME') cat = 'Income';
+    else if (rawType === 'EXPENSE') cat = 'Expense';
+    else if (rawType === 'LIABILITY') cat = 'Liability';
+    else if (rawType === 'CAPITAL') cat = 'Capital';
+    else if (nameLower.includes('bank')) cat = 'Bank';
+    else if (nameLower.includes('cash')) cat = 'Cash';
+    else cat = 'Asset';
+
+    return {
+      id: a.id,
+      code: a.name.toLowerCase().replace(/\s+/g, '-'),
+      name: a.name,
+      type: cat,
+      balance: 0,
+    };
+  };
 
   const mapBackendJournal = (j: any): Journal => ({
     id: j.id,
@@ -586,8 +600,36 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
         }
         setCategories(Array.from(catMap.entries()).map(([id, name]) => ({ id, name })));
       }
+      let mappedEntries: JournalEntry[] = [];
+      if (entriesRes.success && Array.isArray(entriesRes.data)) {
+        mappedEntries = entriesRes.data.map(mapBackendJournalEntry);
+        setJournalEntries(mappedEntries);
+      }
+
       if (accountsRes.success && Array.isArray(accountsRes.data)) {
-        setAccounts(accountsRes.data.map(mapBackendAccount));
+        const mappedAccounts = accountsRes.data.map(mapBackendAccount);
+        const balanceMap = new Map<string, number>();
+        mappedEntries
+          .filter((je) => je.status === 'Posted')
+          .forEach((je) => {
+            je.lines.forEach((l) => {
+              if (!l.accountId) return;
+              const current = balanceMap.get(l.accountId) || 0;
+              const acc = mappedAccounts.find((a) => a.id === l.accountId);
+              const type = acc?.type;
+              if (type === 'Liability' || type === 'Income' || type === 'Capital') {
+                balanceMap.set(l.accountId, current + (l.credit - l.debit));
+              } else {
+                balanceMap.set(l.accountId, current + (l.debit - l.credit));
+              }
+            });
+          });
+
+        const accountsWithBalance = mappedAccounts.map((a) => ({
+          ...a,
+          balance: balanceMap.get(a.id) ?? 0,
+        }));
+        setAccounts(accountsWithBalance);
       }
       if (journalsRes.success && Array.isArray(journalsRes.data)) {
         setJournals(journalsRes.data.map(mapBackendJournal));
@@ -612,9 +654,6 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
       }
       if (paymentsRes.success && Array.isArray(paymentsRes.data)) {
         setPayments(paymentsRes.data.map(mapBackendPayment));
-      }
-      if (entriesRes.success && Array.isArray(entriesRes.data)) {
-        setJournalEntries(entriesRes.data.map(mapBackendJournalEntry));
       }
     } catch (e) {
       console.warn('Backend data sync encountered an issue, continuing:', e);

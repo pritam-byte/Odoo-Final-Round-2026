@@ -32,26 +32,23 @@ export const ProfitLossReportPage: React.FC<{ onNavigate: (route: string) => voi
     : invoices
         .filter((inv) => inv.status !== 'Draft' && inv.status !== 'Cancelled' && (inv.date.startsWith(selectedYear) || !inv.date))
         .reduce((s, inv) => s + inv.total, 0) ||
-      accounts.filter((a) => a.type === 'Income').reduce((s, a) => s + a.balance, 0) ||
-      10000;
+      accounts.filter((a) => a.type === 'Income').reduce((s, a) => s + a.balance, 0);
 
   const totalIncome = salesIncome;
 
   // Expense Computations
   const purchaseExpenses = liveReport
-    ? liveReport.expenses.total
+    ? (liveReport.expenses.accounts?.['Cost of Goods Sold'] ?? liveReport.expenses.total)
     : bills
         .filter((b) => b.status !== 'Draft' && b.status !== 'Cancelled' && (b.date.startsWith(selectedYear) || !b.date))
         .reduce((s, b) => s + b.total, 0) ||
-      accounts.filter((a) => a.code === '5000' || a.name.toLowerCase().includes('purchase')).reduce((s, a) => s + a.balance, 0) ||
-      6000;
+      accounts.filter((a) => a.name.toLowerCase().includes('cost of goods') || a.name.toLowerCase().includes('purchase')).reduce((s, a) => s + a.balance, 0);
 
   const otherExpenses = liveReport
-    ? 0
+    ? (liveReport.expenses.total - (liveReport.expenses.accounts?.['Cost of Goods Sold'] ?? 0))
     : accounts
-        .filter((a) => a.type === 'Expense' && a.code !== '5000' && !a.name.toLowerCase().includes('purchase'))
-        .reduce((s, a) => s + a.balance, 0) ||
-      1000;
+        .filter((a) => a.type === 'Expense' && !a.name.toLowerCase().includes('cost of goods') && !a.name.toLowerCase().includes('purchase'))
+        .reduce((s, a) => s + a.balance, 0);
 
   const totalExpenses = purchaseExpenses + otherExpenses;
   const netIncome = totalIncome - totalExpenses;
