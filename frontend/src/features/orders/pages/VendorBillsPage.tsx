@@ -107,7 +107,7 @@ export const VendorBillsPage: React.FC<{ onNavigate: (route: string) => void }> 
 
     const created = addBill({
       reference: reference || 'ABC-26-001',
-      partnerId: partner?.id || 'c1',
+      partnerId: partner?.id || contacts[0]?.id || '',
       partnerName: partner?.name || 'Vendor',
       date,
       dueDate,

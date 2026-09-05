@@ -68,7 +68,7 @@ export const InvoicesPage: React.FC<{ onNavigate: (route: string) => void }> = (
 
     const created = addInvoice({
       reference,
-      partnerId: partner?.id || 'c1',
+      partnerId: partner?.id || contacts[0]?.id || '',
       partnerName: partner?.name || 'Customer',
       date,
       dueDate,

@@ -75,7 +75,7 @@ export const PurchaseOrdersPage: React.FC<{ onNavigate: (route: string) => void 
     const total = lines.reduce((s: number, l: OrderLine) => s + l.total, 0);
 
     addPurchaseOrder({
-      partnerId: partner?.id || 'c1',
+      partnerId: partner?.id || contacts[0]?.id || '',
       partnerName: partner?.name || 'Vendor',
       date,
       lines,

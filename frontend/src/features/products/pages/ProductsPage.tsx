@@ -75,7 +75,7 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
     const payload = {
       name,
       type,
-      categoryId: matchedCat?.id || 'cat1',
+      categoryId: matchedCat?.id || categories[0]?.id || 'cat_general',
       categoryName: matchedCat?.name || 'General',
       salesPrice: Number(salesPrice) || 0,
       cost: Number(cost) || 0,

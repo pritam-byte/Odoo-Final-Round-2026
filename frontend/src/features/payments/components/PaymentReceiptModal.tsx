@@ -15,7 +15,7 @@ import {
   ShieldCheck,
   ExternalLink,
 } from 'lucide-react';
-import { PaymentRecord, useAccountingStore } from '../../accounting/store';
+import { PaymentRecord } from '../../accounting/store';
 
 export interface PaymentReceiptModalProps {
   payment: PaymentRecord;
@@ -28,7 +28,6 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
   onClose,
   onNavigateToJournal,
 }) => {
-  const { journalEntries } = useAccountingStore();
   const [showSettingsDropdown, setShowSettingsDropdown] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -39,11 +38,6 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
   const paymentVia = payment.paymentVia || 'Bank';
   const date = payment.date || new Date().toISOString().split('T')[0];
   const reference = payment.reference || `Direct ${payment.type} Payment`;
-
-  // Find linked journal entry
-  const matchedEntry = journalEntries.find(
-    (je) => je.reference === payment.reference || je.reference === payment.id
-  );
 
   // Close dropdown on outside click
   useEffect(() => {

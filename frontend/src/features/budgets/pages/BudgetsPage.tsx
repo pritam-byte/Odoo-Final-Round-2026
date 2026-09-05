@@ -78,7 +78,7 @@ export const BudgetsPage: React.FC<{ onNavigate: (route: string) => void }> = ({
       startDate,
       endDate,
       responsible,
-      analyticId: matchedAnalytic?.id || 'an1',
+      analyticId: matchedAnalytic?.id || analytics[0]?.id || '',
       analyticName: matchedAnalytic?.name || 'General Operations',
       type: matchedAnalytic?.type || 'Expense',
       committedAmount: Number(committedAmount) || 0,

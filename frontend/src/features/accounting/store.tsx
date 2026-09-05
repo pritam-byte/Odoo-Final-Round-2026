@@ -200,819 +200,29 @@ export interface PaymentRecord {
   reference: string;
 }
 
-// Initial Seed Data
-const initialContacts: Contact[] = [
-  {
-    id: 'c1',
-    name: 'Open Wood Corp',
-    email: 'procurement@openwood.com',
-    phone: '+91 98765 43210',
-    imageUrl: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=120&auto=format&fit=crop&q=60',
-    type: 'vendor',
-    address: {
-      street: 'Plot 45, Timber Processing Zone',
-      city: 'Mumbai',
-      state: 'Maharashtra',
-      country: 'India',
-      pincode: '400001',
-    },
-  },
-  {
-    id: 'c2',
-    name: 'Joey Wills & Co',
-    email: 'joey@willsenterprise.com',
-    phone: '+91 91234 56789',
-    imageUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=60',
-    type: 'customer',
-    address: {
-      street: 'Tower B, Cyber City Hub',
-      city: 'Bengaluru',
-      state: 'Karnataka',
-      country: 'India',
-      pincode: '560001',
-    },
-  },
-  {
-    id: 'c3',
-    name: 'John Doe',
-    email: 'john.doe@urbanfurniture.com',
-    phone: '+91 98980 12345',
-    imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=60',
-    type: 'customer',
-    address: {
-      street: 'Flat 402, Royal Palms Residency',
-      city: 'Mumbai',
-      state: 'Maharashtra',
-      country: 'India',
-      pincode: '400076',
-    },
-  },
-  {
-    id: 'c4',
-    name: 'Nordic Timber Suppliers',
-    email: 'sales@nordictimber.in',
-    phone: '+91 98234 56789',
-    imageUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=120&auto=format&fit=crop&q=60',
-    type: 'vendor',
-    address: {
-      street: 'Industrial Area 4, Phase 2',
-      city: 'Gandhinagar',
-      state: 'Gujarat',
-      country: 'India',
-      pincode: '382010',
-    },
-  },
-  {
-    id: 'c5',
-    name: 'Hardware Hub Ltd',
-    email: 'orders@hardwarehub.com',
-    phone: '+91 91122 33445',
-    imageUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=120&auto=format&fit=crop&q=60',
-    type: 'vendor',
-    address: {
-      street: 'Shop 102, Steel Complex',
-      city: 'Pune',
-      state: 'Maharashtra',
-      country: 'India',
-      pincode: '411001',
-    },
-  },
-  {
-    id: 'c6',
-    name: 'Luxe Living Interiors',
-    email: 'design@luxeliving.co.in',
-    phone: '+91 97766 55443',
-    imageUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&auto=format&fit=crop&q=60',
-    type: 'customer',
-    address: {
-      street: 'Studio 8, High Street Avenue',
-      city: 'New Delhi',
-      state: 'Delhi',
-      country: 'India',
-      pincode: '110001',
-    },
-  },
-  {
-    id: 'c7',
-    name: 'Nexus Tech Parks',
-    email: 'facilities@nexustech.org',
-    phone: '+91 96655 44332',
-    imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=60',
-    type: 'customer',
-    address: {
-      street: 'Campus 3, IT Corridor',
-      city: 'Hyderabad',
-      state: 'Telangana',
-      country: 'India',
-      pincode: '500081',
-    },
-  },
-  {
-    id: 'c8',
-    name: 'Deco Addict Studio',
-    email: 'hello@decoaddict.in',
-    phone: '+91 99887 76655',
-    imageUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=120&auto=format&fit=crop&q=60',
-    type: 'partner',
-    address: {
-      street: 'Shop 12, Design Square Mall',
-      city: 'Ahmedabad',
-      state: 'Gujarat',
-      country: 'India',
-      pincode: '380015',
-    },
-  },
-];
+const CACHE_VERSION = 'odoo_pg_v2';
 
-const initialCategories: ProductCategory[] = [
-  { id: 'cat1', name: 'Office Furniture' },
-  { id: 'cat2', name: 'Living Furniture' },
-  { id: 'cat3', name: 'Raw Materials & Hardware' },
-  { id: 'cat4', name: 'Professional Services' },
-];
-
-const initialProducts: Product[] = [
-  {
-    id: 'p1',
-    name: 'Executive Solid Oak Desk',
-    type: 'Goods',
-    categoryId: 'cat1',
-    categoryName: 'Office Furniture',
-    salesPrice: 28000,
-    cost: 18000,
-    imageUrl: 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=120&auto=format&fit=crop&q=60',
-  },
-  {
-    id: 'p2',
-    name: 'Ergonomic High-Back Mesh Chair',
-    type: 'Goods',
-    categoryId: 'cat1',
-    categoryName: 'Office Furniture',
-    salesPrice: 15000,
-    cost: 9500,
-    imageUrl: 'https://images.unsplash.com/photo-1580481077195-2c8eb1642ca8?w=120&auto=format&fit=crop&q=60',
-  },
-  {
-    id: 'p3',
-    name: 'Solid Walnut Coffee Table',
-    type: 'Goods',
-    categoryId: 'cat2',
-    categoryName: 'Living Furniture',
-    salesPrice: 22000,
-    cost: 14000,
-    imageUrl: 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?w=120&auto=format&fit=crop&q=60',
-  },
-  {
-    id: 'p4',
-    name: 'Modular 3-Seater Velvet Sofa',
-    type: 'Goods',
-    categoryId: 'cat2',
-    categoryName: 'Living Furniture',
-    salesPrice: 45000,
-    cost: 29000,
-    imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=120&auto=format&fit=crop&q=60',
-  },
-  {
-    id: 'p5',
-    name: 'Raw Timber Plank Lot (Grade A)',
-    type: 'Goods',
-    categoryId: 'cat3',
-    categoryName: 'Raw Materials & Hardware',
-    salesPrice: 6200,
-    cost: 4500,
-    imageUrl: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=120&auto=format&fit=crop&q=60',
-  },
-  {
-    id: 'p6',
-    name: 'Metal Hardware Assembly Kit',
-    type: 'Goods',
-    categoryId: 'cat3',
-    categoryName: 'Raw Materials & Hardware',
-    salesPrice: 4900,
-    cost: 3200,
-    imageUrl: 'https://images.unsplash.com/photo-1581783342308-f792dbdd27c5?w=120&auto=format&fit=crop&q=60',
-  },
-  {
-    id: 'p7',
-    name: 'Interior Architecture Consultation',
-    type: 'Service',
-    categoryId: 'cat4',
-    categoryName: 'Professional Services',
-    salesPrice: 12000,
-    cost: 4000,
-    imageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=120&auto=format&fit=crop&q=60',
-  },
-];
-
-const initialAccounts: Account[] = [
-  { id: 'acc1', code: '4000', name: 'Sales Income', type: 'Income', balance: 673000 },
-  { id: 'acc2', code: '5000', name: 'Purchase Expense', type: 'Expense', balance: 271000 },
-  { id: 'acc3', code: '1010', name: 'Bank', type: 'Bank', balance: 678000 },
-  { id: 'acc4', code: '1020', name: 'Cash', type: 'Cash', balance: 65000 },
-  { id: 'acc5', code: '3000', name: 'Owner Capital', type: 'Capital', balance: 500000 },
-  { id: 'acc6', code: '2010', name: 'Creditors', type: 'Liability', balance: 131000 },
-  { id: 'acc7', code: '1050', name: 'Debtors', type: 'Asset', balance: 327000 },
-];
-
-const initialJournals: Journal[] = [
-  { id: 'j1', code: 'SAL', name: 'Sales', type: 'Sales', defaultAccountId: 'acc1', defaultAccountName: 'Sales Income' },
-  { id: 'j2', code: 'PUR', name: 'Purchase', type: 'Purchase', defaultAccountId: 'acc2', defaultAccountName: 'Purchase Expense' },
-  { id: 'j3', code: 'BNK', name: 'Bank', type: 'Bank', defaultAccountId: 'acc3', defaultAccountName: 'Bank' },
-  { id: 'j4', code: 'CSH', name: 'Cash', type: 'Cash', defaultAccountId: 'acc4', defaultAccountName: 'Cash' },
-];
-
-const initialAnalytics: AnalyticAccount[] = [
-  { id: 'an1', code: 'AN-CORP', name: 'Enterprise Corporate Sales', type: 'Income' },
-  { id: 'an2', code: 'AN-LIV', name: 'Residential & Living Room Sales', type: 'Income' },
-  { id: 'an3', code: 'AN-RAW', name: 'Raw Material Sourcing & Procurement', type: 'Expense' },
-  { id: 'an4', code: 'AN-LOG', name: 'Factory Manufacturing & Logistics', type: 'Expense' },
-  { id: 'an5', code: 'AN-MKT', name: 'Marketing & Brand Advertising', type: 'Expense' },
-];
-
-const initialBudgets: Budget[] = [
-  {
-    id: 'b1',
-    name: 'Q3 Corporate Enterprise Target',
-    startDate: '2026-07-01',
-    endDate: '2026-09-30',
-    responsible: 'Joey Wills & Co',
-    analyticId: 'an1',
-    analyticName: 'Enterprise Corporate Sales',
-    type: 'Income',
-    committedAmount: 300000,
-    state: 'Confirmed',
-  },
-  {
-    id: 'b2',
-    name: 'Q3 Raw Material Procurement Budget',
-    startDate: '2026-07-01',
-    endDate: '2026-09-30',
-    responsible: 'Open Wood Corp',
-    analyticId: 'an3',
-    analyticName: 'Raw Material Sourcing & Procurement',
-    type: 'Expense',
-    committedAmount: 150000,
-    state: 'Confirmed',
-  },
-];
-
-const initialInvoices: CustomerInvoice[] = [
-  {
-    id: 'inv1',
-    invoiceNumber: 'INV/2026/0001',
-    reference: 'PO-JW-2026',
-    partnerId: 'c2',
-    partnerName: 'Joey Wills & Co',
-    date: '2026-08-06',
-    dueDate: '2026-09-06',
-    lines: [
-      {
-        id: 'l1',
-        productId: 'p1',
-        productName: 'Executive Solid Oak Desk',
-        accountId: 'acc1',
-        accountName: 'Sales Income',
-        analyticId: 'an1',
-        analyticName: 'Enterprise Corporate Sales',
-        quantity: 5,
-        unitPrice: 28000,
-        total: 140000,
-      },
-      {
-        id: 'l2',
-        productId: 'p2',
-        productName: 'Ergonomic High-Back Mesh Chair',
-        accountId: 'acc1',
-        accountName: 'Sales Income',
-        analyticId: 'an1',
-        analyticName: 'Enterprise Corporate Sales',
-        quantity: 10,
-        unitPrice: 5000,
-        total: 50000,
-      },
-    ],
-    total: 190000,
-    amountPaid: 190000,
-    amountDue: 0,
-    status: 'Paid',
-    journalEntryId: 'je_inv1',
-  },
-  {
-    id: 'inv2',
-    invoiceNumber: 'INV/2026/0002',
-    reference: 'PORTAL-DIRECT-ORDER',
-    partnerId: 'c3',
-    partnerName: 'John Doe',
-    date: '2026-08-21',
-    dueDate: '2026-09-21',
-    lines: [
-      {
-        id: 'l3',
-        productId: 'p3',
-        productName: 'Solid Walnut Coffee Table',
-        accountId: 'acc1',
-        accountName: 'Sales Income',
-        analyticId: 'an2',
-        analyticName: 'Residential & Living Room Sales',
-        quantity: 1,
-        unitPrice: 22000,
-        total: 22000,
-      },
-      {
-        id: 'l4',
-        productId: 'p4',
-        productName: 'Modular 3-Seater Velvet Sofa',
-        accountId: 'acc1',
-        accountName: 'Sales Income',
-        analyticId: 'an2',
-        analyticName: 'Residential & Living Room Sales',
-        quantity: 1,
-        unitPrice: 45000,
-        total: 45000,
-      },
-    ],
-    total: 67000,
-    amountPaid: 0,
-    amountDue: 67000,
-    status: 'Confirmed',
-    journalEntryId: 'je_inv2',
-  },
-  {
-    id: 'inv3',
-    invoiceNumber: 'INV/2026/0003',
-    reference: 'NTP-BULK-2026',
-    partnerId: 'c7',
-    partnerName: 'Nexus Tech Parks',
-    date: '2026-08-10',
-    dueDate: '2026-08-30',
-    lines: [
-      {
-        id: 'l5',
-        productId: 'p1',
-        productName: 'Full Executive Office Suite Combo',
-        accountId: 'acc1',
-        accountName: 'Sales Income',
-        analyticId: 'an1',
-        analyticName: 'Enterprise Corporate Sales',
-        quantity: 4,
-        unitPrice: 48000,
-        total: 192000,
-      },
-    ],
-    total: 192000,
-    amountPaid: 0,
-    amountDue: 192000,
-    status: 'Confirmed',
-    journalEntryId: 'je_inv3',
-  },
-  {
-    id: 'inv4',
-    invoiceNumber: 'INV/2026/0004',
-    reference: 'JW-ADDON-99',
-    partnerId: 'c2',
-    partnerName: 'Joey Wills & Co',
-    date: '2026-08-28',
-    dueDate: '2026-09-28',
-    lines: [
-      {
-        id: 'l6',
-        productId: 'p1',
-        productName: 'Executive Solid Oak Desk',
-        accountId: 'acc1',
-        accountName: 'Sales Income',
-        analyticId: 'an1',
-        analyticName: 'Enterprise Corporate Sales',
-        quantity: 2,
-        unitPrice: 28000,
-        total: 56000,
-      },
-    ],
-    total: 56000,
-    amountPaid: 30000,
-    amountDue: 26000,
-    status: 'Confirmed',
-    journalEntryId: 'je_inv4',
-  },
-  {
-    id: 'inv5',
-    invoiceNumber: 'INV/2026/0005',
-    reference: 'JD-PORTAL-01',
-    partnerId: 'c3',
-    partnerName: 'John Doe',
-    date: '2026-08-01',
-    dueDate: '2026-08-15',
-    lines: [
-      {
-        id: 'l7',
-        productId: 'p3',
-        productName: 'Scandinavian 5-Tier Bookshelf',
-        accountId: 'acc1',
-        accountName: 'Sales Income',
-        analyticId: 'an2',
-        analyticName: 'Residential & Living Room Sales',
-        quantity: 2,
-        unitPrice: 19000,
-        total: 38000,
-      },
-    ],
-    total: 38000,
-    amountPaid: 38000,
-    amountDue: 0,
-    status: 'Paid',
-    journalEntryId: 'je_inv5',
-  },
-  {
-    id: 'inv6',
-    invoiceNumber: 'INV/2026/0006',
-    reference: 'LLI-DELHI-004',
-    partnerId: 'c6',
-    partnerName: 'Luxe Living Interiors',
-    date: '2026-08-25',
-    dueDate: '2026-09-18',
-    lines: [
-      {
-        id: 'l8',
-        productId: 'p3',
-        productName: 'Solid Walnut Coffee Table',
-        accountId: 'acc1',
-        accountName: 'Sales Income',
-        analyticId: 'an2',
-        analyticName: 'Residential & Living Room Sales',
-        quantity: 2,
-        unitPrice: 22000,
-        total: 44000,
-      },
-      {
-        id: 'l9',
-        productId: 'p1',
-        productName: 'Scandinavian 5-Tier Bookshelf',
-        accountId: 'acc1',
-        accountName: 'Sales Income',
-        analyticId: 'an2',
-        analyticName: 'Residential & Living Room Sales',
-        quantity: 2,
-        unitPrice: 19000,
-        total: 38000,
-      },
-    ],
-    total: 82000,
-    amountPaid: 40000,
-    amountDue: 42000,
-    status: 'Confirmed',
-    journalEntryId: 'je_inv6',
-  },
-  {
-    id: 'inv7',
-    invoiceNumber: 'INV/2026/0007',
-    reference: 'DAS-DESIGN-09',
-    partnerId: 'c8',
-    partnerName: 'Deco Addict Studio',
-    date: '2026-08-12',
-    dueDate: '2026-09-12',
-    lines: [
-      {
-        id: 'l10',
-        productId: 'p1',
-        productName: 'Full Executive Office Suite Combo',
-        accountId: 'acc1',
-        accountName: 'Sales Income',
-        analyticId: 'an1',
-        analyticName: 'Enterprise Corporate Sales',
-        quantity: 1,
-        unitPrice: 48000,
-        total: 48000,
-      },
-    ],
-    total: 48000,
-    amountPaid: 48000,
-    amountDue: 0,
-    status: 'Paid',
-    journalEntryId: 'je_inv7',
-  },
-];
-
-const initialBills: VendorBill[] = [
-  {
-    id: 'bill1',
-    billNumber: 'Bill/2026/0001',
-    reference: 'OWC-INV-8891',
-    partnerId: 'c1',
-    partnerName: 'Open Wood Corp',
-    date: '2026-08-02',
-    dueDate: '2026-09-02',
-    lines: [
-      {
-        id: 'bl1',
-        productId: 'p5',
-        productName: 'Raw Timber Plank Lot (Grade A)',
-        accountId: 'acc2',
-        accountName: 'Purchase Expense',
-        analyticId: 'an3',
-        analyticName: 'Raw Material Sourcing & Procurement',
-        quantity: 20,
-        unitPrice: 4500,
-        total: 90000,
-      },
-    ],
-    total: 90000,
-    amountPaid: 90000,
-    amountDue: 0,
-    paidViaBank: 90000,
-    status: 'Paid',
-    journalEntryId: 'je_bill1',
-  },
-  {
-    id: 'bill2',
-    billNumber: 'Bill/2026/0002',
-    reference: 'HH-9021',
-    partnerId: 'c5',
-    partnerName: 'Hardware Hub Ltd',
-    date: '2026-08-16',
-    dueDate: '2026-09-16',
-    lines: [
-      {
-        id: 'bl2',
-        productId: 'p6',
-        productName: 'Metal Hardware Assembly Kit',
-        accountId: 'acc2',
-        accountName: 'Purchase Expense',
-        analyticId: 'an4',
-        analyticName: 'Factory Manufacturing & Logistics',
-        quantity: 20,
-        unitPrice: 3200,
-        total: 64000,
-      },
-    ],
-    total: 64000,
-    amountPaid: 30000,
-    amountDue: 34000,
-    paidViaBank: 30000,
-    status: 'Confirmed',
-    journalEntryId: 'je_bill2',
-  },
-  {
-    id: 'bill3',
-    billNumber: 'Bill/2026/0003',
-    reference: 'NTS-2026-990',
-    partnerId: 'c4',
-    partnerName: 'Nordic Timber Suppliers',
-    date: '2026-08-26',
-    dueDate: '2026-09-10',
-    lines: [
-      {
-        id: 'bl3',
-        productId: 'p5',
-        productName: 'Raw Timber Plank Lot (Grade A)',
-        accountId: 'acc2',
-        accountName: 'Purchase Expense',
-        analyticId: 'an3',
-        analyticName: 'Raw Material Sourcing & Procurement',
-        quantity: 10,
-        unitPrice: 4500,
-        total: 45000,
-      },
-    ],
-    total: 45000,
-    amountPaid: 0,
-    amountDue: 45000,
-    status: 'Confirmed',
-    journalEntryId: 'je_bill3',
-  },
-  {
-    id: 'bill4',
-    billNumber: 'Bill/2026/0004',
-    reference: 'OWC-INV-9022',
-    partnerId: 'c1',
-    partnerName: 'Open Wood Corp',
-    date: '2026-08-29',
-    dueDate: '2026-09-28',
-    lines: [
-      {
-        id: 'bl4',
-        productId: 'p3',
-        productName: 'Scandinavian 5-Tier Bookshelf',
-        accountId: 'acc2',
-        accountName: 'Purchase Expense',
-        analyticId: 'an3',
-        analyticName: 'Raw Material Sourcing & Procurement',
-        quantity: 4,
-        unitPrice: 12000,
-        total: 48000,
-      },
-    ],
-    total: 48000,
-    amountPaid: 20000,
-    amountDue: 28000,
-    paidViaBank: 20000,
-    status: 'Confirmed',
-    journalEntryId: 'je_bill4',
-  },
-  {
-    id: 'bill5',
-    billNumber: 'Bill/2026/0005',
-    reference: 'DAS-SUP-410',
-    partnerId: 'c8',
-    partnerName: 'Deco Addict Studio',
-    date: '2026-08-30',
-    dueDate: '2026-09-15',
-    lines: [
-      {
-        id: 'bl5',
-        productId: 'p7',
-        productName: 'Interior Architecture Consultation',
-        accountId: 'acc2',
-        accountName: 'Purchase Expense',
-        analyticId: 'an5',
-        analyticName: 'Marketing & Brand Advertising',
-        quantity: 2,
-        unitPrice: 12000,
-        total: 24000,
-      },
-    ],
-    total: 24000,
-    amountPaid: 0,
-    amountDue: 24000,
-    status: 'Confirmed',
-    journalEntryId: 'je_bill5',
-  },
-];
-
-const initialPayments: PaymentRecord[] = [
-  {
-    id: 'pay1',
-    type: 'Receive',
-    date: '2026-08-15',
-    partnerId: 'c2',
-    partnerName: 'Joey Wills & Co',
-    paymentVia: 'Bank',
-    amount: 190000,
-    sourceDocType: 'Invoice',
-    sourceDocId: 'inv1',
-    reference: 'PAY/INV/0001',
-  },
-  {
-    id: 'pay2',
-    type: 'Send',
-    date: '2026-08-10',
-    partnerId: 'c1',
-    partnerName: 'Open Wood Corp',
-    paymentVia: 'Bank',
-    amount: 90000,
-    sourceDocType: 'Bill',
-    sourceDocId: 'bill1',
-    reference: 'PAY/OWC/0001',
-  },
-  {
-    id: 'pay3',
-    type: 'Send',
-    date: '2026-08-20',
-    partnerId: 'c5',
-    partnerName: 'Hardware Hub Ltd',
-    paymentVia: 'Bank',
-    amount: 30000,
-    sourceDocType: 'Bill',
-    sourceDocId: 'bill2',
-    reference: 'PAY/HH/0001',
-  },
-  {
-    id: 'pay4',
-    type: 'Send',
-    date: '2026-09-02',
-    partnerId: 'c1',
-    partnerName: 'Open Wood Corp',
-    paymentVia: 'Bank',
-    amount: 20000,
-    sourceDocType: 'Bill',
-    sourceDocId: 'bill4',
-    reference: 'PAY/OWC/0002',
-  },
-  {
-    id: 'pay5',
-    type: 'Receive',
-    date: '2026-09-01',
-    partnerId: 'c2',
-    partnerName: 'Joey Wills & Co',
-    paymentVia: 'Bank',
-    amount: 30000,
-    sourceDocType: 'Invoice',
-    sourceDocId: 'inv4',
-    reference: 'PAY/JW/0002',
-  },
-  {
-    id: 'pay6',
-    type: 'Receive',
-    date: '2026-08-05',
-    partnerId: 'c3',
-    partnerName: 'John Doe',
-    paymentVia: 'Bank',
-    amount: 38000,
-    sourceDocType: 'Invoice',
-    sourceDocId: 'inv5',
-    reference: 'PAY/JD/0001',
-  },
-  {
-    id: 'pay7',
-    type: 'Receive',
-    date: '2026-08-27',
-    partnerId: 'c6',
-    partnerName: 'Luxe Living Interiors',
-    paymentVia: 'Cash',
-    amount: 40000,
-    sourceDocType: 'Invoice',
-    sourceDocId: 'inv6',
-    reference: 'PAY/LLI/0001',
-  },
-  {
-    id: 'pay8',
-    type: 'Receive',
-    date: '2026-08-18',
-    partnerId: 'c8',
-    partnerName: 'Deco Addict Studio',
-    paymentVia: 'Bank',
-    amount: 48000,
-    sourceDocType: 'Invoice',
-    sourceDocId: 'inv7',
-    reference: 'PAY/DAS/0001',
-  },
-];
-
-const initialJournalEntries: JournalEntry[] = [
-  {
-    id: 'je_cap',
-    entryNumber: 'JE/2026/0000',
-    date: '2026-08-01',
-    journalId: 'j3',
-    journalName: 'Bank',
-    status: 'Posted',
-    reference: 'CAPITAL-INJECTION-2026',
-    totalDebit: 500000,
-    totalCredit: 500000,
-    lines: [
-      { id: 'jel_c1', accountId: 'acc3', accountName: 'Bank', debit: 500000, credit: 0 },
-      { id: 'jel_c2', accountId: 'acc5', accountName: 'Owner Capital', debit: 0, credit: 500000 },
-    ],
-  },
-  {
-    id: 'je_bill1',
-    entryNumber: 'JE/2026/0001',
-    date: '2026-08-02',
-    journalId: 'j2',
-    journalName: 'Purchase',
-    status: 'Posted',
-    reference: 'Bill/2026/0001',
-    totalDebit: 90000,
-    totalCredit: 90000,
-    lines: [
-      { id: 'jel1', accountId: 'acc2', accountName: 'Purchase Expense', partnerId: 'c1', partnerName: 'Open Wood Corp', debit: 90000, credit: 0 },
-      { id: 'jel2', accountId: 'acc6', accountName: 'Creditors', partnerId: 'c1', partnerName: 'Open Wood Corp', debit: 0, credit: 90000 },
-    ],
-  },
-  {
-    id: 'je_pay1',
-    entryNumber: 'JE/2026/0002',
-    date: '2026-08-10',
-    journalId: 'j3',
-    journalName: 'Bank',
-    status: 'Posted',
-    reference: 'PAY/OWC/0001',
-    totalDebit: 90000,
-    totalCredit: 90000,
-    lines: [
-      { id: 'jel3', accountId: 'acc6', accountName: 'Creditors', partnerId: 'c1', partnerName: 'Open Wood Corp', debit: 90000, credit: 0 },
-      { id: 'jel4', accountId: 'acc3', accountName: 'Bank', partnerId: 'c1', partnerName: 'Open Wood Corp', debit: 0, credit: 90000 },
-    ],
-  },
-  {
-    id: 'je_inv1',
-    entryNumber: 'JE/2026/0005',
-    date: '2026-08-06',
-    journalId: 'j1',
-    journalName: 'Sales',
-    status: 'Posted',
-    reference: 'INV/2026/0001',
-    totalDebit: 190000,
-    totalCredit: 190000,
-    lines: [
-      { id: 'jel5', accountId: 'acc7', accountName: 'Debtors', partnerId: 'c2', partnerName: 'Joey Wills & Co', debit: 190000, credit: 0 },
-      { id: 'jel6', accountId: 'acc1', accountName: 'Sales Income', partnerId: 'c2', partnerName: 'Joey Wills & Co', debit: 0, credit: 190000 },
-    ],
-  },
-  {
-    id: 'je_pay3',
-    entryNumber: 'JE/2026/0006',
-    date: '2026-08-15',
-    journalId: 'j3',
-    journalName: 'Bank',
-    status: 'Posted',
-    reference: 'PAY/INV/0001',
-    totalDebit: 190000,
-    totalCredit: 190000,
-    lines: [
-      { id: 'jel7', accountId: 'acc3', accountName: 'Bank', partnerId: 'c2', partnerName: 'Joey Wills & Co', debit: 190000, credit: 0 },
-      { id: 'jel8', accountId: 'acc7', accountName: 'Debtors', partnerId: 'c2', partnerName: 'Joey Wills & Co', debit: 0, credit: 190000 },
-    ],
-  },
-];
+// Helper to get cached data from localStorage while filtering out legacy mock IDs
+const getCachedData = <T,>(key: string): T[] => {
+  if (typeof window === 'undefined') return [];
+  if (localStorage.getItem('odoo_cache_version') !== CACHE_VERSION) {
+    return [];
+  }
+  try {
+    const s = localStorage.getItem(key);
+    if (!s) return [];
+    const parsed = JSON.parse(s);
+    if (!Array.isArray(parsed)) return [];
+    // Ensure no legacy mock IDs ('c1', 'p1', 'acc1', etc.) exist
+    const hasLegacyId = parsed.some((item: any) =>
+      typeof item?.id === 'string' && /^(c\d+|p\d+|acc\d+|j\d+|an\d+|b\d+|inv\d+|bill\d+|pay\d+|je_)/.test(item.id)
+    );
+    if (hasLegacyId) return [];
+    return parsed;
+  } catch {
+    return [];
+  }
+};
 
 export interface AccountingStoreContextType {
   // Master data
@@ -1085,70 +295,41 @@ export interface AccountingStoreContextType {
 const AccountingStoreContext = createContext<AccountingStoreContextType | undefined>(undefined);
 
 export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [contacts, setContacts] = useState<Contact[]>(() => {
-    const s = localStorage.getItem('odoo_contacts');
-    return s ? JSON.parse(s) : initialContacts;
-  });
+  // Purge legacy mock storage on initialization
+  useEffect(() => {
+    if (localStorage.getItem('odoo_cache_version') !== CACHE_VERSION) {
+      [
+        'odoo_contacts',
+        'odoo_categories',
+        'odoo_products',
+        'odoo_accounts',
+        'odoo_journals',
+        'odoo_journal_entries',
+        'odoo_analytics',
+        'odoo_budgets',
+        'odoo_sales_orders',
+        'odoo_invoices',
+        'odoo_purchase_orders',
+        'odoo_bills',
+        'odoo_payments',
+      ].forEach((k) => localStorage.removeItem(k));
+      localStorage.setItem('odoo_cache_version', CACHE_VERSION);
+    }
+  }, []);
 
-  const [categories, setCategories] = useState<ProductCategory[]>(() => {
-    const s = localStorage.getItem('odoo_categories');
-    return s ? JSON.parse(s) : initialCategories;
-  });
-
-  const [products, setProducts] = useState<Product[]>(() => {
-    const s = localStorage.getItem('odoo_products');
-    return s ? JSON.parse(s) : initialProducts;
-  });
-
-  const [accounts, setAccounts] = useState<Account[]>(() => {
-    const s = localStorage.getItem('odoo_accounts');
-    return s ? JSON.parse(s) : initialAccounts;
-  });
-
-  const [journals, setJournals] = useState<Journal[]>(() => {
-    const s = localStorage.getItem('odoo_journals');
-    return s ? JSON.parse(s) : initialJournals;
-  });
-
-  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>(() => {
-    const s = localStorage.getItem('odoo_journal_entries');
-    return s ? JSON.parse(s) : initialJournalEntries;
-  });
-
-  const [analytics, setAnalytics] = useState<AnalyticAccount[]>(() => {
-    const s = localStorage.getItem('odoo_analytics');
-    return s ? JSON.parse(s) : initialAnalytics;
-  });
-
-  const [budgets, setBudgets] = useState<Budget[]>(() => {
-    const s = localStorage.getItem('odoo_budgets');
-    return s ? JSON.parse(s) : initialBudgets;
-  });
-
-  const [salesOrders, setSalesOrders] = useState<SalesOrder[]>(() => {
-    const s = localStorage.getItem('odoo_sales_orders');
-    return s ? JSON.parse(s) : [];
-  });
-
-  const [invoices, setInvoices] = useState<CustomerInvoice[]>(() => {
-    const s = localStorage.getItem('odoo_invoices');
-    return s ? JSON.parse(s) : initialInvoices;
-  });
-
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(() => {
-    const s = localStorage.getItem('odoo_purchase_orders');
-    return s ? JSON.parse(s) : [];
-  });
-
-  const [bills, setBills] = useState<VendorBill[]>(() => {
-    const s = localStorage.getItem('odoo_bills');
-    return s ? JSON.parse(s) : initialBills;
-  });
-
-  const [payments, setPayments] = useState<PaymentRecord[]>(() => {
-    const s = localStorage.getItem('odoo_payments');
-    return s ? JSON.parse(s) : initialPayments;
-  });
+  const [contacts, setContacts] = useState<Contact[]>(() => getCachedData<Contact>('odoo_contacts'));
+  const [categories, setCategories] = useState<ProductCategory[]>(() => getCachedData<ProductCategory>('odoo_categories'));
+  const [products, setProducts] = useState<Product[]>(() => getCachedData<Product>('odoo_products'));
+  const [accounts, setAccounts] = useState<Account[]>(() => getCachedData<Account>('odoo_accounts'));
+  const [journals, setJournals] = useState<Journal[]>(() => getCachedData<Journal>('odoo_journals'));
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>(() => getCachedData<JournalEntry>('odoo_journal_entries'));
+  const [analytics, setAnalytics] = useState<AnalyticAccount[]>(() => getCachedData<AnalyticAccount>('odoo_analytics'));
+  const [budgets, setBudgets] = useState<Budget[]>(() => getCachedData<Budget>('odoo_budgets'));
+  const [salesOrders, setSalesOrders] = useState<SalesOrder[]>(() => getCachedData<SalesOrder>('odoo_sales_orders'));
+  const [invoices, setInvoices] = useState<CustomerInvoice[]>(() => getCachedData<CustomerInvoice>('odoo_invoices'));
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(() => getCachedData<PurchaseOrder>('odoo_purchase_orders'));
+  const [bills, setBills] = useState<VendorBill[]>(() => getCachedData<VendorBill>('odoo_bills'));
+  const [payments, setPayments] = useState<PaymentRecord[]>(() => getCachedData<PaymentRecord>('odoo_payments'));
 
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
@@ -1390,40 +571,49 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
         apiRequest<any[]>('/journal-entries').catch(() => ({ success: false, data: [] })),
       ]);
 
-      if (contactsRes.success && Array.isArray(contactsRes.data) && contactsRes.data.length > 0) {
+      if (contactsRes.success && Array.isArray(contactsRes.data)) {
         setContacts(contactsRes.data.map(mapBackendContact));
       }
-      if (productsRes.success && Array.isArray(productsRes.data) && productsRes.data.length > 0) {
+      if (productsRes.success && Array.isArray(productsRes.data)) {
         setProducts(productsRes.data.map(mapBackendProduct));
+        const catMap = new Map<string, string>();
+        productsRes.data.forEach((p: any) => {
+          const cat = p.category || 'General';
+          catMap.set(`cat_${cat.toLowerCase().replace(/\s+/g, '_')}`, cat);
+        });
+        if (catMap.size === 0) {
+          catMap.set('cat_general', 'General');
+        }
+        setCategories(Array.from(catMap.entries()).map(([id, name]) => ({ id, name })));
       }
-      if (accountsRes.success && Array.isArray(accountsRes.data) && accountsRes.data.length > 0) {
+      if (accountsRes.success && Array.isArray(accountsRes.data)) {
         setAccounts(accountsRes.data.map(mapBackendAccount));
       }
-      if (journalsRes.success && Array.isArray(journalsRes.data) && journalsRes.data.length > 0) {
+      if (journalsRes.success && Array.isArray(journalsRes.data)) {
         setJournals(journalsRes.data.map(mapBackendJournal));
       }
-      if (analyticsRes.success && Array.isArray(analyticsRes.data) && analyticsRes.data.length > 0) {
+      if (analyticsRes.success && Array.isArray(analyticsRes.data)) {
         setAnalytics(analyticsRes.data.map(mapBackendAnalytic));
       }
-      if (budgetsRes.success && Array.isArray(budgetsRes.data) && budgetsRes.data.length > 0) {
+      if (budgetsRes.success && Array.isArray(budgetsRes.data)) {
         setBudgets(budgetsRes.data.map(mapBackendBudget));
       }
-      if (posRes.success && Array.isArray(posRes.data) && posRes.data.length > 0) {
+      if (posRes.success && Array.isArray(posRes.data)) {
         setPurchaseOrders(posRes.data.map(mapBackendPurchaseOrder));
       }
-      if (billsRes.success && Array.isArray(billsRes.data) && billsRes.data.length > 0) {
+      if (billsRes.success && Array.isArray(billsRes.data)) {
         setBills(billsRes.data.map(mapBackendVendorBill));
       }
-      if (sosRes.success && Array.isArray(sosRes.data) && sosRes.data.length > 0) {
+      if (sosRes.success && Array.isArray(sosRes.data)) {
         setSalesOrders(sosRes.data.map(mapBackendSalesOrder));
       }
-      if (invoicesRes.success && Array.isArray(invoicesRes.data) && invoicesRes.data.length > 0) {
+      if (invoicesRes.success && Array.isArray(invoicesRes.data)) {
         setInvoices(invoicesRes.data.map(mapBackendCustomerInvoice));
       }
-      if (paymentsRes.success && Array.isArray(paymentsRes.data) && paymentsRes.data.length > 0) {
+      if (paymentsRes.success && Array.isArray(paymentsRes.data)) {
         setPayments(paymentsRes.data.map(mapBackendPayment));
       }
-      if (entriesRes.success && Array.isArray(entriesRes.data) && entriesRes.data.length > 0) {
+      if (entriesRes.success && Array.isArray(entriesRes.data)) {
         setJournalEntries(entriesRes.data.map(mapBackendJournalEntry));
       }
     } catch (e) {
@@ -1614,7 +804,7 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
       startDate: b.startDate,
       endDate: b.endDate,
       analyticId: b.analyticId,
-      responsibleId: contacts[0]?.id || 'c1',
+      responsibleId: b.responsibleId || contacts[0]?.id || '',
       committedAmount: b.committedAmount,
     }).then((res) => {
       if (res.success && res.data) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Check, ArrowLeft, Building, CreditCard, IndianRupee, FileText } from 'lucide-react';
+import { Check, ArrowLeft, IndianRupee } from 'lucide-react';
 import { useAccountingStore } from '../../accounting/store';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
@@ -21,7 +21,6 @@ export const RegisterPaymentModal: React.FC<RegisterPaymentModalProps> = ({
   onClose,
   defaultType = 'Receive',
   defaultPartnerId,
-  defaultDocType,
   defaultDocId,
   defaultAmount,
   onSuccess,
