@@ -29,46 +29,11 @@ export interface ApiResponse<T = any> {
   isFallback?: boolean;
 }
 
-let isAuthenticating = false;
-
-export async function ensureAuthToken(): Promise<string | null> {
-  let token = getAuthToken();
-  if (token) return token;
-
-  if (isAuthenticating) return null;
-  isAuthenticating = true;
-
-  try {
-    const res = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        loginId: 'admin01',
-        password: 'Admin@1234',
-      }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.ok && data.token) {
-      setAuthToken(data.token);
-      return data.token;
-    }
-  } catch (e) {
-    console.warn('Auto-auth attempt failed:', e);
-  } finally {
-    isAuthenticating = false;
-  }
-  return null;
-}
-
 export async function apiRequest<T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
-  let token = getAuthToken();
-  if (!token && !endpoint.includes('/auth/login')) {
-    token = await ensureAuthToken();
-  }
-
+  const token = getAuthToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
@@ -82,9 +47,9 @@ export async function apiRequest<T = any>(
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
 
-    let response = await fetch(url, {
+    const response = await fetch(url, {
       ...options,
       headers,
       signal: controller.signal,
@@ -92,21 +57,14 @@ export async function apiRequest<T = any>(
 
     clearTimeout(timeoutId);
 
-    // If token expired / 401, try auto-login once and retry
-    if (response.status === 401 && !endpoint.includes('/auth/login')) {
-      const newToken = await ensureAuthToken();
-      if (newToken) {
-        headers['Authorization'] = `Bearer ${newToken}`;
-        response = await fetch(url, {
-          ...options,
-          headers,
-        });
-      }
-    }
-
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
+      if (response.status === 401) {
+        setAuthToken(null);
+        localStorage.removeItem('odoo_flow_active_user');
+        window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+      }
       return {
         success: false,
         error: data.error || data.message || `Request failed with status ${response.status}`,

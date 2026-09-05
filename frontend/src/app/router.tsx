@@ -50,8 +50,27 @@ export const AppRouter: React.FC = () => {
         setCurrentPath(hash);
       }
     };
+
+    const handleUnauthorized = () => {
+      setCurrentUser(null);
+      setAuthView('login');
+    };
+
+    const handleLoginEvent = (e: any) => {
+      if (e.detail) {
+        setCurrentUser(e.detail);
+      }
+    };
+
     window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    window.addEventListener('auth:login', handleLoginEvent);
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+      window.removeEventListener('auth:login', handleLoginEvent);
+    };
   }, []);
 
   const navigate = (path: string) => {

@@ -825,6 +825,13 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
 
   useEffect(() => {
     loadBackendData();
+
+    const handleLogin = () => {
+      loadBackendData();
+    };
+
+    window.addEventListener('auth:login', handleLogin);
+    return () => window.removeEventListener('auth:login', handleLogin);
   }, [loadBackendData]);
 
   // Sync to local storage
