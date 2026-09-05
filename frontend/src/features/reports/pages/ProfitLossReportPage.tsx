@@ -234,8 +234,8 @@ export const ProfitLossReportPage: React.FC<{ onNavigate: (route: string) => voi
 
           <DocumentSignatureStamp
             documentRef={`UF-PNL-${selectedYear}-09`}
-            signatoryName="Pritam Denria"
-            signatoryRole="Chief Financial Officer / Lead Accountant"
+            firstDesignation="Chief Accountant"
+            secondDesignation="Managing Director"
           />
         </div>
 

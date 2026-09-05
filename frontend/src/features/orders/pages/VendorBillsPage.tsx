@@ -516,8 +516,8 @@ export const VendorBillsPage: React.FC<{ onNavigate: (route: string) => void }> 
 
             <DocumentSignatureStamp
               documentRef={`UF-BILL-${viewingBill.billNumber}`}
-              signatoryName="Pritam Denria"
-              signatoryRole="Chief Financial Officer / Procurement Auditor"
+              firstDesignation="Procurement Auditor"
+              secondDesignation="Accounts Payable Head"
               compact
             />
           </div>

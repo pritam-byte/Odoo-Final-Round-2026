@@ -310,8 +310,8 @@ export const InvoicesPage: React.FC<{ onNavigate: (route: string) => void }> = (
 
             <DocumentSignatureStamp
               documentRef={`UF-INV-${viewingInvoice.invoiceNumber}`}
-              signatoryName="Pritam Denria"
-              signatoryRole="Chief Financial Officer / Billing Head"
+              firstDesignation="Billing Accountant"
+              secondDesignation="Authorized Signatory"
               compact
             />
 

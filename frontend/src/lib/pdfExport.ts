@@ -6,9 +6,13 @@
 import { Budget, CustomerInvoice, VendorBill } from '../features/accounting/store';
 
 /**
- * Reusable HTML for corporate authentication badge, digital seal, and authorized signatory
+ * Reusable HTML for corporate authentication badge, digital seal, and two vacant authenticated signature fields
  */
-function getAuthSignatureBlockHtml(docRef: string, signatoryTitle = 'Chief Financial Officer / Lead Accountant') {
+function getAuthSignatureBlockHtml(
+  docRef: string,
+  firstDesignation = 'Chief Accountant / CFO',
+  secondDesignation = 'Managing Director / Partner'
+) {
   const currentDate = new Date().toLocaleDateString('en-IN', {
     day: '2-digit',
     month: 'short',
@@ -31,20 +35,29 @@ function getAuthSignatureBlockHtml(docRef: string, signatoryTitle = 'Chief Finan
         </div>
       </div>
 
-      <!-- Right: Formal Authorized Signature Block -->
-      <div style="text-align: center; min-width: 230px;">
-        <div style="font-family: 'Brush Script MT', 'Dancing Script', 'Caveat', cursive, serif; font-size: 26px; font-weight: 700; color: #0f766e; margin-bottom: 2px; line-height: 1.1;">
-          Pritam Denria
+      <!-- Right: Two Designated Authenticated Fields (Left Vacant for Signature & Stamp) -->
+      <div style="display: flex; gap: 32px; align-items: flex-end;">
+        <div style="text-align: center; width: 170px;">
+          <div style="height: 44px;"></div>
+          <div style="border-top: 1.5px solid #0f172a; padding-top: 6px;">
+            <div style="font-size: 11px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">
+              ${firstDesignation}
+            </div>
+            <div style="font-size: 10px; color: #64748b; margin-top: 1px;">
+              Authorized Signatory
+            </div>
+          </div>
         </div>
-        <div style="border-top: 1.5px solid #0f172a; padding-top: 6px; width: 100%;">
-          <div style="font-size: 12px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">
-            Authorized Signatory
-          </div>
-          <div style="font-size: 11px; font-weight: 600; color: #0f766e;">
-            Pritam Denria
-          </div>
-          <div style="font-size: 10px; color: #64748b;">
-            ${signatoryTitle}
+
+        <div style="text-align: center; width: 170px;">
+          <div style="height: 44px;"></div>
+          <div style="border-top: 1.5px solid #0f172a; padding-top: 6px;">
+            <div style="font-size: 11px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">
+              ${secondDesignation}
+            </div>
+            <div style="font-size: 10px; color: #64748b; margin-top: 1px;">
+              Seal &amp; Approval
+            </div>
           </div>
         </div>
       </div>

@@ -262,8 +262,8 @@ export const BalanceSheetPage: React.FC<{ onNavigate: (route: string) => void }>
 
           <DocumentSignatureStamp
             documentRef={`UF-BS-${selectedYear}-12`}
-            signatoryName="Pritam Denria"
-            signatoryRole="Chief Financial Officer / Lead Accountant"
+            firstDesignation="Chief Accountant"
+            secondDesignation="Managing Director"
           />
         </div>
 

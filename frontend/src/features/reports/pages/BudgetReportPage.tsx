@@ -184,8 +184,8 @@ export const BudgetReportPage: React.FC<{ onNavigate: (route: string) => void }>
 
         <DocumentSignatureStamp
           documentRef="UF-BUDGET-2026-REP"
-          signatoryName="Pritam Denria"
-          signatoryRole="Chief Financial Officer / Budget Controller"
+          firstDesignation="Head of Accounts"
+          secondDesignation="Budget Controller"
         />
       </div>
 
