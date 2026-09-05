@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Layers,
   Search,
-  Clock,
+  Bell,
   LayoutDashboard,
   FileText,
   Receipt,
@@ -23,6 +23,16 @@ export interface PortalLayoutProps {
   onLogout?: () => void;
 }
 
+export interface PortalNotification {
+  id: string;
+  title: string;
+  description: string;
+  timeAgo: string;
+  read: boolean;
+  type: 'invoice' | 'bill' | 'payment' | 'system';
+  targetDocId?: string;
+}
+
 export const PortalLayout: React.FC<PortalLayoutProps> = ({
   children,
   activeNav = 'dashboard',
@@ -30,39 +40,116 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
   user,
   onLogout,
 }) => {
-  const [time, setTime] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
+  const [isNotifOpen, setIsNotifOpen] = useState<boolean>(false);
+
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const notifContainerRef = useRef<HTMLDivElement>(null);
 
   const currentUser = user || getStoredUser() || CURRENT_USER;
+  const pType = currentUser.partnerType || 'Both';
 
-  useEffect(() => {
-    const update = () =>
-      setTime(
-        new Date().toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: true,
-        })
-      );
-    update();
-    const interval = setInterval(update, 1000);
-    return () => clearInterval(interval);
-  }, []);
+  // Persona-tailored initial notifications
+  const [notifications, setNotifications] = useState<PortalNotification[]>(() => {
+    if (pType === 'Vendor') {
+      return [
+        {
+          id: 'n1',
+          title: 'Supply Bill Disbursed',
+          description: 'Payment voucher of ₹980.00 confirmed for BILL/2026/0012.',
+          timeAgo: '10m ago',
+          read: false,
+          type: 'bill',
+          targetDocId: 'bill_202',
+        },
+        {
+          id: 'n2',
+          title: 'New Procurement Order',
+          description: 'Raw Timber Plank Lot added to your supply bill register.',
+          timeAgo: '2h ago',
+          read: false,
+          type: 'bill',
+          targetDocId: 'bill_201',
+        },
+      ];
+    } else if (pType === 'Customer') {
+      return [
+        {
+          id: 'n1',
+          title: 'Payment Receipt Issued',
+          description: 'Payment of ₹1,250.00 confirmed for INV/2026/0001.',
+          timeAgo: '15m ago',
+          read: false,
+          type: 'invoice',
+          targetDocId: 'inv_101',
+        },
+        {
+          id: 'n2',
+          title: 'Furniture Order Invoice Ready',
+          description: 'Invoice INV/2026/0002 for Solid Walnut Coffee Table is paid.',
+          timeAgo: '1d ago',
+          read: false,
+          type: 'invoice',
+          targetDocId: 'inv_102',
+        },
+      ];
+    } else {
+      return [
+        {
+          id: 'n1',
+          title: 'Invoice Payment Received',
+          description: 'Payment receipt generated for INV/2026/0001 (₹1,250.00).',
+          timeAgo: '15m ago',
+          read: false,
+          type: 'invoice',
+          targetDocId: 'inv_101',
+        },
+        {
+          id: 'n2',
+          title: 'Vendor Bill Disbursed',
+          description: 'Settlement voucher generated for BILL/2026/0012 (₹980.00).',
+          timeAgo: '1h ago',
+          read: false,
+          type: 'bill',
+          targetDocId: 'bill_202',
+        },
+      ];
+    }
+  });
 
-  // Close search dropdown on outside click or ESC key
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const handleMarkAllRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  };
+
+  const handleNotificationClick = (notif: PortalNotification) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notif.id ? { ...n, read: true } : n))
+    );
+    setIsNotifOpen(false);
+    if (notif.targetDocId) {
+      onNavigate?.('detail', notif.targetDocId);
+    }
+  };
+
+  // Close dropdowns on outside click or ESC
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (searchContainerRef.current && !searchContainerRef.current.contains(target)) {
         setIsSearchOpen(false);
+      }
+      if (notifContainerRef.current && !notifContainerRef.current.contains(target)) {
+        setIsNotifOpen(false);
       }
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsSearchOpen(false);
+        setIsNotifOpen(false);
       }
     };
 
@@ -73,8 +160,6 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
-
-  const pType = currentUser.partnerType || 'Both';
 
   const navItems = [
     {
@@ -188,7 +273,7 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
           </div>
         </div>
 
-        {/* Right Section: Search with Dropdown Suggestions, Clock, User Profile, Logout */}
+        {/* Right Section: Search, Notification Bell, User Profile, Logout */}
         <div className="navbar-center-right">
           {/* Search Bar with Popover Suggestions */}
           <div className="search-bar-wrapper" ref={searchContainerRef} style={{ position: 'relative' }}>
@@ -466,7 +551,7 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
                               </span>
                             </div>
                             <div style={{ textAlign: 'right' }}>
-                              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-primary)' }}>
+                              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
                                 ₹{pay.amount.toFixed(2)}
                               </div>
                               <span style={{ fontSize: '11px', color: 'var(--color-primary)', fontWeight: 500 }}>
@@ -526,9 +611,197 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
             )}
           </div>
 
-          <div className="navbar-clock" title="Current Local Time (Live)">
-            <Clock size={14} strokeWidth={1.75} style={{ color: 'var(--color-primary)' }} />
-            <span>{time || 'Loading...'}</span>
+          {/* Notification Bell Icon & Popover */}
+          <div style={{ position: 'relative' }} ref={notifContainerRef}>
+            <button
+              type="button"
+              onClick={() => setIsNotifOpen((prev) => !prev)}
+              className="btn-ghost"
+              style={{
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '36px',
+                height: '36px',
+                borderRadius: 'var(--radius-full)',
+                backgroundColor: isNotifOpen ? 'var(--color-surface-active)' : 'transparent',
+                color: isNotifOpen ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+                transition: 'all 0.15s ease',
+              }}
+              title="Notifications"
+            >
+              <Bell size={18} strokeWidth={1.85} />
+              {unreadCount > 0 && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '4px',
+                    right: '4px',
+                    width: '16px',
+                    height: '16px',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--color-warning)',
+                    color: '#ffffff',
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '2px solid #ffffff',
+                  }}
+                >
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Notification Popover Dropdown */}
+            {isNotifOpen && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  right: 0,
+                  width: '320px',
+                  backgroundColor: '#ffffff',
+                  borderRadius: 'var(--radius-md, 8px)',
+                  border: '1px solid var(--color-border)',
+                  boxShadow: 'var(--shadow-dropdown)',
+                  zIndex: 3000,
+                  padding: '8px 0',
+                  animation: 'fadeIn 0.15s ease',
+                }}
+              >
+                {/* Header */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 16px 10px',
+                    borderBottom: '1px solid var(--color-border)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                      Notifications
+                    </span>
+                    {unreadCount > 0 && (
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          backgroundColor: 'var(--color-primary-light)',
+                          color: 'var(--color-primary)',
+                          padding: '1px 6px',
+                          borderRadius: 'var(--radius-full)',
+                        }}
+                      >
+                        {unreadCount} new
+                      </span>
+                    )}
+                  </div>
+
+                  {unreadCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleMarkAllRead}
+                      style={{
+                        fontSize: '11px',
+                        color: 'var(--color-primary)',
+                        fontWeight: 600,
+                        background: 'none',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+
+                {/* List */}
+                <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
+                  {notifications.length === 0 ? (
+                    <div style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '12px' }}>
+                      No notifications at this time.
+                    </div>
+                  ) : (
+                    notifications.map((n) => (
+                      <div
+                        key={n.id}
+                        onClick={() => handleNotificationClick(n)}
+                        style={{
+                          padding: '10px 16px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '10px',
+                          borderBottom: '1px solid var(--color-border-light)',
+                          backgroundColor: n.read ? 'transparent' : 'rgba(15, 118, 110, 0.04)',
+                          transition: 'background-color 0.1s ease',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-bg)')}
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.backgroundColor = n.read
+                            ? 'transparent'
+                            : 'rgba(15, 118, 110, 0.04)')
+                        }
+                      >
+                        <div
+                          style={{
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '50%',
+                            backgroundColor:
+                              n.type === 'invoice'
+                                ? 'var(--color-primary-light)'
+                                : 'var(--color-warning-bg)',
+                            color:
+                              n.type === 'invoice'
+                                ? 'var(--color-primary)'
+                                : 'var(--color-warning-text)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            marginTop: '2px',
+                          }}
+                        >
+                          {n.type === 'invoice' ? <Receipt size={13} /> : <FileText size={13} />}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: '12px', fontWeight: n.read ? 600 : 700, color: 'var(--color-text-primary)' }}>
+                              {n.title}
+                            </span>
+                            <span style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>
+                              {n.timeAgo}
+                            </span>
+                          </div>
+                          <p style={{ fontSize: '11px', color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.3 }}>
+                            {n.description}
+                          </p>
+                        </div>
+
+                        {!n.read && (
+                          <div
+                            style={{
+                              width: '6px',
+                              height: '6px',
+                              borderRadius: '50%',
+                              backgroundColor: 'var(--color-primary)',
+                              marginTop: '6px',
+                            }}
+                          />
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* User Badge */}
