@@ -163,23 +163,43 @@ export const PortalDocumentListPage: React.FC<PortalDocumentListPageProps> = ({
                       <StatusBadge status={doc.status} />
                     </td>
                     <td style={{ textAlign: 'right' }}>
-                      <button
-                        type="button"
-                        className={`btn btn-sm ${doc.status === 'Unpaid' ? 'btn-primary' : 'btn-outline'}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onNavigate('detail', doc.id);
-                        }}
-                      >
-                        {doc.status === 'Unpaid' ? (
-                          <>
-                            <CreditCard size={13} />
-                            <span>{doc.type === 'bill' ? 'Settle Dues' : 'Pay Dues'}</span>
-                          </>
-                        ) : (
-                          <span>View Details</span>
-                        )}
-                      </button>
+                      {doc.type === 'invoice' ? (
+                        <button
+                          type="button"
+                          className={`btn btn-sm ${doc.status === 'Unpaid' ? 'btn-primary' : 'btn-outline'}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onNavigate('detail', doc.id);
+                          }}
+                        >
+                          {doc.status === 'Unpaid' ? (
+                            <>
+                              <CreditCard size={13} />
+                              <span>Pay Dues</span>
+                            </>
+                          ) : (
+                            <span>View Invoice</span>
+                          )}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn btn-outline btn-sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onNavigate('detail', doc.id);
+                          }}
+                        >
+                          {doc.status === 'Paid' ? (
+                            <>
+                              <Receipt size={13} />
+                              <span>View Voucher</span>
+                            </>
+                          ) : (
+                            <span>View Bill</span>
+                          )}
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))

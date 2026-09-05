@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Building2, Banknote, IndianRupee } from 'lucide-react';
+import { X, Building2, Banknote, IndianRupee, Lock, CheckCircle2 } from 'lucide-react';
 import { PortalDocument, processPortalPayment } from '../api';
 import { CustomDatePicker } from '../../../components/ui/CustomDatePicker';
 
@@ -15,22 +15,17 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
   onSuccess,
 }) => {
   const [paymentMethod, setPaymentMethod] = useState<'Bank' | 'Cash'>('Bank');
-  const [amount, setAmount] = useState<number>(document.amountDue);
+  // Fixed exact due amount (read-only, non-modifiable)
+  const amount = document.amountDue;
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [reference, setReference] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
-  const isBill = document.type === 'bill';
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (amount <= 0) {
-      setError('Amount must be greater than ₹0.00');
-      return;
-    }
-    if (amount > document.amountDue) {
-      setError(`Amount cannot exceed the current balance due (₹${document.amountDue.toFixed(2)})`);
+      setError('No outstanding balance due for this invoice.');
       return;
     }
     if (!date) {
@@ -75,7 +70,7 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
         className="card-panel"
         style={{
           width: '100%',
-          maxWidth: '500px',
+          maxWidth: '480px',
           margin: '20px',
           padding: '28px',
           boxShadow: 'var(--shadow-lg)',
@@ -84,14 +79,20 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
         {/* Modal Header */}
         <div className="card-header" style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '14px' }}>
           <div>
-            <h3 className="card-title" style={{ fontSize: '18px' }}>
-              {isBill ? 'Record Settlement' : 'Pay Dues'}: {document.number}
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                color: 'var(--color-primary)',
+                letterSpacing: '0.05em',
+              }}
+            >
+              Customer Invoice Checkout
+            </span>
+            <h3 className="card-title" style={{ fontSize: '18px', marginTop: '2px' }}>
+              Pay Dues: {document.number}
             </h3>
-            <p className="card-subtitle">
-              {isBill
-                ? 'Vendor supply bill payout acknowledgment'
-                : 'Direct self-service customer invoice settlement'}
-            </p>
           </div>
           <button
             type="button"
@@ -134,25 +135,91 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
           >
             <div>
               <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
-                Total Amount
+                Total Invoice
               </span>
-              <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
                 ₹{document.total.toFixed(2)}
               </div>
             </div>
             <div>
               <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
-                {isBill ? 'Balance Due' : 'Amount Due'}
+                Amount Due
               </span>
-              <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-primary)' }}>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-primary)' }}>
                 ₹{document.amountDue.toFixed(2)}
               </div>
             </div>
           </div>
 
-          {/* Payment Method */}
+          {/* Amount to Pay (LOCKED / READ-ONLY) */}
           <div className="form-group">
-            <label className="form-label">Payment Via</label>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <label className="form-label" style={{ margin: 0 }}>
+                Payable Amount (Fixed)
+              </label>
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  color: 'var(--color-text-muted)',
+                }}
+              >
+                <Lock size={11} /> Exact Balance Due
+              </span>
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 14px',
+                backgroundColor: 'var(--color-bg)',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--color-border)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--color-primary-light)',
+                    color: 'var(--color-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <IndianRupee size={14} />
+                </div>
+                <span style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                  ₹{amount.toFixed(2)}
+                </span>
+              </div>
+              <span
+                style={{
+                  fontSize: '11px',
+                  color: 'var(--color-text-muted)',
+                  backgroundColor: '#ffffff',
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-full)',
+                  border: '1px solid var(--color-border)',
+                  fontWeight: 500,
+                }}
+              >
+                Full Settlement
+              </span>
+            </div>
+          </div>
+
+          {/* Payment Method Selector */}
+          <div className="form-group">
+            <label className="form-label">Payment Method</label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <button
                 type="button"
@@ -175,29 +242,6 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
             </div>
           </div>
 
-          {/* Amount to Pay */}
-          <div className="form-group">
-            <label className="form-label">Amount (₹)</label>
-            <div className="input-with-icon-wrapper">
-              <div className="input-leading-icon">
-                <IndianRupee size={15} />
-              </div>
-              <input
-                type="number"
-                step="0.01"
-                min="0.01"
-                max={document.amountDue}
-                value={amount}
-                onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-                className="form-input has-leading-icon"
-                required
-              />
-            </div>
-            <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
-              Autofilled from current balance due.
-            </span>
-          </div>
-
           {/* Custom Date Picker */}
           <div className="form-group">
             <label className="form-label">Payment Date</label>
@@ -214,7 +258,7 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
             <label className="form-label">Reference / Memo (Optional)</label>
             <input
               type="text"
-              placeholder={isBill ? 'e.g. Supplier Ref # / NEFT Ref' : 'e.g. Bank Ref # / UTR'}
+              placeholder="e.g. Bank Ref # / UTR / Transaction ID"
               value={reference}
               onChange={(e) => setReference(e.target.value)}
               className="form-input"
@@ -236,10 +280,15 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
             <button type="button" className="btn btn-outline" onClick={onClose} disabled={isProcessing}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary" disabled={isProcessing}>
-              {isProcessing
-                ? 'Processing...'
-                : `${isBill ? 'Confirm Settlement' : 'Confirm Payment'} (₹${amount.toFixed(2)})`}
+            <button type="submit" className="btn btn-primary" disabled={isProcessing} style={{ gap: '6px' }}>
+              {isProcessing ? (
+                'Processing...'
+              ) : (
+                <>
+                  <CheckCircle2 size={15} />
+                  <span>Confirm & Pay ₹{amount.toFixed(2)}</span>
+                </>
+              )}
             </button>
           </div>
         </form>
