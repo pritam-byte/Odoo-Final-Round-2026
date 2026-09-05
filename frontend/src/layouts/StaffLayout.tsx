@@ -26,15 +26,18 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({
 }) => {
   return (
     <div className="app-container">
-      {/* Deep Emerald Sidebar */}
-      <Sidebar currentPath={currentPath} onNavigate={onNavigate} userRole={userRole} />
+      <Header user={user} onLogout={onLogout} />
 
-      {/* Main Wrapper with Top Header & Page Body */}
-      <div className="main-wrapper">
-        <Header user={user} onLogout={onLogout} />
+      <div className="layout-body">
+        <Sidebar currentPath={currentPath} onNavigate={onNavigate} userRole={userRole} />
 
-        <main className="page-body">
+        <main className="main-content">
           {children}
+
+          <footer className="page-footer">
+            <p>Urban Furniture Resource Planning • Connected Intelligent Workspace</p>
+            <p>© {new Date().getFullYear()} Urban Furniture Inc. All rights reserved. System Operational.</p>
+          </footer>
         </main>
       </div>
     </div>

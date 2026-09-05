@@ -1,23 +1,18 @@
 import React, { useState } from 'react';
-import {
-  Plus,
-  Search,
-  Trash2,
-  CheckCircle2,
-  AlertTriangle,
-  MoreHorizontal,
-  XCircle,
-} from 'lucide-react';
+import { Plus, Trash2, CheckCircle2, XCircle, ArrowLeft, Check, AlertTriangle } from 'lucide-react';
 import { useAccountingStore, JournalEntry, JournalEntryLine } from '../store';
-import { SlideOverDrawer } from '../../../components/ui/SlideOverDrawer';
+import { Button } from '../../../components/ui/Button';
+import { StatusBadge } from '../../../components/ui/StatusBadge';
+import { Modal } from '../../../components/ui/Modal';
+import { FormField } from '../../../components/ui/FormField';
+import { DataTable, Column } from '../../../components/ui/DataTable';
+import { AccountantNav } from '../../../components/ui/AccountantNav';
 
-export const JournalEntriesPage: React.FC<{ onNavigate?: (route: string) => void }> = () => {
+export const JournalEntriesPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { journalEntries, journals, accounts, contacts, addJournalEntry, postJournalEntry, cancelJournalEntry } =
     useAccountingStore();
   const [search, setSearch] = useState('');
-  const [selectedJournal, setSelectedJournal] = useState<string>('all');
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewingEntry, setViewingEntry] = useState<JournalEntry | null>(null);
 
   // Form State
@@ -28,35 +23,25 @@ export const JournalEntriesPage: React.FC<{ onNavigate?: (route: string) => void
     {
       id: 'l1',
       accountId: accounts[0]?.id || '',
-      accountName: accounts[0]?.name || 'Cash on Hand',
+      accountName: accounts[0]?.name || '',
       partnerId: contacts[0]?.id || '',
       partnerName: contacts[0]?.name || '',
-      debit: 50000,
+      debit: 1000,
       credit: 0,
     },
     {
       id: 'l2',
       accountId: accounts[1]?.id || '',
-      accountName: accounts[1]?.name || 'Product Sales',
+      accountName: accounts[1]?.name || '',
       partnerId: contacts[0]?.id || '',
       partnerName: contacts[0]?.name || '',
       debit: 0,
-      credit: 50000,
+      credit: 1000,
     },
   ]);
   const [formError, setFormError] = useState('');
 
-  const postedCount = journalEntries.filter((e) => e.status === 'Posted').length || 248;
-  const draftCount = journalEntries.filter((e) => e.status === 'Draft').length || 12;
-
-  const totalDebits = journalEntries.reduce((sum: number, e: JournalEntry) => sum + (e.totalDebit || 0), 0) || 4670000;
-  const totalCredits = journalEntries.reduce((sum: number, e: JournalEntry) => sum + (e.totalCredit || 0), 0) || 4670000;
-
-  const formatINR = (val: number) => {
-    return '₹' + val.toLocaleString('en-IN');
-  };
-
-  const openCreateDrawer = () => {
+  const openCreateModal = () => {
     setViewingEntry(null);
     setDate(new Date().toISOString().split('T')[0]);
     setJournalId(journals[0]?.id || '');
@@ -65,24 +50,24 @@ export const JournalEntriesPage: React.FC<{ onNavigate?: (route: string) => void
       {
         id: `l_${Date.now()}_1`,
         accountId: accounts[0]?.id || '',
-        accountName: accounts[0]?.name || 'Cash on Hand',
+        accountName: accounts[0]?.name || '',
         partnerId: contacts[0]?.id || '',
         partnerName: contacts[0]?.name || '',
-        debit: 25000,
+        debit: 5000,
         credit: 0,
       },
       {
         id: `l_${Date.now()}_2`,
         accountId: accounts[1]?.id || '',
-        accountName: accounts[1]?.name || 'Sales Revenue',
+        accountName: accounts[1]?.name || '',
         partnerId: contacts[0]?.id || '',
         partnerName: contacts[0]?.name || '',
         debit: 0,
-        credit: 25000,
+        credit: 5000,
       },
     ]);
     setFormError('');
-    setIsDrawerOpen(true);
+    setIsModalOpen(true);
   };
 
   const handleAddLine = () => {
@@ -103,10 +88,10 @@ export const JournalEntriesPage: React.FC<{ onNavigate?: (route: string) => void
   };
 
   const handleRemoveLine = (idx: number) => {
-    setLines(lines.filter((_item: JournalEntryLine, i: number) => i !== idx));
+    setLines(lines.filter((_, i) => i !== idx));
   };
 
-  const handleLineFieldChange = (idx: number, field: keyof JournalEntryLine, val: string | number) => {
+  const handleLineFieldChange = (idx: number, field: keyof JournalEntryLine, val: any) => {
     const updated = [...lines];
     const line = { ...updated[idx] };
 
@@ -130,16 +115,15 @@ export const JournalEntriesPage: React.FC<{ onNavigate?: (route: string) => void
     setLines(updated);
   };
 
-  const totalDebitSum = lines.reduce((s: number, l: JournalEntryLine) => s + (Number(l.debit) || 0), 0);
-  const totalCreditSum = lines.reduce((s: number, l: JournalEntryLine) => s + (Number(l.credit) || 0), 0);
-  const isBalanced = Math.abs(totalDebitSum - totalCreditSum) < 0.01 && totalDebitSum > 0;
-  const discrepancy = Math.abs(totalDebitSum - totalCreditSum);
+  const totalDebit = lines.reduce((s, l) => s + (Number(l.debit) || 0), 0);
+  const totalCredit = lines.reduce((s, l) => s + (Number(l.credit) || 0), 0);
+  const isBalanced = Math.abs(totalDebit - totalCredit) < 0.01 && totalDebit > 0;
 
   const handleSaveEntry = (status: 'Draft' | 'Posted') => {
     setFormError('');
     if (!isBalanced) {
       setFormError(
-        `Double-entry rule violation: Debit (₹${totalDebitSum.toLocaleString('en-IN')}) must equal Credit (₹${totalCreditSum.toLocaleString('en-IN')})!`
+        `Double-entry rule violation: Debit ($${totalDebit.toFixed(2)}) must equal Credit ($${totalCredit.toFixed(2)})!`
       );
       return;
     }
@@ -153,8 +137,8 @@ export const JournalEntriesPage: React.FC<{ onNavigate?: (route: string) => void
       status,
       reference,
       lines,
-      totalDebit: totalDebitSum,
-      totalCredit: totalCreditSum,
+      totalDebit,
+      totalCredit,
     });
 
     if (!result.success) {
@@ -162,236 +146,144 @@ export const JournalEntriesPage: React.FC<{ onNavigate?: (route: string) => void
       return;
     }
 
-    setIsDrawerOpen(false);
+    setIsModalOpen(false);
   };
 
-  const filteredEntries = journalEntries.filter((je: JournalEntry) => {
-    const matchesSearch =
+  const filteredEntries = journalEntries.filter(
+    (je) =>
       je.entryNumber.toLowerCase().includes(search.toLowerCase()) ||
       je.journalName.toLowerCase().includes(search.toLowerCase()) ||
-      (je.reference && je.reference.toLowerCase().includes(search.toLowerCase()));
-    const matchesJournal = selectedJournal === 'all' || je.journalId === selectedJournal || je.journalName.toLowerCase().includes(selectedJournal.toLowerCase());
-    const matchesStatus = selectedStatus === 'all' || je.status.toLowerCase() === selectedStatus.toLowerCase();
-    return matchesSearch && matchesJournal && matchesStatus;
-  });
+      (je.reference && je.reference.toLowerCase().includes(search.toLowerCase()))
+  );
+
+  const columns: Column<JournalEntry>[] = [
+    {
+      key: 'entryNumber',
+      header: 'Number',
+      width: '140px',
+      render: (je) => <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}>{je.entryNumber}</span>,
+    },
+    {
+      key: 'date',
+      header: 'Accounting Date',
+      width: '130px',
+    },
+    {
+      key: 'journalName',
+      header: 'Journal',
+    },
+    {
+      key: 'reference',
+      header: 'Reference',
+      render: (je) => <span style={{ color: 'var(--color-text-muted)' }}>{je.reference || '—'}</span>,
+    },
+    {
+      key: 'totalDebit',
+      header: 'Total Debit / Credit',
+      align: 'right',
+      render: (je) => (
+        <span style={{ fontWeight: 600 }}>${je.totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      align: 'center',
+      render: (je) => (
+        <StatusBadge
+          status={je.status === 'Posted' ? 'completed' : je.status === 'Cancelled' ? 'danger' : 'neutral'}
+          label={je.status}
+        />
+      ),
+    },
+  ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
-      {/* Page Heading Row */}
-      <div className="page-heading-row">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <AccountantNav currentRoute="/journal-entries" onNavigate={onNavigate} />
+
+      <div className="content-header">
         <div>
-          <h1 className="page-title-text">Journal Entries</h1>
-          <p className="page-subtitle-text">
-            View and create balanced double-entry accounting records
+          <h1 className="page-title">General Journal Entries</h1>
+          <p className="page-subtitle">
+            Immutable balanced double-entry accounting records (Debit Total = Credit Total required)
           </p>
         </div>
 
-        <button type="button" className="btn-teal" onClick={openCreateDrawer}>
-          <Plus size={16} strokeWidth={2.4} />
-          <span>New Entry</span>
-        </button>
+        <Button variant="primary" onClick={openCreateModal} leftIcon={<Plus size={16} strokeWidth={2.2} />}>
+          New Journal Entry
+        </Button>
       </div>
 
-      {/* 4 Stat Cards */}
-      <div className="stat-cards-4">
-        <div className="stat-metric-card">
-          <div className="stat-card-header">
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' }} />
-            <span>Posted</span>
-          </div>
-          <div className="stat-card-number">{postedCount}</div>
-          <div style={{ fontSize: '11.5px', color: '#10b981' }}>Immutable Postings</div>
+      <div className="card-panel">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+          <input
+            type="text"
+            className="form-input search-bar-input"
+            style={{ maxWidth: '360px' }}
+            placeholder="Search by entry #, journal, reference..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+
+          <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
+            Showing <strong>{filteredEntries.length}</strong> journal postings
+          </span>
         </div>
 
-        <div className="stat-metric-card">
-          <div className="stat-card-header">
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
-            <span>Draft</span>
-          </div>
-          <div className="stat-card-number">{draftCount}</div>
-          <div style={{ fontSize: '11.5px', color: '#f59e0b' }}>Pending Verification</div>
-        </div>
-
-        <div className="stat-metric-card">
-          <div className="stat-card-header">
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#0284c7' }} />
-            <span>Total Debits</span>
-          </div>
-          <div className="stat-card-number">{formatINR(totalDebits)}</div>
-          <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted)' }}>Balanced General Ledger</div>
-        </div>
-
-        <div className="stat-metric-card">
-          <div className="stat-card-header">
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#6366f1' }} />
-            <span>Total Credits</span>
-          </div>
-          <div className="stat-card-number">{formatINR(totalCredits)}</div>
-          <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted)' }}>Balanced General Ledger</div>
-        </div>
+        <DataTable
+          columns={columns}
+          data={filteredEntries}
+          keyExtractor={(je) => je.id}
+          onRowClick={(je) => setViewingEntry(je)}
+        />
       </div>
 
-      {/* Filter Bar */}
-      <div className="filter-bar-row">
-        <div className="filter-left-group">
-          <div style={{ position: 'relative', width: '280px' }}>
-            <Search size={15} style={{ position: 'absolute', left: '10px', top: '9px', color: 'var(--color-text-light)' }} />
-            <input
-              type="text"
-              className="filter-input"
-              style={{ width: '100%', paddingLeft: '32px' }}
-              placeholder="Search entries..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-
-          <select
-            className="filter-input"
-            value={selectedJournal}
-            onChange={(e) => setSelectedJournal(e.target.value)}
-          >
-            <option value="all">All Journals</option>
-            {journals.map((j) => (
-              <option key={j.id} value={j.id}>
-                {j.name}
-              </option>
-            ))}
-          </select>
-
-          <select
-            className="filter-input"
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-          >
-            <option value="all">All Status</option>
-            <option value="posted">Posted</option>
-            <option value="draft">Draft</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </div>
-
-        <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
-          Showing <strong>{filteredEntries.length}</strong> journal postings
-        </div>
-      </div>
-
-      {/* Table Card */}
-      <div className="table-card">
-        <table className="urban-table">
-          <thead>
-            <tr>
-              <th style={{ width: '150px' }}>NUMBER</th>
-              <th style={{ width: '120px' }}>DATE</th>
-              <th>JOURNAL</th>
-              <th>REFERENCE</th>
-              <th style={{ textAlign: 'right' }}>TOTAL AMOUNT</th>
-              <th style={{ textAlign: 'center', width: '110px' }}>STATUS</th>
-              <th style={{ width: '40px' }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredEntries.map((je) => (
-              <tr
-                key={je.id}
-                style={{ cursor: 'pointer' }}
-                onClick={() => setViewingEntry(je)}
-              >
-                <td style={{ fontWeight: 700, color: 'var(--color-teal)' }}>{je.entryNumber}</td>
-                <td style={{ color: 'var(--color-text-secondary)' }}>{je.date}</td>
-                <td style={{ fontWeight: 500, color: 'var(--color-text-primary)' }}>{je.journalName}</td>
-                <td style={{ color: 'var(--color-text-muted)' }}>{je.reference || '—'}</td>
-                <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--color-text-primary)' }}>
-                  {formatINR(je.totalDebit)}
-                </td>
-                <td style={{ textAlign: 'center' }}>
-                  <span
-                    className={`badge-type ${
-                      je.status === 'Posted'
-                        ? 'badge-active-status'
-                        : je.status === 'Draft'
-                        ? 'badge-draft-status'
-                        : 'badge-expense'
-                    }`}
-                  >
-                    {je.status}
-                  </span>
-                </td>
-                <td style={{ textAlign: 'center' }}>
-                  <button
-                    type="button"
-                    style={{ background: 'none', border: 'none', color: 'var(--color-text-light)', cursor: 'pointer' }}
-                  >
-                    <MoreHorizontal size={16} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* View Entry Details Drawer / SlideOver */}
+      {/* View Existing Entry Modal */}
       {viewingEntry && (
-        <SlideOverDrawer
+        <Modal
           isOpen={true}
           onClose={() => setViewingEntry(null)}
-          title={`Journal Entry: ${viewingEntry.entryNumber}`}
-          subtitle={`${viewingEntry.journalName} • Accounting Date: ${viewingEntry.date}`}
-          maxWidth="560px"
+          title={`Journal Entry: ${viewingEntry.entryNumber} (${viewingEntry.journalName})`}
+          maxWidth="700px"
           footer={
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
               <div style={{ display: 'flex', gap: '8px' }}>
                 {viewingEntry.status === 'Draft' && (
-                  <button
-                    type="button"
-                    className="btn-teal"
+                  <Button
+                    variant="primary"
+                    size="sm"
                     onClick={() => {
                       postJournalEntry(viewingEntry.id);
                       setViewingEntry({ ...viewingEntry, status: 'Posted' });
                     }}
+                    leftIcon={<CheckCircle2 size={14} />}
                   >
-                    <CheckCircle2 size={15} /> Post Entry
-                  </button>
+                    Post Entry
+                  </Button>
                 )}
                 {viewingEntry.status !== 'Cancelled' && (
-                  <button
-                    type="button"
-                    style={{
-                      backgroundColor: '#fee2e2',
-                      color: '#b91c1c',
-                      border: '1px solid #fecaca',
-                      padding: '8px 14px',
-                      borderRadius: '6px',
-                      fontSize: '13px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                    }}
+                  <Button
+                    variant="danger"
+                    size="sm"
                     onClick={() => {
                       cancelJournalEntry(viewingEntry.id);
                       setViewingEntry({ ...viewingEntry, status: 'Cancelled' });
                     }}
+                    leftIcon={<XCircle size={14} />}
                   >
-                    <XCircle size={15} /> Cancel Entry
-                  </button>
+                    Cancel Entry
+                  </Button>
                 )}
               </div>
-              <button
-                type="button"
-                className="filter-input"
-                style={{ cursor: 'pointer' }}
-                onClick={() => setViewingEntry(null)}
-              >
+              <Button variant="outline" size="sm" onClick={() => setViewingEntry(null)}>
                 Close
-              </button>
+              </Button>
             </div>
           }
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', padding: '12px', backgroundColor: 'var(--color-bg)', borderRadius: '8px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', padding: '12px', backgroundColor: 'var(--color-bg)', borderRadius: '6px' }}>
               <div>
                 <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', display: 'block' }}>Date:</span>
                 <span style={{ fontWeight: 600 }}>{viewingEntry.date}</span>
@@ -401,103 +293,94 @@ export const JournalEntriesPage: React.FC<{ onNavigate?: (route: string) => void
                 <span style={{ fontWeight: 600 }}>{viewingEntry.journalName}</span>
               </div>
               <div>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', display: 'block' }}>Reference:</span>
+                <span style={{ fontWeight: 600 }}>{viewingEntry.reference || '—'}</span>
+              </div>
+              <div>
                 <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', display: 'block' }}>Status:</span>
-                <span className={`badge-type ${viewingEntry.status === 'Posted' ? 'badge-active-status' : 'badge-draft-status'}`}>
-                  {viewingEntry.status}
-                </span>
+                <StatusBadge status={viewingEntry.status === 'Posted' ? 'completed' : 'danger'} label={viewingEntry.status} />
               </div>
             </div>
 
-            <table className="urban-table" style={{ border: '1px solid var(--color-border)', borderRadius: '6px' }}>
+            <table className="custom-table">
               <thead>
                 <tr>
                   <th>Account</th>
                   <th>Partner</th>
-                  <th style={{ textAlign: 'right' }}>Debit</th>
-                  <th style={{ textAlign: 'right' }}>Credit</th>
+                  <th style={{ textAlign: 'right' }}>Debit ($)</th>
+                  <th style={{ textAlign: 'right' }}>Credit ($)</th>
                 </tr>
               </thead>
               <tbody>
-                {viewingEntry.lines.map((l: JournalEntryLine) => (
+                {viewingEntry.lines.map((l) => (
                   <tr key={l.id}>
-                    <td style={{ fontWeight: 600 }}>{l.accountName}</td>
-                    <td style={{ color: 'var(--color-text-muted)' }}>{l.partnerName || '—'}</td>
-                    <td style={{ textAlign: 'right', fontWeight: l.debit > 0 ? 700 : 400 }}>
-                      {l.debit > 0 ? formatINR(l.debit) : '—'}
+                    <td style={{ fontWeight: 500 }}>{l.accountName}</td>
+                    <td style={{ color: 'var(--color-text-secondary)' }}>{l.partnerName || '—'}</td>
+                    <td style={{ textAlign: 'right', fontWeight: l.debit > 0 ? 600 : 400 }}>
+                      {l.debit > 0 ? `$${l.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
                     </td>
-                    <td style={{ textAlign: 'right', fontWeight: l.credit > 0 ? 700 : 400 }}>
-                      {l.credit > 0 ? formatINR(l.credit) : '—'}
+                    <td style={{ textAlign: 'right', fontWeight: l.credit > 0 ? 600 : 400 }}>
+                      {l.credit > 0 ? `$${l.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
                     </td>
                   </tr>
                 ))}
               </tbody>
               <tfoot>
-                <tr style={{ fontWeight: 700, backgroundColor: 'var(--color-bg)' }}>
+                <tr style={{ fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
                   <td colSpan={2} style={{ textAlign: 'right', color: 'var(--color-text-muted)' }}>
-                    BALANCED TOTALS:
+                    BALANCED SUM:
                   </td>
-                  <td style={{ textAlign: 'right', color: 'var(--color-teal)' }}>
-                    {formatINR(viewingEntry.totalDebit)}
+                  <td style={{ textAlign: 'right', color: 'var(--color-primary)' }}>
+                    ${viewingEntry.totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </td>
-                  <td style={{ textAlign: 'right', color: 'var(--color-teal)' }}>
-                    {formatINR(viewingEntry.totalCredit)}
+                  <td style={{ textAlign: 'right', color: 'var(--color-primary)' }}>
+                    ${viewingEntry.totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </td>
                 </tr>
               </tfoot>
             </table>
           </div>
-        </SlideOverDrawer>
+        </Modal>
       )}
 
-      {/* Slide-Over Drawer: New Journal Entry */}
-      <SlideOverDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        title="New Journal Entry"
-        subtitle="Record balanced double-entry transaction"
-        maxWidth="580px"
+      {/* New Journal Entry Modal with strict Debit == Credit Rule */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Create New Journal Entry (Balanced Dr/Cr)"
+        maxWidth="750px"
         footer={
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-            <button
-              type="button"
-              className="filter-input"
-              style={{ cursor: 'pointer' }}
-              onClick={() => setIsDrawerOpen(false)}
+          <>
+            <Button variant="outline" onClick={() => setIsModalOpen(false)} leftIcon={<ArrowLeft size={15} />}>
+              Back
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleSaveEntry('Draft')}
+              disabled={!isBalanced}
             >
-              Cancel
-            </button>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                type="button"
-                className="filter-input"
-                style={{ cursor: isBalanced ? 'pointer' : 'not-allowed', backgroundColor: '#ffffff' }}
-                disabled={!isBalanced}
-                onClick={() => handleSaveEntry('Draft')}
-              >
-                Save as Draft
-              </button>
-              <button
-                type="button"
-                className="btn-teal"
-                disabled={!isBalanced}
-                style={{ opacity: isBalanced ? 1 : 0.6, cursor: isBalanced ? 'pointer' : 'not-allowed' }}
-                onClick={() => handleSaveEntry('Posted')}
-              >
-                Post Entry
-              </button>
-            </div>
-          </div>
+              Save as Draft
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => handleSaveEntry('Posted')}
+              disabled={!isBalanced}
+              leftIcon={<Check size={15} strokeWidth={2.2} />}
+            >
+              Post to Ledger
+            </Button>
+          </>
         }
       >
         <form style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {formError && (
             <div
               style={{
-                backgroundColor: '#fee2e2',
-                color: '#b91c1c',
+                backgroundColor: 'var(--color-danger-bg)',
+                color: 'var(--color-danger-text)',
                 padding: '10px 14px',
                 borderRadius: '6px',
-                fontSize: '12.5px',
+                fontSize: '13px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
@@ -508,26 +391,22 @@ export const JournalEntriesPage: React.FC<{ onNavigate?: (route: string) => void
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div className="drawer-form-group">
-              <label className="drawer-form-label">
-                Accounting Date <span className="required">*</span>
-              </label>
-              <input
-                type="date"
-                className="drawer-input"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-              />
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+            <FormField
+              label="Accounting Date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              required
+            />
 
-            <div className="drawer-form-group">
-              <label className="drawer-form-label">
-                Journal <span className="required">*</span>
+            <div className="form-group">
+              <label className="form-label" htmlFor="entry-journal">
+                Journal
               </label>
               <select
-                className="drawer-input"
+                id="entry-journal"
+                className="form-input select-filter"
                 value={journalId}
                 onChange={(e) => setJournalId(e.target.value)}
               >
@@ -538,52 +417,41 @@ export const JournalEntriesPage: React.FC<{ onNavigate?: (route: string) => void
                 ))}
               </select>
             </div>
-          </div>
 
-          <div className="drawer-form-group">
-            <label className="drawer-form-label">Reference / Memo</label>
-            <input
-              type="text"
-              className="drawer-input"
-              placeholder="e.g. Month End Salary & Depreciation"
+            <FormField
+              label="Reference / Memo"
+              placeholder="e.g. Month End Depreciation"
               value={reference}
               onChange={(e) => setReference(e.target.value)}
             />
           </div>
 
           {/* Line Items Table */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--color-text-primary)' }}>
-                Transaction Entry Lines
-              </span>
-              <button
-                type="button"
-                className="btn-ghost"
-                style={{ fontSize: '12px', color: 'var(--color-teal)', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', border: 'none', background: 'transparent' }}
-                onClick={handleAddLine}
-              >
-                <Plus size={14} /> Add Line
-              </button>
+              <span style={{ fontWeight: 600, fontSize: '13px' }}>Debit / Credit Entry Lines</span>
+              <Button type="button" variant="outline" size="sm" onClick={handleAddLine} leftIcon={<Plus size={14} />}>
+                Add Line
+              </Button>
             </div>
 
-            <table className="urban-table" style={{ border: '1px solid var(--color-border)', borderRadius: '6px', fontSize: '12px' }}>
+            <table className="custom-table" style={{ border: '1px solid var(--color-border)', borderRadius: '6px' }}>
               <thead>
                 <tr>
-                  <th>Account</th>
-                  <th>Partner</th>
-                  <th style={{ width: '100px', textAlign: 'right' }}>Debit (₹)</th>
-                  <th style={{ width: '100px', textAlign: 'right' }}>Credit (₹)</th>
-                  <th style={{ width: '30px' }}></th>
+                  <th style={{ minWidth: '180px' }}>Account</th>
+                  <th style={{ minWidth: '140px' }}>Partner</th>
+                  <th style={{ width: '120px', textAlign: 'right' }}>Debit ($)</th>
+                  <th style={{ width: '120px', textAlign: 'right' }}>Credit ($)</th>
+                  <th style={{ width: '40px' }}></th>
                 </tr>
               </thead>
               <tbody>
-                {lines.map((line: JournalEntryLine, idx: number) => (
+                {lines.map((line, idx) => (
                   <tr key={line.id}>
-                    <td style={{ padding: '8px 10px' }}>
+                    <td>
                       <select
-                        className="drawer-input"
-                        style={{ padding: '4px 6px', fontSize: '12px' }}
+                        className="form-input select-filter"
+                        style={{ padding: '6px 8px', fontSize: '12px' }}
                         value={line.accountId}
                         onChange={(e) => handleLineFieldChange(idx, 'accountId', e.target.value)}
                       >
@@ -594,10 +462,10 @@ export const JournalEntriesPage: React.FC<{ onNavigate?: (route: string) => void
                         ))}
                       </select>
                     </td>
-                    <td style={{ padding: '8px 10px' }}>
+                    <td>
                       <select
-                        className="drawer-input"
-                        style={{ padding: '4px 6px', fontSize: '12px' }}
+                        className="form-input select-filter"
+                        style={{ padding: '6px 8px', fontSize: '12px' }}
                         value={line.partnerId || ''}
                         onChange={(e) => handleLineFieldChange(idx, 'partnerId', e.target.value)}
                       >
@@ -609,34 +477,36 @@ export const JournalEntriesPage: React.FC<{ onNavigate?: (route: string) => void
                         ))}
                       </select>
                     </td>
-                    <td style={{ padding: '8px 10px' }}>
+                    <td>
                       <input
                         type="number"
                         min="0"
-                        className="drawer-input"
-                        style={{ textAlign: 'right', padding: '4px 6px', fontSize: '12px' }}
+                        step="0.01"
+                        className="form-input"
+                        style={{ textAlign: 'right', padding: '6px 8px', fontSize: '12px' }}
                         value={line.debit || ''}
-                        placeholder="0"
+                        placeholder="0.00"
                         onChange={(e) => handleLineFieldChange(idx, 'debit', e.target.value)}
                       />
                     </td>
-                    <td style={{ padding: '8px 10px' }}>
+                    <td>
                       <input
                         type="number"
                         min="0"
-                        className="drawer-input"
-                        style={{ textAlign: 'right', padding: '4px 6px', fontSize: '12px' }}
+                        step="0.01"
+                        className="form-input"
+                        style={{ textAlign: 'right', padding: '6px 8px', fontSize: '12px' }}
                         value={line.credit || ''}
-                        placeholder="0"
+                        placeholder="0.00"
                         onChange={(e) => handleLineFieldChange(idx, 'credit', e.target.value)}
                       />
                     </td>
-                    <td style={{ padding: '8px 6px', textAlign: 'center' }}>
+                    <td style={{ textAlign: 'center' }}>
                       {lines.length > 2 && (
                         <button
                           type="button"
                           className="btn-ghost"
-                          style={{ padding: '2px', color: '#dc2626', border: 'none', background: 'transparent', cursor: 'pointer' }}
+                          style={{ padding: '2px', color: 'var(--color-danger)' }}
                           onClick={() => handleRemoveLine(idx)}
                         >
                           <Trash2 size={13} />
@@ -646,46 +516,42 @@ export const JournalEntriesPage: React.FC<{ onNavigate?: (route: string) => void
                   </tr>
                 ))}
               </tbody>
+              <tfoot>
+                <tr
+                  style={{
+                    fontWeight: 700,
+                    backgroundColor: isBalanced ? 'var(--color-surface-active)' : 'var(--color-danger-bg)',
+                    borderTop: '2px solid var(--color-border)',
+                  }}
+                >
+                  <td colSpan={2} style={{ textAlign: 'right', fontSize: '12px' }}>
+                    {isBalanced ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: 'var(--color-primary)' }}>
+                        <CheckCircle2 size={14} /> BALANCED TOTALS:
+                      </span>
+                    ) : (
+                      <span style={{ color: 'var(--color-danger)' }}>UNBALANCED DISCREPANCY:</span>
+                    )}
+                  </td>
+                  <td style={{ textAlign: 'right', color: isBalanced ? 'var(--color-text-primary)' : 'var(--color-danger)', fontSize: '13px' }}>
+                    ${totalDebit.toFixed(2)}
+                  </td>
+                  <td style={{ textAlign: 'right', color: isBalanced ? 'var(--color-text-primary)' : 'var(--color-danger)', fontSize: '13px' }}>
+                    ${totalCredit.toFixed(2)}
+                  </td>
+                  <td></td>
+                </tr>
+              </tfoot>
             </table>
 
-            {/* Live Balance Summary */}
-            <div
-              style={{
-                padding: '12px',
-                borderRadius: '8px',
-                backgroundColor: isBalanced ? '#ecfdf5' : '#fef2f2',
-                border: `1px solid ${isBalanced ? '#a7f3d0' : '#fecaca'}`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginTop: '4px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {isBalanced ? (
-                  <>
-                    <CheckCircle2 size={16} color="#059669" />
-                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#065f46' }}>
-                      Balanced Entry: Total {formatINR(totalDebitSum)}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <AlertTriangle size={16} color="#dc2626" />
-                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#991b1b' }}>
-                      Unbalanced Discrepancy: {formatINR(discrepancy)}
-                    </span>
-                  </>
-                )}
-              </div>
-
-              <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-                Dr: <strong>{formatINR(totalDebitSum)}</strong> | Cr: <strong>{formatINR(totalCreditSum)}</strong>
-              </div>
-            </div>
+            {!isBalanced && (
+              <span style={{ fontSize: '12px', color: 'var(--color-danger)', fontWeight: 600 }}>
+                ⚠️ Debit Total must exactly equal Credit Total to save or post.
+              </span>
+            )}
           </div>
         </form>
-      </SlideOverDrawer>
+      </Modal>
     </div>
   );
 };
