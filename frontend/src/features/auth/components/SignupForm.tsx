@@ -144,17 +144,44 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onNavigateToL
                   style={{ justifyContent: 'center' }}
                   disabled={loading}
                 >
-                  <span>{r}</span>
+                  <span>{r === 'User' ? 'Customer / Vendor' : r}</span>
                 </button>
               );
             })}
           </div>
           <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-            {formData.role === 'User' && 'User: Access self-service invoices, vendor bills & dues settlement.'}
+            {formData.role === 'User' && 'User Portal: Access self-service customer invoices, vendor bills & direct settlement.'}
             {formData.role === 'Accountant' && 'Accountant: Access sales, purchases, COA, journals & financial reports.'}
             {formData.role === 'Admin' && 'Admin: Full access across all modules + User Management.'}
           </span>
         </div>
+
+        {/* Partner Sub-Type for User Role */}
+        {formData.role === 'User' && (
+          <div className="form-group">
+            <label className="form-label" style={{ fontSize: '12px' }}>Account Type (Partner Category)</label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+              {(['Customer', 'Vendor', 'Both'] as const).map((pType) => {
+                const isSelected = (formData as any).partnerType ? (formData as any).partnerType === pType : pType === 'Customer';
+                return (
+                  <button
+                    key={pType}
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, partnerType: pType } as any))}
+                    className={`btn btn-sm ${isSelected ? 'btn-primary' : 'btn-outline'}`}
+                    style={{ justifyContent: 'center', fontSize: '12px', padding: '6px 4px' }}
+                    disabled={loading}
+                  >
+                    <span>{pType === 'Both' ? 'Both (Dual)' : pType}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+              Choose whether you are purchasing goods (Customer), supplying raw materials (Vendor), or both.
+            </span>
+          </div>
+        )}
 
         {/* Passwords */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
