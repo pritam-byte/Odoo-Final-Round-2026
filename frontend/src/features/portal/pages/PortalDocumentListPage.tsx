@@ -122,14 +122,13 @@ export const PortalDocumentListPage: React.FC<PortalDocumentListPageProps> = ({
                       <strong style={{ color: 'var(--color-text-primary)' }}>{doc.number}</strong>
                     </td>
                     <td>{doc.partnerName}</td>
-                    <td style={{ fontWeight: 600 }}>${doc.total.toFixed(2)}</td>
+                    <td style={{ fontWeight: 600 }}>₹{doc.total.toFixed(2)}</td>
                     <td
                       style={{
                         fontWeight: 700,
                         color: doc.amountDue > 0 ? 'var(--color-warning-text)' : 'var(--color-text-muted)',
                       }}
-                    >
-                      ${doc.amountDue.toFixed(2)}
+                    >₹{doc.amountDue.toFixed(2)}
                     </td>
                     <td>
                       <StatusBadge status={doc.status} />

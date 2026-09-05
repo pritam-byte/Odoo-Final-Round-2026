@@ -93,7 +93,7 @@ export const BudgetsPage: React.FC<{ onNavigate: (route: string) => void }> = ({
       key: 'committedAmount',
       header: 'Committed ($)',
       align: 'right',
-      render: (b) => <span>${b.committedAmount.toLocaleString()}</span>,
+      render: (b) => <span>₹{b.committedAmount.toLocaleString()}</span>,
     },
     {
       key: 'achieved',
@@ -108,8 +108,7 @@ export const BudgetsPage: React.FC<{ onNavigate: (route: string) => void }> = ({
               e.stopPropagation();
               setInspectingBudget(b);
             }}
-          >
-            ${achieved.toLocaleString()}
+          >₹{achieved.toLocaleString()}
           </span>
         );
       },
@@ -373,8 +372,7 @@ export const BudgetsPage: React.FC<{ onNavigate: (route: string) => void }> = ({
                       <td style={{ fontWeight: 600, color: 'var(--color-primary)' }}>{t.number}</td>
                       <td>{t.partner}</td>
                       <td>{t.date}</td>
-                      <td style={{ textAlign: 'right', fontWeight: 600 }}>
-                        ${t.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      <td style={{ textAlign: 'right', fontWeight: 600 }}>₹{t.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </td>
                     </tr>
                   ))}

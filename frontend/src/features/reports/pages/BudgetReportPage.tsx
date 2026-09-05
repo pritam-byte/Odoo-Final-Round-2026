@@ -42,7 +42,7 @@ export const BudgetReportPage: React.FC<{ onNavigate: (route: string) => void }>
       key: 'committedAmount',
       header: 'Committed ($)',
       align: 'right',
-      render: (b) => <span>${b.committedAmount.toLocaleString()}</span>,
+      render: (b) => <span>₹{b.committedAmount.toLocaleString()}</span>,
     },
     {
       key: 'achieved',
@@ -50,7 +50,7 @@ export const BudgetReportPage: React.FC<{ onNavigate: (route: string) => void }>
       align: 'right',
       render: (b) => {
         const achieved = getBudgetAchievedAmount(b);
-        return <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}>${achieved.toLocaleString()}</span>;
+        return <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}>₹{achieved.toLocaleString()}</span>;
       },
     },
     {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  DollarSign,
+  IndianRupee,
   TrendingUp,
   Clock,
   Plus,
@@ -84,10 +84,10 @@ export const DashboardPage: React.FC<{ onNavigate: (route: string) => void }> = 
       <div className="stat-grid">
         <div className="stat-card" onClick={() => onNavigate('/sales/invoices')} style={{ cursor: 'pointer' }}>
           <div className="stat-icon-badge teal">
-            <DollarSign size={20} strokeWidth={2} />
+            <IndianRupee size={20} strokeWidth={2} />
           </div>
           <div>
-            <div className="stat-number">${totalReceivables.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <div className="stat-number">₹{totalReceivables.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
             <div className="stat-label">Outstanding Receivables (Debtors)</div>
           </div>
         </div>
@@ -97,7 +97,7 @@ export const DashboardPage: React.FC<{ onNavigate: (route: string) => void }> = 
             <Clock size={20} strokeWidth={2} />
           </div>
           <div>
-            <div className="stat-number">${totalPayables.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <div className="stat-number">₹{totalPayables.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
             <div className="stat-label">Outstanding Payables (Creditors)</div>
           </div>
         </div>
@@ -107,7 +107,7 @@ export const DashboardPage: React.FC<{ onNavigate: (route: string) => void }> = 
             <TrendingUp size={20} strokeWidth={2} />
           </div>
           <div>
-            <div className="stat-number">${totalLiquidCash.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <div className="stat-number">₹{totalLiquidCash.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
             <div className="stat-label">Total Liquid Cash & Bank Position</div>
           </div>
         </div>
@@ -186,7 +186,7 @@ export const DashboardPage: React.FC<{ onNavigate: (route: string) => void }> = 
                     <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>{inv.partnerName} • {inv.date}</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontWeight: 700, fontSize: '13px' }}>${inv.total.toLocaleString()}</div>
+                    <div style={{ fontWeight: 700, fontSize: '13px' }}>₹{inv.total.toLocaleString()}</div>
                     <StatusBadge status={inv.status === 'Paid' ? 'paid' : inv.status === 'Confirmed' ? 'pending' : 'neutral'} label={inv.status} />
                   </div>
                 </div>
@@ -256,7 +256,7 @@ export const DashboardPage: React.FC<{ onNavigate: (route: string) => void }> = 
                     <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>{bill.partnerName} • {bill.date}</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontWeight: 700, fontSize: '13px' }}>${bill.total.toLocaleString()}</div>
+                    <div style={{ fontWeight: 700, fontSize: '13px' }}>₹{bill.total.toLocaleString()}</div>
                     <StatusBadge status={bill.status === 'Paid' ? 'paid' : bill.status === 'Confirmed' ? 'due' : 'neutral'} label={bill.status} />
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  DollarSign,
+  IndianRupee,
   CheckCircle,
   FileText,
   Receipt,
@@ -56,11 +56,10 @@ export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavi
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span className="stat-label">TOTAL OUTSTANDING DUES</span>
             <div className="stat-icon-badge amber">
-              <DollarSign size={20} strokeWidth={2} />
+              <IndianRupee size={20} strokeWidth={2} />
             </div>
           </div>
-          <div className="stat-number" style={{ color: totalDue > 0 ? 'var(--color-warning)' : 'var(--color-primary)' }}>
-            ${totalDue.toFixed(2)}
+          <div className="stat-number" style={{ color: totalDue > 0 ? 'var(--color-warning)' : 'var(--color-primary)' }}>₹{totalDue.toFixed(2)}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
             {unpaidDocs.length} pending document{unpaidDocs.length === 1 ? '' : 's'}
@@ -75,8 +74,7 @@ export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavi
               <CheckCircle size={20} strokeWidth={2} />
             </div>
           </div>
-          <div className="stat-number">
-            ${totalPaid.toFixed(2)}
+          <div className="stat-number">₹{totalPaid.toFixed(2)}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
             {paidDocs.length} paid in full
@@ -173,14 +171,13 @@ export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavi
                       {doc.type}
                     </span>
                   </td>
-                  <td style={{ fontWeight: 600 }}>${doc.total.toFixed(2)}</td>
+                  <td style={{ fontWeight: 600 }}>₹{doc.total.toFixed(2)}</td>
                   <td
                     style={{
                       fontWeight: 700,
                       color: doc.amountDue > 0 ? 'var(--color-warning-text)' : 'var(--color-text-muted)',
                     }}
-                  >
-                    ${doc.amountDue.toFixed(2)}
+                  >₹{doc.amountDue.toFixed(2)}
                   </td>
                   <td>
                     <StatusBadge status={doc.status} />

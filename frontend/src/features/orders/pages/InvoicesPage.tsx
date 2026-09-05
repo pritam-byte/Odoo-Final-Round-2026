@@ -117,15 +117,14 @@ export const InvoicesPage: React.FC<{ onNavigate: (route: string) => void }> = (
       key: 'total',
       header: 'Total ($)',
       align: 'right',
-      render: (inv) => <span>${inv.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>,
+      render: (inv) => <span>₹{inv.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>,
     },
     {
       key: 'amountDue',
       header: 'Amount Due ($)',
       align: 'right',
       render: (inv) => (
-        <span style={{ fontWeight: 700, color: inv.amountDue > 0 ? 'var(--color-warning)' : 'var(--color-primary)' }}>
-          ${inv.amountDue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+        <span style={{ fontWeight: 700, color: inv.amountDue > 0 ? 'var(--color-warning)' : 'var(--color-primary)' }}>₹{inv.amountDue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
         </span>
       ),
     },
@@ -283,16 +282,15 @@ export const InvoicesPage: React.FC<{ onNavigate: (route: string) => void }> = (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
               <div className="card-panel" style={{ padding: '12px' }}>
                 <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Total Amount:</span>
-                <span style={{ fontSize: '16px', fontWeight: 700 }}>${viewingInvoice.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                <span style={{ fontSize: '16px', fontWeight: 700 }}>₹{viewingInvoice.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="card-panel" style={{ padding: '12px' }}>
                 <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Amount Paid:</span>
-                <span style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-primary)' }}>${viewingInvoice.amountPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                <span style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-primary)' }}>₹{viewingInvoice.amountPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="card-panel" style={{ padding: '12px' }}>
                 <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Amount Due:</span>
-                <span style={{ fontSize: '16px', fontWeight: 700, color: viewingInvoice.amountDue > 0 ? 'var(--color-warning)' : 'var(--color-primary)' }}>
-                  ${viewingInvoice.amountDue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                <span style={{ fontSize: '16px', fontWeight: 700, color: viewingInvoice.amountDue > 0 ? 'var(--color-warning)' : 'var(--color-primary)' }}>₹{viewingInvoice.amountDue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </div>
             </div>

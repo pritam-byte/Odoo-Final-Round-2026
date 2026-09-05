@@ -56,10 +56,10 @@ export const JournalEntryPreview: React.FC<JournalEntryPreviewProps> = ({ entry,
               <td style={{ fontWeight: 500 }}>{l.accountName}</td>
               <td style={{ color: 'var(--color-text-secondary)' }}>{l.partnerName || '—'}</td>
               <td style={{ textAlign: 'right', fontWeight: l.debit > 0 ? 600 : 400 }}>
-                {l.debit > 0 ? `$${l.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
+                {l.debit > 0 ? `₹${l.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
               </td>
               <td style={{ textAlign: 'right', fontWeight: l.credit > 0 ? 600 : 400 }}>
-                {l.credit > 0 ? `$${l.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
+                {l.credit > 0 ? `₹${l.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
               </td>
             </tr>
           ))}
@@ -69,11 +69,9 @@ export const JournalEntryPreview: React.FC<JournalEntryPreviewProps> = ({ entry,
             <td colSpan={2} style={{ textAlign: 'right', color: 'var(--color-text-muted)', fontSize: '12px' }}>
               BALANCED TOTALS:
             </td>
-            <td style={{ textAlign: 'right', color: 'var(--color-primary)' }}>
-              ${entry.totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            <td style={{ textAlign: 'right', color: 'var(--color-primary)' }}>₹{entry.totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </td>
-            <td style={{ textAlign: 'right', color: 'var(--color-primary)' }}>
-              ${entry.totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            <td style={{ textAlign: 'right', color: 'var(--color-primary)' }}>₹{entry.totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </td>
           </tr>
         </tfoot>

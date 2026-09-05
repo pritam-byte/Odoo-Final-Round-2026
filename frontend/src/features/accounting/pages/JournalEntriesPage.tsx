@@ -123,7 +123,7 @@ export const JournalEntriesPage: React.FC<{ onNavigate: (route: string) => void 
     setFormError('');
     if (!isBalanced) {
       setFormError(
-        `Double-entry rule violation: Debit ($${totalDebit.toFixed(2)}) must equal Credit ($${totalCredit.toFixed(2)})!`
+        `Double-entry rule violation: Debit (₹${totalDebit.toFixed(2)}) must equal Credit (₹${totalCredit.toFixed(2)})!`
       );
       return;
     }
@@ -182,7 +182,7 @@ export const JournalEntriesPage: React.FC<{ onNavigate: (route: string) => void 
       header: 'Total Debit / Credit',
       align: 'right',
       render: (je) => (
-        <span style={{ fontWeight: 600 }}>${je.totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+        <span style={{ fontWeight: 600 }}>₹{je.totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
       ),
     },
     {
@@ -317,10 +317,10 @@ export const JournalEntriesPage: React.FC<{ onNavigate: (route: string) => void 
                     <td style={{ fontWeight: 500 }}>{l.accountName}</td>
                     <td style={{ color: 'var(--color-text-secondary)' }}>{l.partnerName || '—'}</td>
                     <td style={{ textAlign: 'right', fontWeight: l.debit > 0 ? 600 : 400 }}>
-                      {l.debit > 0 ? `$${l.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
+                      {l.debit > 0 ? `₹${l.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
                     </td>
                     <td style={{ textAlign: 'right', fontWeight: l.credit > 0 ? 600 : 400 }}>
-                      {l.credit > 0 ? `$${l.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
+                      {l.credit > 0 ? `₹${l.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
                     </td>
                   </tr>
                 ))}
@@ -330,11 +330,9 @@ export const JournalEntriesPage: React.FC<{ onNavigate: (route: string) => void 
                   <td colSpan={2} style={{ textAlign: 'right', color: 'var(--color-text-muted)' }}>
                     BALANCED SUM:
                   </td>
-                  <td style={{ textAlign: 'right', color: 'var(--color-primary)' }}>
-                    ${viewingEntry.totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  <td style={{ textAlign: 'right', color: 'var(--color-primary)' }}>₹{viewingEntry.totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </td>
-                  <td style={{ textAlign: 'right', color: 'var(--color-primary)' }}>
-                    ${viewingEntry.totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  <td style={{ textAlign: 'right', color: 'var(--color-primary)' }}>₹{viewingEntry.totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </td>
                 </tr>
               </tfoot>
@@ -533,11 +531,9 @@ export const JournalEntriesPage: React.FC<{ onNavigate: (route: string) => void 
                       <span style={{ color: 'var(--color-danger)' }}>UNBALANCED DISCREPANCY:</span>
                     )}
                   </td>
-                  <td style={{ textAlign: 'right', color: isBalanced ? 'var(--color-text-primary)' : 'var(--color-danger)', fontSize: '13px' }}>
-                    ${totalDebit.toFixed(2)}
+                  <td style={{ textAlign: 'right', color: isBalanced ? 'var(--color-text-primary)' : 'var(--color-danger)', fontSize: '13px' }}>₹{totalDebit.toFixed(2)}
                   </td>
-                  <td style={{ textAlign: 'right', color: isBalanced ? 'var(--color-text-primary)' : 'var(--color-danger)', fontSize: '13px' }}>
-                    ${totalCredit.toFixed(2)}
+                  <td style={{ textAlign: 'right', color: isBalanced ? 'var(--color-text-primary)' : 'var(--color-danger)', fontSize: '13px' }}>₹{totalCredit.toFixed(2)}
                   </td>
                   <td></td>
                 </tr>

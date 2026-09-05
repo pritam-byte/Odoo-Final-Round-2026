@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DollarSign, Calendar, Wallet } from 'lucide-react';
+import { IndianRupee, Calendar, Wallet } from 'lucide-react';
 import { Modal } from './Modal';
 import { Button } from './Button';
 import { FormField } from './FormField';
@@ -31,11 +31,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (amount <= 0) {
-      setError('Payment amount must be greater than $0.00');
+      setError('Payment amount must be greater than ₹0.00');
       return;
     }
     if (amount > maxAmount + 0.01) {
-      setError(`Payment cannot exceed the outstanding balance of $${maxAmount.toLocaleString()}`);
+      setError(`Payment cannot exceed the outstanding balance of ₹${maxAmount.toLocaleString()}`);
       return;
     }
 
@@ -129,8 +129,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           step="0.01"
           value={amount}
           onChange={(e) => setAmount(Number(e.target.value))}
-          leadingIcon={<DollarSign size={15} strokeWidth={1.75} />}
-          helperText={`Outstanding Balance: $${maxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+          leadingIcon={<IndianRupee size={15} strokeWidth={1.75} />}
+          helperText={`Outstanding Balance: ₹${maxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
           required
         />
       </form>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Building2, Banknote, DollarSign } from 'lucide-react';
+import { X, Building2, Banknote, IndianRupee } from 'lucide-react';
 import { PortalDocument, processPortalPayment } from '../api';
 
 export interface DemoBankPaymentFormProps {
@@ -23,11 +23,11 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (amount <= 0) {
-      setError('Amount must be greater than $0.00');
+      setError('Amount must be greater than ₹0.00');
       return;
     }
     if (amount > document.amountDue) {
-      setError(`Amount cannot exceed the current balance due ($${document.amountDue.toFixed(2)})`);
+      setError(`Amount cannot exceed the current balance due (₹${document.amountDue.toFixed(2)})`);
       return;
     }
 
@@ -124,16 +124,14 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
               <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
                 Total Amount
               </span>
-              <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
-                ${document.total.toFixed(2)}
+              <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-text-primary)' }}>₹{document.total.toFixed(2)}
               </div>
             </div>
             <div>
               <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
                 Amount Due
               </span>
-              <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-primary)' }}>
-                ${document.amountDue.toFixed(2)}
+              <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-primary)' }}>₹{document.amountDue.toFixed(2)}
               </div>
             </div>
           </div>
@@ -168,7 +166,7 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
             <label className="form-label">Amount to Pay ($)</label>
             <div className="input-with-icon-wrapper">
               <div className="input-leading-icon">
-                <DollarSign size={15} />
+                <IndianRupee size={15} />
               </div>
               <input
                 type="number"
@@ -226,7 +224,7 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
               Cancel
             </button>
             <button type="submit" className="btn btn-primary" disabled={isProcessing}>
-              {isProcessing ? 'Processing...' : `Confirm Payment ($${amount.toFixed(2)})`}
+              {isProcessing ? 'Processing...' : `Confirm Payment (₹${amount.toFixed(2)})`}
             </button>
           </div>
         </form>

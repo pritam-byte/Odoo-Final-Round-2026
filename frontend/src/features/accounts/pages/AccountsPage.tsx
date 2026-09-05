@@ -91,8 +91,7 @@ export const AccountsPage: React.FC<{ onNavigate: (route: string) => void }> = (
       header: 'Current Balance ($)',
       align: 'right',
       render: (a) => (
-        <span style={{ fontWeight: 600, color: a.balance >= 0 ? 'var(--color-text-primary)' : 'var(--color-danger)' }}>
-          ${a.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+        <span style={{ fontWeight: 600, color: a.balance >= 0 ? 'var(--color-text-primary)' : 'var(--color-danger)' }}>₹{a.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
         </span>
       ),
     },

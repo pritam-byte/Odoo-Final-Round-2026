@@ -138,7 +138,7 @@ export const processPortalPayment = (params: {
   }
 
   if (params.amount > doc.amountDue) {
-    return { success: false, message: `Amount exceeds current dues of $${doc.amountDue.toFixed(2)}.` };
+    return { success: false, message: `Amount exceeds current dues of ₹${doc.amountDue.toFixed(2)}.` };
   }
 
   // Attempt async live backend payment submission in the background
@@ -177,7 +177,7 @@ export const processPortalPayment = (params: {
 
   return {
     success: true,
-    message: `Payment of $${params.amount.toFixed(2)} processed successfully via ${params.paymentMethod}.`,
+    message: `Payment of ₹${params.amount.toFixed(2)} processed successfully via ${params.paymentMethod}.`,
     document: doc,
     updatedDocument: doc,
   };

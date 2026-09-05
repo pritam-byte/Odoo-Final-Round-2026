@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Printer, TrendingUp, TrendingDown, DollarSign, Download } from 'lucide-react';
+import { Printer, TrendingUp, TrendingDown, IndianRupee, Download } from 'lucide-react';
 import { useAccountingStore } from '../../accounting/store';
 import { Button } from '../../../components/ui/Button';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
@@ -68,7 +68,7 @@ export const ProfitLossReportPage: React.FC<{ onNavigate: (route: string) => voi
             <TrendingUp size={20} strokeWidth={2} />
           </div>
           <div>
-            <div className="stat-number">${salesIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <div className="stat-number">₹{salesIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
             <div className="stat-label">Total Operating Revenue</div>
           </div>
         </div>
@@ -78,14 +78,14 @@ export const ProfitLossReportPage: React.FC<{ onNavigate: (route: string) => voi
             <TrendingDown size={20} strokeWidth={2} />
           </div>
           <div>
-            <div className="stat-number">${totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <div className="stat-number">₹{totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
             <div className="stat-label">Total Operating Expenses</div>
           </div>
         </div>
 
         <div className="stat-card">
           <div className="stat-icon-badge teal">
-            <DollarSign size={20} strokeWidth={2} />
+            <IndianRupee size={20} strokeWidth={2} />
           </div>
           <div>
             <div className="stat-number" style={{ color: netIncome >= 0 ? 'var(--color-primary)' : 'var(--color-danger)' }}>
@@ -113,14 +113,12 @@ export const ProfitLossReportPage: React.FC<{ onNavigate: (route: string) => voi
             </tr>
             <tr>
               <td style={{ paddingLeft: '32px' }}>Gross Invoiced Sales Revenue (Customer Invoices)</td>
-              <td style={{ textAlign: 'right', fontWeight: 600 }}>
-                ${salesIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              <td style={{ textAlign: 'right', fontWeight: 600 }}>₹{salesIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </td>
             </tr>
             <tr style={{ fontWeight: 700, borderBottom: '2px solid var(--color-border)' }}>
               <td style={{ textAlign: 'right', color: 'var(--color-text-muted)' }}>TOTAL REVENUE:</td>
-              <td style={{ textAlign: 'right', color: 'var(--color-primary)' }}>
-                ${salesIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              <td style={{ textAlign: 'right', color: 'var(--color-primary)' }}>₹{salesIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </td>
             </tr>
 
@@ -132,20 +130,17 @@ export const ProfitLossReportPage: React.FC<{ onNavigate: (route: string) => voi
             </tr>
             <tr>
               <td style={{ paddingLeft: '32px' }}>Direct Purchases & Raw Materials (Vendor Bills)</td>
-              <td style={{ textAlign: 'right' }}>
-                ${purchaseExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              <td style={{ textAlign: 'right' }}>₹{purchaseExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </td>
             </tr>
             <tr>
               <td style={{ paddingLeft: '32px' }}>Operational, Administrative & Overhead Expenses</td>
-              <td style={{ textAlign: 'right' }}>
-                ${otherExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              <td style={{ textAlign: 'right' }}>₹{otherExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </td>
             </tr>
             <tr style={{ fontWeight: 700, borderBottom: '2px solid var(--color-border)' }}>
               <td style={{ textAlign: 'right', color: 'var(--color-text-muted)' }}>TOTAL EXPENDITURE:</td>
-              <td style={{ textAlign: 'right', color: 'var(--color-warning-text)' }}>
-                ${totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              <td style={{ textAlign: 'right', color: 'var(--color-warning-text)' }}>₹{totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </td>
             </tr>
 
@@ -161,8 +156,7 @@ export const ProfitLossReportPage: React.FC<{ onNavigate: (route: string) => voi
               <td style={{ textAlign: 'right', color: netIncome >= 0 ? 'var(--color-primary)' : 'var(--color-danger)' }}>
                 NET OPERATING INCOME / (LOSS):
               </td>
-              <td style={{ textAlign: 'right', color: netIncome >= 0 ? 'var(--color-primary)' : 'var(--color-danger)' }}>
-                ${netIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              <td style={{ textAlign: 'right', color: netIncome >= 0 ? 'var(--color-primary)' : 'var(--color-danger)' }}>₹{netIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </td>
             </tr>
           </tbody>

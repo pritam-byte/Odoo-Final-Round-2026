@@ -111,11 +111,11 @@ export const BalanceSheetPage: React.FC<{ onNavigate: (route: string) => void }>
               </tr>
               <tr>
                 <td style={{ paddingLeft: '24px' }}>Bank of India Operating A/c</td>
-                <td style={{ textAlign: 'right', fontWeight: 600 }}>${bankBalance.toLocaleString()}</td>
+                <td style={{ textAlign: 'right', fontWeight: 600 }}>₹{bankBalance.toLocaleString()}</td>
               </tr>
               <tr>
                 <td style={{ paddingLeft: '24px' }}>Petty Cash Drawer</td>
-                <td style={{ textAlign: 'right', fontWeight: 600 }}>${cashBalance.toLocaleString()}</td>
+                <td style={{ textAlign: 'right', fontWeight: 600 }}>₹{cashBalance.toLocaleString()}</td>
               </tr>
 
               <tr style={{ backgroundColor: 'var(--color-surface-hover)', fontWeight: 700 }}>
@@ -123,14 +123,13 @@ export const BalanceSheetPage: React.FC<{ onNavigate: (route: string) => void }>
               </tr>
               <tr>
                 <td style={{ paddingLeft: '24px' }}>Customer Trade Debtors (Outstanding Invoices)</td>
-                <td style={{ textAlign: 'right', fontWeight: 600 }}>${totalDebtors.toLocaleString()}</td>
+                <td style={{ textAlign: 'right', fontWeight: 600 }}>₹{totalDebtors.toLocaleString()}</td>
               </tr>
             </tbody>
             <tfoot>
               <tr style={{ fontWeight: 800, backgroundColor: 'var(--color-surface-active)', fontSize: '14px', borderTop: '2px solid var(--color-border)' }}>
                 <td style={{ color: 'var(--color-text-primary)' }}>TOTAL ASSETS:</td>
-                <td style={{ textAlign: 'right', color: 'var(--color-text-primary)' }}>
-                  ${totalAssets.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                <td style={{ textAlign: 'right', color: 'var(--color-text-primary)' }}>₹{totalAssets.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </td>
               </tr>
             </tfoot>
@@ -152,7 +151,7 @@ export const BalanceSheetPage: React.FC<{ onNavigate: (route: string) => void }>
               </tr>
               <tr>
                 <td style={{ paddingLeft: '24px' }}>Trade Creditors (Unpaid Vendor Bills)</td>
-                <td style={{ textAlign: 'right', fontWeight: 600 }}>${totalCreditors.toLocaleString()}</td>
+                <td style={{ textAlign: 'right', fontWeight: 600 }}>₹{totalCreditors.toLocaleString()}</td>
               </tr>
 
               <tr style={{ backgroundColor: 'var(--color-surface-hover)', fontWeight: 700 }}>
@@ -160,20 +159,18 @@ export const BalanceSheetPage: React.FC<{ onNavigate: (route: string) => void }>
               </tr>
               <tr>
                 <td style={{ paddingLeft: '24px' }}>Paid-in Capital Fund</td>
-                <td style={{ textAlign: 'right', fontWeight: 600 }}>${capitalBalance.toLocaleString()}</td>
+                <td style={{ textAlign: 'right', fontWeight: 600 }}>₹{capitalBalance.toLocaleString()}</td>
               </tr>
               <tr>
                 <td style={{ paddingLeft: '24px' }}>Current Year Net Retained Surplus</td>
-                <td style={{ textAlign: 'right', fontWeight: 600, color: netRetainedEarnings >= 0 ? 'var(--color-primary)' : 'var(--color-danger)' }}>
-                  ${netRetainedEarnings.toLocaleString()}
+                <td style={{ textAlign: 'right', fontWeight: 600, color: netRetainedEarnings >= 0 ? 'var(--color-primary)' : 'var(--color-danger)' }}>₹{netRetainedEarnings.toLocaleString()}
                 </td>
               </tr>
             </tbody>
             <tfoot>
               <tr style={{ fontWeight: 800, backgroundColor: 'var(--color-surface-active)', fontSize: '14px', borderTop: '2px solid var(--color-border)' }}>
                 <td style={{ color: 'var(--color-text-primary)' }}>TOTAL LIABILITIES & EQUITY:</td>
-                <td style={{ textAlign: 'right', color: 'var(--color-text-primary)' }}>
-                  ${totalLiabilitiesEquity.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                <td style={{ textAlign: 'right', color: 'var(--color-text-primary)' }}>₹{totalLiabilitiesEquity.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </td>
               </tr>
             </tfoot>
