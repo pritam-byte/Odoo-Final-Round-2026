@@ -313,7 +313,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
             </div>
 
             <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', margin: 0 }}>
-              We will search for your account in the PostgreSQL database and dispatch a 6-digit one-time security code.
+              We will verify your account and dispatch a 6-digit one-time security verification code.
             </p>
 
             <button
@@ -323,7 +323,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
               style={{ padding: '10px', marginTop: '6px', gap: '8px' }}
             >
               {forgotLoading ? (
-                <span>Checking Database & Sending...</span>
+                <span>Verifying & Sending...</span>
               ) : (
                 <>
                   <Mail size={16} />
@@ -459,7 +459,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
               style={{ padding: '10px', marginTop: '6px', gap: '8px' }}
             >
               {forgotLoading ? (
-                <span>Updating PostgreSQL Database...</span>
+                <span>Saving New Password...</span>
               ) : (
                 <>
                   <Lock size={15} />
