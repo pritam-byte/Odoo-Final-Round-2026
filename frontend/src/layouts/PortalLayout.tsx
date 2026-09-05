@@ -9,11 +9,9 @@ import {
   Wallet,
   LogOut,
   Users,
-  ChevronDown,
-  Check,
 } from 'lucide-react';
 import { UserAccount } from '../features/auth/schemas';
-import { getStoredUser, setStoredUser, CURRENT_USER } from '../lib/auth';
+import { getStoredUser, CURRENT_USER } from '../lib/auth';
 
 export interface PortalLayoutProps {
   children?: React.ReactNode;
@@ -32,10 +30,7 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
 }) => {
   const [time, setTime] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [showPersonaMenu, setShowPersonaMenu] = useState<boolean>(false);
-  const [currentUser, setCurrentUserState] = useState<UserAccount>(
-    () => user || getStoredUser() || CURRENT_USER
-  );
+  const currentUser = user || getStoredUser() || CURRENT_USER;
 
   useEffect(() => {
     const update = () =>
@@ -53,24 +48,6 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
   }, []);
 
   const pType = currentUser.partnerType || 'Both';
-
-  const handleSwitchPersona = (newType: 'Customer' | 'Vendor' | 'Both') => {
-    const updatedUser: UserAccount = {
-      ...currentUser,
-      partnerType: newType,
-      name:
-        newType === 'Customer'
-          ? 'John Doe (Customer)'
-          : newType === 'Vendor'
-          ? 'Urban Timbers Ltd (Vendor)'
-          : 'John Doe (Customer + Vendor)',
-    };
-    setCurrentUserState(updatedUser);
-    setStoredUser(updatedUser);
-    setShowPersonaMenu(false);
-    // Reset to dashboard to avoid view mismatch
-    onNavigate?.('dashboard');
-  };
 
   const navItems = [
     {
@@ -118,138 +95,31 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
             </div>
           </div>
 
-          {/* Persona Badge Dropdown */}
-          <div style={{ position: 'relative' }}>
-            <button
-              type="button"
-              onClick={() => setShowPersonaMenu((prev) => !prev)}
-              className="badge-pill badge-paid"
-              style={{
-                fontSize: '11px',
-                padding: '4px 10px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                cursor: 'pointer',
-                border: '1px solid var(--color-primary-border)',
-                backgroundColor: 'var(--color-primary-light)',
-                color: 'var(--color-primary)',
-                fontWeight: 600,
-              }}
-              title="Click to switch portal view mode"
-            >
-              <Users size={12} />
-              <span>
-                {pType === 'Vendor'
-                  ? 'Vendor Portal'
-                  : pType === 'Customer'
-                  ? 'Customer Portal'
-                  : 'Partner Portal (Customer + Vendor)'}
-              </span>
-              <ChevronDown size={12} />
-            </button>
-
-            {showPersonaMenu && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 6px)',
-                  left: 0,
-                  zIndex: 2000,
-                  backgroundColor: '#ffffff',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--color-border)',
-                  boxShadow: 'var(--shadow-dropdown)',
-                  padding: '6px',
-                  width: '240px',
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    color: 'var(--color-text-muted)',
-                    padding: '4px 8px 6px',
-                    letterSpacing: '0.04em',
-                  }}
-                >
-                  Switch Portal View
-                </div>
-
-                <div
-                  onClick={() => handleSwitchPersona('Customer')}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 10px',
-                    borderRadius: 'var(--radius-sm)',
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                    backgroundColor: pType === 'Customer' ? 'var(--color-primary-light)' : 'transparent',
-                    color: pType === 'Customer' ? 'var(--color-primary)' : 'var(--color-text-primary)',
-                    fontWeight: pType === 'Customer' ? 600 : 400,
-                  }}
-                >
-                  <div>
-                    <div>Customer Portal</div>
-                    <span style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>
-                      Invoices & Furniture Purchases
-                    </span>
-                  </div>
-                  {pType === 'Customer' && <Check size={14} />}
-                </div>
-
-                <div
-                  onClick={() => handleSwitchPersona('Vendor')}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 10px',
-                    borderRadius: 'var(--radius-sm)',
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                    backgroundColor: pType === 'Vendor' ? 'var(--color-primary-light)' : 'transparent',
-                    color: pType === 'Vendor' ? 'var(--color-primary)' : 'var(--color-text-primary)',
-                    fontWeight: pType === 'Vendor' ? 600 : 400,
-                  }}
-                >
-                  <div>
-                    <div>Vendor Portal</div>
-                    <span style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>
-                      Supply Bills & Timber Lots
-                    </span>
-                  </div>
-                  {pType === 'Vendor' && <Check size={14} />}
-                </div>
-
-                <div
-                  onClick={() => handleSwitchPersona('Both')}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 10px',
-                    borderRadius: 'var(--radius-sm)',
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                    backgroundColor: pType === 'Both' ? 'var(--color-primary-light)' : 'transparent',
-                    color: pType === 'Both' ? 'var(--color-primary)' : 'var(--color-text-primary)',
-                    fontWeight: pType === 'Both' ? 600 : 400,
-                  }}
-                >
-                  <div>
-                    <div>Customer + Vendor (Dual)</div>
-                    <span style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>
-                      Full Combined Access
-                    </span>
-                  </div>
-                  {pType === 'Both' && <Check size={14} />}
-                </div>
-              </div>
-            )}
+          {/* Static Locked Portal Badge (No switch dropdown) */}
+          <div
+            className="badge-pill badge-paid"
+            style={{
+              fontSize: '11px',
+              padding: '4px 10px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              border: '1px solid var(--color-primary-border)',
+              backgroundColor: 'var(--color-primary-light)',
+              color: 'var(--color-primary)',
+              fontWeight: 600,
+              cursor: 'default',
+              userSelect: 'none',
+            }}
+          >
+            <Users size={12} />
+            <span>
+              {pType === 'Vendor'
+                ? 'Vendor Portal'
+                : pType === 'Customer'
+                ? 'Customer Portal'
+                : 'Partner Portal (Customer + Vendor)'}
+            </span>
           </div>
         </div>
 
