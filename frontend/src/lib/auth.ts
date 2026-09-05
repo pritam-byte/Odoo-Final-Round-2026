@@ -18,9 +18,8 @@ export const CURRENT_USER: UserAccount = {
 
 export const getStoredUser = (): UserAccount | null => {
   try {
-    const token = localStorage.getItem('odoo_flow_active_token');
     const saved = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (saved && token) return JSON.parse(saved);
+    if (saved) return JSON.parse(saved);
   } catch (e) {
     console.error('Failed to load session user', e);
   }
