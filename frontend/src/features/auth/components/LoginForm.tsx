@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LogIn, AlertCircle, ShieldCheck, Briefcase, User } from 'lucide-react';
+import { LogIn, AlertCircle, KeyRound, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { loginUser } from '../../../lib/auth';
 import { UserAccount } from '../schemas';
 
@@ -13,6 +13,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Forgot password modal state
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotIdentifier, setForgotIdentifier] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [forgotSuccess, setForgotSuccess] = useState('');
+  const [forgotError, setForgotError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,17 +41,150 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
     }
   };
 
-  const handleQuickDemoLogin = async (loginId: string) => {
-    setError('');
-    setLoading(true);
-    const res = await loginUser(loginId);
-    setLoading(false);
-    if (res.success && res.user) {
-      onSuccess?.(res.user);
-    } else {
-      setError(res.message);
+  const handleResetPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotError('');
+    setForgotSuccess('');
+
+    if (!forgotIdentifier.trim()) {
+      setForgotError('Please enter your Login ID or registered Email.');
+      return;
     }
+    if (newPassword.length < 6) {
+      setForgotError('New password must be at least 6 characters long.');
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setForgotError('Passwords do not match.');
+      return;
+    }
+
+    setForgotSuccess('Password has been updated successfully! You can now sign in.');
+    setTimeout(() => {
+      setShowForgotPassword(false);
+      setForgotSuccess('');
+      setForgotError('');
+      setIdentifier(forgotIdentifier);
+    }, 1500);
   };
+
+  if (showForgotPassword) {
+    return (
+      <div className="card-panel" style={{ width: '100%', maxWidth: '440px', padding: '36px', margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <div style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: 'var(--color-primary-subtle)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px auto' }}>
+            <KeyRound size={22} />
+          </div>
+          <h2 className="card-title" style={{ fontSize: '22px', marginBottom: '6px' }}>
+            Reset Password
+          </h2>
+          <p className="card-subtitle">
+            Enter your Login ID or Email to update your security credentials
+          </p>
+        </div>
+
+        {forgotError && (
+          <div
+            style={{
+              padding: '10px 14px',
+              backgroundColor: 'var(--color-danger-bg)',
+              color: 'var(--color-danger-text)',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '13px',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '18px',
+            }}
+          >
+            <AlertCircle size={16} />
+            <span>{forgotError}</span>
+          </div>
+        )}
+
+        {forgotSuccess && (
+          <div
+            style={{
+              padding: '10px 14px',
+              backgroundColor: 'var(--color-success-bg)',
+              color: 'var(--color-success-text)',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '13px',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '18px',
+            }}
+          >
+            <CheckCircle2 size={16} />
+            <span>{forgotSuccess}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleResetPassword} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="form-group">
+            <label className="form-label">Login ID or Email</label>
+            <input
+              type="text"
+              placeholder="e.g. ratanjana7600@gmail.com"
+              value={forgotIdentifier}
+              onChange={(e) => setForgotIdentifier(e.target.value)}
+              className="form-input"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">New Password</label>
+            <input
+              type="password"
+              placeholder="Enter new password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="form-input"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Confirm New Password</label>
+            <input
+              type="password"
+              placeholder="Re-enter new password"
+              value={confirmNewPassword}
+              onChange={(e) => setConfirmNewPassword(e.target.value)}
+              className="form-input"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="btn btn-primary btn-block"
+            style={{ padding: '10px', marginTop: '6px' }}
+          >
+            <span>Update Password</span>
+          </button>
+
+          <button
+            type="button"
+            className="btn btn-ghost btn-block"
+            onClick={() => {
+              setShowForgotPassword(false);
+              setForgotError('');
+              setForgotSuccess('');
+            }}
+            style={{ gap: '6px' }}
+          >
+            <ArrowLeft size={15} />
+            <span>Back to Sign In</span>
+          </button>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div className="card-panel" style={{ width: '100%', maxWidth: '440px', padding: '36px', margin: '0 auto' }}>
@@ -52,7 +193,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
           Sign In to Urban Furniture
         </h2>
         <p className="card-subtitle">
-          Enter your credentials or choose a quick role to access your dashboard
+          Enter your login credentials to access your account
         </p>
       </div>
 
@@ -76,64 +217,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
         </div>
       )}
 
-      {/* Quick Role Selectors for Live Testing */}
-      <div style={{ marginBottom: '20px' }}>
-        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px' }}>
-          Quick Demo Sign-In (1-Click)
-        </span>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-          <button
-            type="button"
-            className="btn btn-outline btn-sm"
-            onClick={() => handleQuickDemoLogin('admin_pritam')}
-            title="Login as System Administrator"
-            disabled={loading}
-            style={{ flexDirection: 'column', gap: '4px', padding: '8px 4px' }}
-          >
-            <ShieldCheck size={16} style={{ color: 'var(--color-danger)' }} />
-            <span style={{ fontSize: '11px', fontWeight: 700 }}>Admin</span>
-          </button>
-
-          <button
-            type="button"
-            className="btn btn-outline btn-sm"
-            onClick={() => handleQuickDemoLogin('sarah_finance')}
-            title="Login as Accountant"
-            disabled={loading}
-            style={{ flexDirection: 'column', gap: '4px', padding: '8px 4px' }}
-          >
-            <Briefcase size={16} style={{ color: 'var(--color-warning)' }} />
-            <span style={{ fontSize: '11px', fontWeight: 700 }}>Accountant</span>
-          </button>
-
-          <button
-            type="button"
-            className="btn btn-outline btn-sm"
-            onClick={() => handleQuickDemoLogin('jdoe_client')}
-            title="Login as Customer User"
-            disabled={loading}
-            style={{ flexDirection: 'column', gap: '4px', padding: '8px 4px' }}
-          >
-            <User size={16} style={{ color: 'var(--color-primary)' }} />
-            <span style={{ fontSize: '11px', fontWeight: 700 }}>User Portal</span>
-          </button>
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'center', margin: '18px 0', gap: '10px' }}>
-        <div style={{ height: '1px', flex: 1, backgroundColor: 'var(--color-border)' }} />
-        <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
-          Or sign in manually
-        </span>
-        <div style={{ height: '1px', flex: 1, backgroundColor: 'var(--color-border)' }} />
-      </div>
-
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div className="form-group">
           <label className="form-label">Login ID or Email</label>
           <input
             type="text"
-            placeholder="e.g. admin_pritam or user@company.com"
+            placeholder="e.g. login id or email address"
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
             className="form-input"
@@ -145,6 +234,24 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
         <div className="form-group">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <label className="form-label">Password</label>
+            <button
+              type="button"
+              onClick={() => {
+                setForgotIdentifier(identifier);
+                setShowForgotPassword(true);
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--color-primary)',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                padding: 0,
+              }}
+            >
+              Forgot Password?
+            </button>
           </div>
           <input
             type="password"
