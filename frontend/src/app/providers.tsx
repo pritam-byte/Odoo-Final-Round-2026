@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { AccountingStoreProvider } from '../features/accounting/store';
 
 export interface User {
   name: string;
@@ -30,7 +31,6 @@ export interface AppProvidersProps {
 }
 
 export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
-  // Default to demo admin user so users can directly see the full UI or switch to login/signup
   const [user, setUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('odoo_user');
     if (saved) {
@@ -67,7 +67,9 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
         logout,
       }}
     >
-      {children}
+      <AccountingStoreProvider>
+        {children}
+      </AccountingStoreProvider>
     </AuthContext.Provider>
   );
 };
