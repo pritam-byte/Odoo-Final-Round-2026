@@ -138,7 +138,7 @@ export const registerAndLogin = async (
 ): Promise<{ success: boolean; message: string; user?: UserAccount }> => {
   // 1. Attempt live backend registration
   try {
-    const backendRes = await apiRequest('/auth/register', {
+    const backendRes = await apiRequest<{ user: any; message?: string }>('/auth/register', {
       method: 'POST',
       body: JSON.stringify({
         loginId: input.loginId.trim(),
@@ -151,12 +151,17 @@ export const registerAndLogin = async (
     if (backendRes.success && backendRes.data?.user) {
       // Automatically login to get JWT token
       return await loginUser(input.loginId, input.password);
+    } else if (backendRes.error && !backendRes.isFallback) {
+      return {
+        success: false,
+        message: backendRes.error,
+      };
     }
   } catch (e) {
     console.warn('Backend registration failed/offline, registering locally...', e);
   }
 
-  // 2. Fallback to local store registration
+  // 2. Fallback only if backend is completely offline
   const res = await createNewUser(input);
   if (!res.success || !res.user) {
     return res;
