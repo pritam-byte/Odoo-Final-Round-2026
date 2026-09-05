@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Share2,
   Check,
+  Receipt,
 } from 'lucide-react';
 import { PortalPayment } from '../schemas';
 import { updatePortalPaymentStatus } from '../api';
@@ -134,10 +135,10 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
             width: 100% !important;
             max-width: 100% !important;
             box-shadow: none !important;
-            border: 1px solid #ddd !important;
+            border: 1px solid #e5e7eb !important;
             padding: 30px !important;
-            background: #fff !important;
-            color: #000 !important;
+            background: #ffffff !important;
+            color: #1f2937 !important;
           }
           .no-print {
             display: none !important;
@@ -154,34 +155,37 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.65)',
+          backgroundColor: 'rgba(0, 0, 0, 0.45)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 9999,
-          backdropFilter: 'blur(4px)',
+          zIndex: 1000,
+          backdropFilter: 'blur(3px)',
           padding: '16px',
         }}
         onClick={(e) => {
           if (e.target === e.currentTarget) onClose();
         }}
       >
-        {/* Modal Window */}
+        {/* Modal Window in Main Theme */}
         <div
           id="printable-payment-modal"
           ref={printableReceiptRef}
+          className="card-panel"
           style={{
             width: '100%',
             maxWidth: '780px',
-            backgroundColor: '#181b22',
-            color: '#f3f4f6',
-            borderRadius: '16px',
-            border: '1px solid #2e3440',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
+            backgroundColor: 'var(--color-surface, #ffffff)',
+            color: 'var(--color-text-primary, #1f2937)',
+            borderRadius: 'var(--radius-lg, 12px)',
+            border: '1px solid var(--color-border, #e5e7eb)',
+            boxShadow: 'var(--shadow-lg, 0 20px 25px -5px rgba(0, 0, 0, 0.1))',
+            padding: 0,
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
             position: 'relative',
+            maxHeight: '92vh',
           }}
         >
           {/* Toast Notification inside Modal */}
@@ -189,19 +193,19 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
             <div
               style={{
                 position: 'absolute',
-                top: '70px',
+                top: '72px',
                 right: '24px',
-                backgroundColor: '#10b981',
+                backgroundColor: 'var(--color-primary, #0f766e)',
                 color: '#ffffff',
-                padding: '10px 16px',
-                borderRadius: '8px',
+                padding: '10px 18px',
+                borderRadius: 'var(--radius-sm, 6px)',
                 fontSize: '13px',
                 fontWeight: 600,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 zIndex: 100,
-                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)',
+                boxShadow: '0 4px 12px rgba(15, 118, 110, 0.3)',
               }}
             >
               <CheckCircle2 size={16} />
@@ -209,34 +213,27 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
             </div>
           )}
 
-          {/* Top Control Bar Matching Wireframe */}
+          {/* Top Control Bar Matching Wireframe in Main Light Theme */}
           <div
             className="no-print"
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              padding: '16px 24px',
-              backgroundColor: '#12141a',
-              borderBottom: '1px solid #282d39',
+              padding: '14px 24px',
+              backgroundColor: 'var(--color-surface, #ffffff)',
+              borderBottom: '1px solid var(--color-border, #e5e7eb)',
             }}
           >
             {/* Left Action Buttons & Cog */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <button
                 type="button"
+                className={`btn btn-sm ${currentStatus === 'Confirm' ? 'btn-primary' : 'btn-outline'}`}
                 onClick={() => handleStatusChange('Confirm')}
                 style={{
-                  padding: '7px 22px',
-                  backgroundColor: currentStatus === 'Confirm' ? '#6366f1' : '#4f46e5',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '13px',
                   fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                  boxShadow: currentStatus === 'Confirm' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
                 }}
               >
                 Confirm
@@ -244,16 +241,12 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
 
               <button
                 type="button"
+                className="btn btn-outline btn-sm"
                 onClick={() => handleStatusChange('Cancelled')}
                 style={{
-                  padding: '7px 20px',
-                  backgroundColor: currentStatus === 'Cancelled' ? '#ef4444' : '#232733',
-                  color: currentStatus === 'Cancelled' ? '#ffffff' : '#9ca3af',
-                  border: '1px solid #374151',
-                  borderRadius: '8px',
-                  fontSize: '13px',
-                  fontWeight: 500,
-                  cursor: 'pointer',
+                  color: currentStatus === 'Cancelled' ? 'var(--color-danger, #dc2626)' : 'var(--color-text-secondary, #4b5563)',
+                  borderColor: currentStatus === 'Cancelled' ? 'var(--color-danger, #dc2626)' : 'var(--color-border, #e5e7eb)',
+                  backgroundColor: currentStatus === 'Cancelled' ? 'var(--color-danger-bg, #fee2e2)' : '#ffffff',
                 }}
               >
                 Cancel
@@ -265,123 +258,76 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                   type="button"
                   title="Receipt Options"
                   onClick={() => setShowSettingsDropdown(!showSettingsDropdown)}
+                  className="btn btn-outline btn-sm"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    width: '36px',
-                    height: '36px',
-                    backgroundColor: showSettingsDropdown ? '#374151' : '#232733',
-                    border: '1px solid #374151',
-                    borderRadius: '8px',
-                    color: '#e5e7eb',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
+                    width: '34px',
+                    height: '34px',
+                    padding: 0,
+                    borderRadius: 'var(--radius-sm, 6px)',
+                    backgroundColor: showSettingsDropdown ? 'var(--color-surface-active, #f3f4f6)' : '#ffffff',
                   }}
                 >
-                  <Settings size={18} />
+                  <Settings size={16} color="var(--color-text-secondary, #4b5563)" />
                 </button>
 
-                {/* Dropdown Menu */}
+                {/* Dropdown Menu in Main Theme */}
                 {showSettingsDropdown && (
                   <div
+                    className="dropdown-menu"
                     style={{
                       position: 'absolute',
-                      top: '44px',
+                      top: '40px',
                       left: 0,
                       width: '210px',
-                      backgroundColor: '#1f2430',
-                      border: '1px solid #374151',
-                      borderRadius: '10px',
-                      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid var(--color-border, #e5e7eb)',
+                      borderRadius: 'var(--radius-md, 8px)',
+                      boxShadow: 'var(--shadow-dropdown)',
                       zIndex: 200,
-                      overflow: 'hidden',
-                      padding: '6px 0',
+                      padding: '6px',
                     }}
                   >
-                    <div style={{ padding: '6px 14px', fontSize: '11px', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Receipt Actions
+                    <div className="dropdown-header">
+                      Receipt Options
                     </div>
                     <button
                       type="button"
+                      className="dropdown-item"
                       onClick={handlePrint}
-                      style={{
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        padding: '10px 16px',
-                        backgroundColor: 'transparent',
-                        border: 'none',
-                        color: '#f3f4f6',
-                        fontSize: '13px',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        transition: 'background 0.15s',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2d3342')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
-                      <Printer size={16} color="#60a5fa" />
+                      <Printer size={15} color="var(--color-primary, #0f766e)" />
                       <div>
                         <strong>1. Print</strong>
-                        <span style={{ display: 'block', fontSize: '11px', color: '#9ca3af' }}>Print or PDF download</span>
+                        <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)' }}>Print or PDF download</span>
                       </div>
                     </button>
                     <button
                       type="button"
+                      className="dropdown-item"
                       onClick={handleSendEmail}
-                      style={{
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        padding: '10px 16px',
-                        backgroundColor: 'transparent',
-                        border: 'none',
-                        color: '#f3f4f6',
-                        fontSize: '13px',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        transition: 'background 0.15s',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2d3342')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
-                      <Mail size={16} color="#34d399" />
+                      <Mail size={15} color="var(--brand-purple, #7a4b70)" />
                       <div>
                         <strong>2. Send</strong>
-                        <span style={{ display: 'block', fontSize: '11px', color: '#9ca3af' }}>Send via Email</span>
+                        <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)' }}>Send via Email</span>
                       </div>
                     </button>
-                    <div style={{ height: '1px', backgroundColor: '#2e3440', margin: '4px 0' }} />
+                    <div className="dropdown-divider" />
                     <button
                       type="button"
+                      className="dropdown-item"
                       onClick={() => {
                         setShowSettingsDropdown(false);
                         handleCopyShareLink();
                       }}
-                      style={{
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        padding: '10px 16px',
-                        backgroundColor: 'transparent',
-                        border: 'none',
-                        color: '#f3f4f6',
-                        fontSize: '13px',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        transition: 'background 0.15s',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2d3342')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
-                      <Share2 size={16} color="#f59e0b" />
+                      <Share2 size={15} color="var(--color-warning, #d97706)" />
                       <div>
                         <strong>Share Link</strong>
-                        <span style={{ display: 'block', fontSize: '11px', color: '#9ca3af' }}>Copy receipt URL</span>
+                        <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)' }}>Copy receipt URL</span>
                       </div>
                     </button>
                   </div>
@@ -389,30 +335,31 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
               </div>
             </div>
 
-            {/* Right Status Workflow Stage Chevrons Matching Wireframe */}
+            {/* Right Status Workflow Stage Chevrons in Main Odoo Style */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  backgroundColor: '#0d0f14',
-                  borderRadius: '6px',
-                  border: '1px solid #2d3342',
+                  backgroundColor: 'var(--color-bg, #f8f9fa)',
+                  borderRadius: 'var(--radius-sm, 6px)',
+                  border: '1px solid var(--color-border, #e5e7eb)',
                   overflow: 'hidden',
+                  padding: '2px',
                 }}
               >
                 {/* Draft Step */}
                 <div
                   onClick={() => handleStatusChange('Draft')}
                   style={{
-                    padding: '6px 14px',
+                    padding: '5px 12px',
                     fontSize: '12px',
                     fontWeight: 600,
                     cursor: 'pointer',
-                    color: currentStatus === 'Draft' ? '#ffffff' : '#6b7280',
-                    backgroundColor: currentStatus === 'Draft' ? '#374151' : 'transparent',
-                    borderRight: '1px solid #2d3342',
-                    transition: 'all 0.15s',
+                    borderRadius: '4px',
+                    color: currentStatus === 'Draft' ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
+                    backgroundColor: currentStatus === 'Draft' ? 'var(--color-surface-active, #f3f4f6)' : 'transparent',
+                    transition: 'all 0.15s ease',
                   }}
                 >
                   Draft
@@ -422,14 +369,14 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                 <div
                   onClick={() => handleStatusChange('Confirm')}
                   style={{
-                    padding: '6px 14px',
+                    padding: '5px 12px',
                     fontSize: '12px',
                     fontWeight: 600,
                     cursor: 'pointer',
-                    color: currentStatus === 'Confirm' ? '#ffffff' : '#6b7280',
-                    backgroundColor: currentStatus === 'Confirm' ? '#6366f1' : 'transparent',
-                    borderRight: '1px solid #2d3342',
-                    transition: 'all 0.15s',
+                    borderRadius: '4px',
+                    color: currentStatus === 'Confirm' ? '#ffffff' : 'var(--color-text-muted)',
+                    backgroundColor: currentStatus === 'Confirm' ? 'var(--color-primary, #0f766e)' : 'transparent',
+                    transition: 'all 0.15s ease',
                   }}
                 >
                   Confirm
@@ -439,13 +386,14 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                 <div
                   onClick={() => handleStatusChange('Cancelled')}
                   style={{
-                    padding: '6px 14px',
+                    padding: '5px 12px',
                     fontSize: '12px',
                     fontWeight: 600,
                     cursor: 'pointer',
-                    color: currentStatus === 'Cancelled' ? '#ffffff' : '#6b7280',
-                    backgroundColor: currentStatus === 'Cancelled' ? '#ef4444' : 'transparent',
-                    transition: 'all 0.15s',
+                    borderRadius: '4px',
+                    color: currentStatus === 'Cancelled' ? '#ffffff' : 'var(--color-text-muted)',
+                    backgroundColor: currentStatus === 'Cancelled' ? 'var(--color-danger, #dc2626)' : 'transparent',
+                    transition: 'all 0.15s ease',
                   }}
                 >
                   Cancelled
@@ -457,16 +405,14 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                 type="button"
                 onClick={onClose}
                 title="Close"
+                className="btn-ghost"
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#9ca3af',
-                  cursor: 'pointer',
-                  padding: '4px',
-                  borderRadius: '6px',
+                  padding: '6px',
+                  borderRadius: 'var(--radius-full)',
+                  color: 'var(--color-text-muted)',
                 }}
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
           </div>
@@ -474,43 +420,64 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
           {/* Form Header Title */}
           <div
             style={{
-              padding: '24px 32px 12px 32px',
+              padding: '24px 32px 14px 32px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              borderBottom: '1px solid var(--color-border-light, #f3f4f6)',
+              backgroundColor: 'var(--color-surface, #ffffff)',
             }}
           >
             <div>
               <span
                 style={{
-                  fontSize: '12px',
+                  fontSize: '11px',
                   fontWeight: 700,
                   textTransform: 'uppercase',
-                  color: '#818cf8',
-                  letterSpacing: '0.05em',
+                  color: 'var(--color-primary, #0f766e)',
+                  letterSpacing: '0.06em',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
                 }}
               >
+                <Receipt size={13} />
                 {paymentType === 'Send' ? 'Bill Payment' : 'Customer Payment Receipt'}
               </span>
-              <h2 style={{ fontSize: '24px', fontWeight: 700, margin: '4px 0 0 0', color: '#ffffff' }}>
+              <h2
+                className="page-title"
+                style={{
+                  fontSize: '22px',
+                  fontWeight: 700,
+                  margin: '4px 0 0 0',
+                  color: 'var(--color-text-primary, #1f2937)',
+                }}
+              >
                 {payment.reference}
               </h2>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <span style={{ fontSize: '12px', color: '#9ca3af' }}>Document Reference</span>
-              <div style={{ fontSize: '15px', fontWeight: 600, color: '#e5e7eb' }}>
-                {payment.documentNumber} <span style={{ fontSize: '12px', color: '#9ca3af' }}>({payment.documentType})</span>
+              <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
+                Document Reference
+              </span>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                {payment.documentNumber}{' '}
+                <span className="badge-pill badge-neutral" style={{ fontSize: '11px', marginLeft: '4px' }}>
+                  {payment.documentType}
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Main Form Fields Grid Matching Wireframe */}
+          {/* Main Form Fields Grid Matching Wireframe in Main Theme */}
           <div
             style={{
-              padding: '16px 32px 28px 32px',
+              padding: '24px 32px 28px 32px',
               display: 'flex',
               flexDirection: 'column',
               gap: '24px',
+              backgroundColor: 'var(--color-surface, #ffffff)',
+              overflowY: 'auto',
             }}
           >
             {/* Grid 2 Columns */}
@@ -518,15 +485,15 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
               style={{
                 display: 'grid',
                 gridTemplateColumns: '1.1fr 1fr',
-                gap: '28px 40px',
+                gap: '24px 36px',
               }}
             >
               {/* Row 1 Left: Payment Type */}
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#9ca3af', marginBottom: '8px' }}>
+              <div className="form-group">
+                <label className="form-label" style={{ fontWeight: 600, color: 'var(--color-text-secondary)' }}>
                   Payment Type
                 </label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '24px', height: '38px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginTop: '6px' }}>
                   <label
                     style={{
                       display: 'flex',
@@ -534,8 +501,8 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                       gap: '8px',
                       cursor: 'pointer',
                       fontSize: '14px',
-                      fontWeight: paymentType === 'Send' ? 600 : 400,
-                      color: paymentType === 'Send' ? '#38bdf8' : '#6b7280',
+                      fontWeight: paymentType === 'Send' ? 600 : 500,
+                      color: paymentType === 'Send' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
                     }}
                   >
                     <input
@@ -543,9 +510,9 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                       name="paymentType"
                       checked={paymentType === 'Send'}
                       onChange={() => setPaymentType('Send')}
-                      style={{ accentColor: '#38bdf8', width: '16px', height: '16px', cursor: 'pointer' }}
+                      style={{ accentColor: 'var(--color-primary)', width: '16px', height: '16px', cursor: 'pointer' }}
                     />
-                    <span>Send</span>
+                    <span>Send (Paid to Vendor)</span>
                   </label>
 
                   <label
@@ -555,8 +522,8 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                       gap: '8px',
                       cursor: 'pointer',
                       fontSize: '14px',
-                      fontWeight: paymentType === 'Receive' ? 600 : 400,
-                      color: paymentType === 'Receive' ? '#34d399' : '#6b7280',
+                      fontWeight: paymentType === 'Receive' ? 600 : 500,
+                      color: paymentType === 'Receive' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
                     }}
                   >
                     <input
@@ -564,42 +531,43 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                       name="paymentType"
                       checked={paymentType === 'Receive'}
                       onChange={() => setPaymentType('Receive')}
-                      style={{ accentColor: '#34d399', width: '16px', height: '16px', cursor: 'pointer' }}
+                      style={{ accentColor: 'var(--color-primary)', width: '16px', height: '16px', cursor: 'pointer' }}
                     />
-                    <span>Receive</span>
+                    <span>Receive (From Customer)</span>
                   </label>
                 </div>
               </div>
 
               {/* Row 1 Right: Date */}
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#9ca3af', marginBottom: '4px' }}>
+              <div className="form-group">
+                <label className="form-label" style={{ fontWeight: 600, color: 'var(--color-text-secondary)' }}>
                   Date
                 </label>
                 <input
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
+                  className="form-input"
                   style={{
-                    width: '100%',
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    borderBottom: '1px solid #4b5563',
+                    borderTop: 'none',
+                    borderLeft: 'none',
+                    borderRight: 'none',
+                    borderBottom: '2px solid var(--color-border)',
                     borderRadius: 0,
-                    color: '#ffffff',
+                    backgroundColor: 'transparent',
                     padding: '6px 0',
-                    fontSize: '15px',
-                    outline: 'none',
+                    fontSize: '14px',
+                    fontWeight: 500,
                   }}
                 />
-                <span style={{ display: 'block', fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+                <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
                   (Default Today's Date)
                 </span>
               </div>
 
               {/* Row 2 Left: Partner */}
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#9ca3af', marginBottom: '4px' }}>
+              <div className="form-group">
+                <label className="form-label" style={{ fontWeight: 600, color: 'var(--color-text-secondary)' }}>
                   Partner
                 </label>
                 <input
@@ -607,60 +575,68 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                   value={partnerName}
                   onChange={(e) => setPartnerName(e.target.value)}
                   placeholder="e.g. Mr Rahul"
+                  className="form-input"
                   style={{
-                    width: '100%',
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    borderBottom: '1px solid #4b5563',
+                    borderTop: 'none',
+                    borderLeft: 'none',
+                    borderRight: 'none',
+                    borderBottom: '2px solid var(--color-border)',
                     borderRadius: 0,
-                    color: '#ffffff',
+                    backgroundColor: 'transparent',
                     padding: '6px 0',
                     fontSize: '15px',
                     fontWeight: 600,
-                    outline: 'none',
+                    color: 'var(--color-text-primary)',
                   }}
                 />
-                <span style={{ display: 'block', fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+                <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
                   Autofill Partner Name from Invoice/Bill
                 </span>
               </div>
 
               {/* Row 2 Right: Payment Via */}
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#9ca3af', marginBottom: '4px' }}>
+              <div className="form-group">
+                <label className="form-label" style={{ fontWeight: 600, color: 'var(--color-text-secondary)' }}>
                   Payment Via
                 </label>
                 <select
                   value={paymentVia}
                   onChange={(e) => setPaymentVia(e.target.value as 'Bank' | 'Cash')}
+                  className="form-input"
                   style={{
-                    width: '100%',
-                    backgroundColor: '#181b22',
-                    border: 'none',
-                    borderBottom: '1px solid #4b5563',
+                    borderTop: 'none',
+                    borderLeft: 'none',
+                    borderRight: 'none',
+                    borderBottom: '2px solid var(--color-border)',
                     borderRadius: 0,
-                    color: '#ffffff',
+                    backgroundColor: 'transparent',
                     padding: '6px 0',
-                    fontSize: '15px',
-                    outline: 'none',
+                    fontSize: '14px',
+                    fontWeight: 500,
                     cursor: 'pointer',
                   }}
                 >
-                  <option value="Bank" style={{ backgroundColor: '#1f2430' }}>Bank</option>
-                  <option value="Cash" style={{ backgroundColor: '#1f2430' }}>Cash</option>
+                  <option value="Bank">Bank (Default)</option>
+                  <option value="Cash">Cash</option>
                 </select>
-                <span style={{ display: 'block', fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+                <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
                   Default set to Bank can be selected to Cash
                 </span>
               </div>
 
               {/* Row 3 Left: Amount */}
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#9ca3af', marginBottom: '4px' }}>
+              <div className="form-group">
+                <label className="form-label" style={{ fontWeight: 600, color: 'var(--color-text-secondary)' }}>
                   Amount
                 </label>
-                <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #4b5563' }}>
-                  <span style={{ fontSize: '16px', fontWeight: 700, color: '#818cf8', marginRight: '6px' }}>₹</span>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    borderBottom: '2px solid var(--color-border)',
+                  }}
+                >
+                  <span style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-primary)', marginRight: '6px' }}>₹</span>
                   <input
                     type="number"
                     step="0.01"
@@ -671,7 +647,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                       backgroundColor: 'transparent',
                       border: 'none',
                       borderRadius: 0,
-                      color: '#ffffff',
+                      color: 'var(--color-text-primary)',
                       padding: '6px 0',
                       fontSize: '16px',
                       fontWeight: 700,
@@ -679,15 +655,15 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                     }}
                   />
                 </div>
-                <span style={{ display: 'block', fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+                <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
                   Autofill Amount Due from Invoice/Bill
                 </span>
               </div>
             </div>
 
             {/* Row 4: Note / Memo */}
-            <div style={{ marginTop: '8px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#9ca3af', marginBottom: '6px' }}>
+            <div className="form-group" style={{ marginTop: '4px' }}>
+              <label className="form-label" style={{ fontWeight: 600, color: 'var(--color-text-secondary)' }}>
                 Note
               </label>
               <input
@@ -695,111 +671,70 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Alpha Numeric (Text)"
+                className="form-input"
                 style={{
-                  width: '100%',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  borderBottom: '1px solid #4b5563',
+                  borderTop: 'none',
+                  borderLeft: 'none',
+                  borderRight: 'none',
+                  borderBottom: '2px solid var(--color-border)',
                   borderRadius: 0,
-                  color: '#ffffff',
+                  backgroundColor: 'transparent',
                   padding: '8px 0',
                   fontSize: '14px',
-                  outline: 'none',
                 }}
               />
             </div>
           </div>
 
-          {/* Footer Bar with Printable & Shareable Quick Actions */}
+          {/* Footer Bar with Printable & Shareable Quick Actions in Main Theme */}
           <div
             className="no-print"
             style={{
-              padding: '16px 32px',
-              backgroundColor: '#12141a',
-              borderTop: '1px solid #282d39',
+              padding: '16px 24px',
+              backgroundColor: 'var(--color-surface-hover, #f9fafb)',
+              borderTop: '1px solid var(--color-border, #e5e7eb)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <button
                 type="button"
+                className="btn btn-outline btn-sm"
                 onClick={handlePrint}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '6px 14px',
-                  backgroundColor: '#232733',
-                  border: '1px solid #374151',
-                  borderRadius: '6px',
-                  color: '#e5e7eb',
-                  fontSize: '12px',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                }}
+                style={{ gap: '6px' }}
               >
-                <Printer size={14} />
+                <Printer size={14} color="var(--color-primary)" />
                 <span>Print Receipt</span>
               </button>
 
               <button
                 type="button"
+                className="btn btn-outline btn-sm"
                 onClick={handleSendEmail}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '6px 14px',
-                  backgroundColor: '#232733',
-                  border: '1px solid #374151',
-                  borderRadius: '6px',
-                  color: '#e5e7eb',
-                  fontSize: '12px',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                }}
+                style={{ gap: '6px' }}
               >
-                <Mail size={14} />
+                <Mail size={14} color="var(--brand-purple)" />
                 <span>Send via Mail</span>
               </button>
 
               <button
                 type="button"
+                className="btn btn-outline btn-sm"
                 onClick={handleCopyShareLink}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '6px 14px',
-                  backgroundColor: '#232733',
-                  border: '1px solid #374151',
-                  borderRadius: '6px',
-                  color: '#e5e7eb',
-                  fontSize: '12px',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                }}
+                style={{ gap: '6px' }}
               >
-                {copiedLink ? <Check size={14} color="#10b981" /> : <Share2 size={14} />}
+                {copiedLink ? <Check size={14} color="var(--color-success)" /> : <Share2 size={14} />}
                 <span>{copiedLink ? 'Link Copied!' : 'Share Link'}</span>
               </button>
             </div>
 
             <button
               type="button"
+              className="btn btn-outline btn-sm"
               onClick={onClose}
-              style={{
-                padding: '6px 18px',
-                backgroundColor: '#374151',
-                border: 'none',
-                borderRadius: '6px',
-                color: '#ffffff',
-                fontSize: '13px',
-                fontWeight: 500,
-                cursor: 'pointer',
-              }}
+              style={{ fontWeight: 600 }}
             >
               Close
             </button>
@@ -811,3 +746,4 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
 };
 
 export default PaymentReceiptModal;
+
