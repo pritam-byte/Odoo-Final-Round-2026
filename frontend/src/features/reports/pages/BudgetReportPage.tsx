@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Printer, Download } from 'lucide-react';
+import { Printer, Download, PieChart } from 'lucide-react';
 import { useAccountingStore, Budget } from '../../accounting/store';
 import { Button } from '../../../components/ui/Button';
 import { StatusBadge } from '../../../components/ui/StatusBadge';
@@ -7,11 +7,13 @@ import { ViewToggle } from '../../../components/ui/ViewToggle';
 import { DataTable, Column } from '../../../components/ui/DataTable';
 import { BudgetProgressWidget } from '../../../components/ui/BudgetProgressWidget';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
+import { BudgetPieChartModal } from '../../budgets/components/BudgetPieChartModal';
 
 export const BudgetReportPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { budgets, getBudgetAchievedAmount } = useAccountingStore();
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
   const [search, setSearch] = useState('');
+  const [selectedPieBudget, setSelectedPieBudget] = useState<Budget | null>(null);
 
   const filteredBudgets = budgets.filter(
     (b) =>
@@ -22,31 +24,34 @@ export const BudgetReportPage: React.FC<{ onNavigate: (route: string) => void }>
   const columns: Column<Budget>[] = [
     {
       key: 'name',
-      header: 'Budget Title',
+      header: 'Budget',
       render: (b) => <span style={{ fontWeight: 600, color: 'var(--color-primary)' }}>{b.name}</span>,
+    },
+    {
+      key: 'startDate',
+      header: 'Start Date',
+      width: '120px',
+      render: (b) => <span style={{ fontSize: '13px' }}>{b.startDate}</span>,
+    },
+    {
+      key: 'endDate',
+      header: 'End Date',
+      width: '120px',
+      render: (b) => <span style={{ fontSize: '13px' }}>{b.endDate}</span>,
     },
     {
       key: 'analyticName',
       header: 'Analytic Cost Center',
     },
     {
-      key: 'period',
-      header: 'Period',
-      render: (b) => (
-        <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-          {b.startDate} to {b.endDate}
-        </span>
-      ),
-    },
-    {
       key: 'committedAmount',
-      header: 'Committed ($)',
+      header: 'Committed (₹)',
       align: 'right',
       render: (b) => <span>₹{b.committedAmount.toLocaleString()}</span>,
     },
     {
       key: 'achieved',
-      header: 'Achieved ($)',
+      header: 'Achieved (₹)',
       align: 'right',
       render: (b) => {
         const achieved = getBudgetAchievedAmount(b);
@@ -54,36 +59,29 @@ export const BudgetReportPage: React.FC<{ onNavigate: (route: string) => void }>
       },
     },
     {
-      key: 'variance',
-      header: 'Variance / Achievement %',
-      align: 'center',
-      render: (b) => {
-        const achieved = getBudgetAchievedAmount(b);
-        const percent = b.committedAmount > 0 ? Math.round((achieved / b.committedAmount) * 100) : 0;
-        return (
-          <div style={{ width: '140px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '2px' }}>
-              <span>{percent}%</span>
-              <span>{b.type}</span>
-            </div>
-            <div style={{ width: '100%', height: '6px', backgroundColor: 'var(--color-border)', borderRadius: '3px', overflow: 'hidden' }}>
-              <div
-                style={{
-                  width: `${Math.min(100, percent)}%`,
-                  height: '100%',
-                  backgroundColor: percent >= 100 ? 'var(--color-primary)' : 'var(--color-warning)',
-                }}
-              />
-            </div>
-          </div>
-        );
-      },
-    },
-    {
       key: 'state',
       header: 'Status',
       align: 'center',
-      render: (b) => <StatusBadge status={b.state === 'Confirmed' ? 'completed' : 'neutral'} label={b.state} />,
+      render: (b) => <StatusBadge status={b.state === 'Confirmed' ? 'completed' : b.state === 'Revised' ? 'due' : 'neutral'} label={b.state} />,
+    },
+    {
+      key: 'actions',
+      header: 'Pie Chart',
+      align: 'center',
+      width: '100px',
+      render: (b) => (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelectedPieBudget(b);
+          }}
+          leftIcon={<PieChart size={14} style={{ color: 'var(--color-primary)' }} />}
+        >
+          View
+        </Button>
+      ),
     },
   ];
 
@@ -133,23 +131,44 @@ export const BudgetReportPage: React.FC<{ onNavigate: (route: string) => void }>
         </div>
 
         {viewMode === 'list' ? (
-          <DataTable columns={columns} data={filteredBudgets} keyExtractor={(b) => b.id} />
+          <DataTable
+            columns={columns}
+            data={filteredBudgets}
+            keyExtractor={(b) => b.id}
+            onRowClick={(b) => setSelectedPieBudget(b)}
+          />
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
             {filteredBudgets.map((b) => {
               const achieved = getBudgetAchievedAmount(b);
               return (
-                <div key={b.id} className="card-panel" style={{ padding: '20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
-                    <div>
-                      <h3 style={{ fontSize: '15px', fontWeight: 700 }}>{b.name}</h3>
-                      <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{b.analyticName}</span>
+                <div key={b.id} className="card-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+                      <div>
+                        <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>{b.name}</h3>
+                        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{b.analyticName}</span>
+                      </div>
+                      <StatusBadge status={b.state === 'Confirmed' ? 'completed' : b.state === 'Revised' ? 'due' : 'neutral'} label={b.state} />
                     </div>
-                    <StatusBadge status={b.state === 'Confirmed' ? 'completed' : 'neutral'} label={b.state} />
+
+                    <div style={{ margin: '14px 0 12px 0' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                        Period: <strong>{b.startDate}</strong> to <strong>{b.endDate}</strong>
+                      </div>
+                      <BudgetProgressWidget committed={b.committedAmount} achieved={achieved} type={b.type} />
+                    </div>
                   </div>
 
-                  <div style={{ margin: '14px 0 8px 0' }}>
-                    <BudgetProgressWidget committed={b.committedAmount} achieved={achieved} type={b.type} />
+                  <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '12px', display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setSelectedPieBudget(b)}
+                      leftIcon={<PieChart size={14} style={{ color: 'var(--color-primary)' }} />}
+                    >
+                      Open Pie Chart
+                    </Button>
                   </div>
                 </div>
               );
@@ -157,6 +176,16 @@ export const BudgetReportPage: React.FC<{ onNavigate: (route: string) => void }>
           </div>
         )}
       </div>
+
+      {/* Interactive Pie Chart Modal */}
+      {selectedPieBudget && (
+        <BudgetPieChartModal
+          isOpen={true}
+          onClose={() => setSelectedPieBudget(null)}
+          budget={selectedPieBudget}
+          achievedAmount={getBudgetAchievedAmount(selectedPieBudget)}
+        />
+      )}
     </div>
   );
 };
