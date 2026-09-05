@@ -15,6 +15,8 @@ app.use(express.json());
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api", masterRoutes);
+app.use("/api", transactionRoutes);
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", service: "Urban Furniture API" });

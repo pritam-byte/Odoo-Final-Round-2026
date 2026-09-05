@@ -21,7 +21,7 @@ export async function createPO(req: Request, res: Response) {
 
 export async function confirmPO(req: Request, res: Response) {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const result = await TransactionService.confirmPurchaseOrder(id);
     return res.json(result);
   } catch (err: any) {
@@ -42,7 +42,7 @@ export async function createBill(req: Request, res: Response) {
 
 export async function confirmBill(req: Request, res: Response) {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const result = await TransactionService.confirmVendorBill(id);
     return res.json(result);
   } catch (err: any) {
@@ -74,7 +74,7 @@ export async function createInvoice(req: Request, res: Response) {
 
 export async function confirmInvoice(req: Request, res: Response) {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const result = await TransactionService.confirmCustomerInvoice(id);
     return res.json(result);
   } catch (err: any) {

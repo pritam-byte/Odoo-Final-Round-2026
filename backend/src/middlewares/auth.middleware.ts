@@ -23,17 +23,17 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
     return res.status(401).json({ error: "Access token missing" });
   }
 
-  const token = authHeader.split(" ")[1];
-  if (!token) {
-    return res.status(401).json({ error: "Access token missing" });
+  const token = authHeader.split(" ")[1]?.trim();
+  if (!token || token === "null" || token === "undefined") {
+    return res.status(401).json({ error: "Access token missing or malformed" });
   }
 
   try {
     const payload = jwt.verify(token, JWT_SECRET) as unknown as AuthPayload;
     req.user = payload;
     next();
-  } catch {
-    return res.status(401).json({ error: "Invalid or expired token" });
+  } catch (err: any) {
+    return res.status(401).json({ error: "Invalid or expired token", details: err.message });
   }
 }
 
