@@ -5,6 +5,7 @@ import { Button } from '../../../components/ui/Button';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
 import { fetchProfitLossApi, ProfitLossReportData } from '../api';
 import { exportProfitLossPdf } from '../../../lib/pdfExport';
+import { DocumentSignatureStamp } from '../../../components/ui/DocumentSignatureStamp';
 
 export const ProfitLossReportPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { invoices, bills, accounts } = useAccountingStore();
@@ -230,6 +231,12 @@ export const ProfitLossReportPage: React.FC<{ onNavigate: (route: string) => voi
               </tr>
             </tbody>
           </table>
+
+          <DocumentSignatureStamp
+            documentRef={`UF-PNL-${selectedYear}-09`}
+            signatoryName="Pritam Denria"
+            signatoryRole="Chief Financial Officer / Lead Accountant"
+          />
         </div>
 
         {/* Right: Field Computation Architecture Card */}

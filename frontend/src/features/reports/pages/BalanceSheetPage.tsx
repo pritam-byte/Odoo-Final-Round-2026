@@ -5,6 +5,7 @@ import { Button } from '../../../components/ui/Button';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
 import { fetchBalanceSheetApi, BalanceSheetReportData } from '../api';
 import { exportBalanceSheetPdf } from '../../../lib/pdfExport';
+import { DocumentSignatureStamp } from '../../../components/ui/DocumentSignatureStamp';
 
 export const BalanceSheetPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { accounts, invoices, bills } = useAccountingStore();
@@ -258,6 +259,12 @@ export const BalanceSheetPage: React.FC<{ onNavigate: (route: string) => void }>
               </div>
             </div>
           </div>
+
+          <DocumentSignatureStamp
+            documentRef={`UF-BS-${selectedYear}-12`}
+            signatoryName="Pritam Denria"
+            signatoryRole="Chief Financial Officer / Lead Accountant"
+          />
         </div>
 
         {/* Right: Field Computation Architecture Card */}

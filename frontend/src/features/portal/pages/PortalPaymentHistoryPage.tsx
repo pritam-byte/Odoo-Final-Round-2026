@@ -20,10 +20,16 @@ export const PortalPaymentHistoryPage: React.FC = () => {
 
   // Reload payments whenever user changes or updates or payment event fires
   useEffect(() => {
-    const reload = () => setPayments(getMyPayments());
-    reload();
-    window.addEventListener('portal:payment', reload);
-    return () => window.removeEventListener('portal:payment', reload);
+    const refresh = () => setPayments(getMyPayments());
+    refresh();
+    window.addEventListener('portal:payment', refresh);
+    window.addEventListener('odoo:accounting_updated', refresh);
+    window.addEventListener('storage', refresh);
+    return () => {
+      window.removeEventListener('portal:payment', refresh);
+      window.removeEventListener('odoo:accounting_updated', refresh);
+      window.removeEventListener('storage', refresh);
+    };
   }, [currentUser?.partnerType]);
 
   // Auto-open modal if URL has ref query parameter

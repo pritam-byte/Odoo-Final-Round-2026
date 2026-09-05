@@ -1444,8 +1444,28 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
       loadBackendData();
     };
 
+    const handleAccountingUpdated = () => {
+      try {
+        const invStr = localStorage.getItem('odoo_invoices');
+        if (invStr) setInvoices(JSON.parse(invStr));
+        const billsStr = localStorage.getItem('odoo_bills');
+        if (billsStr) setBills(JSON.parse(billsStr));
+        const payStr = localStorage.getItem('odoo_payments');
+        if (payStr) setPayments(JSON.parse(payStr));
+      } catch (e) {
+        console.error('Error reloading data on accounting update event:', e);
+      }
+    };
+
     window.addEventListener('auth:login', handleLogin);
-    return () => window.removeEventListener('auth:login', handleLogin);
+    window.addEventListener('odoo:accounting_updated', handleAccountingUpdated);
+    window.addEventListener('storage', handleAccountingUpdated);
+
+    return () => {
+      window.removeEventListener('auth:login', handleLogin);
+      window.removeEventListener('odoo:accounting_updated', handleAccountingUpdated);
+      window.removeEventListener('storage', handleAccountingUpdated);
+    };
   }, [loadBackendData]);
 
   // Sync to local storage

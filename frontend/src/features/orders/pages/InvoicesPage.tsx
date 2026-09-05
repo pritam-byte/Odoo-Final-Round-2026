@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Check, ArrowLeft, Wallet, Printer, Send, CheckCircle2 } from 'lucide-react';
+import { Plus, Check, ArrowLeft, Wallet, Printer, Send, CheckCircle2, Download } from 'lucide-react';
 import { useAccountingStore, CustomerInvoice, OrderLine } from '../../accounting/store';
 import { Button } from '../../../components/ui/Button';
 import { StatusBadge } from '../../../components/ui/StatusBadge';
@@ -11,6 +11,8 @@ import { Many2OneSelect } from '../../../components/ui/Many2OneSelect';
 import { PaymentModal } from '../../../components/ui/PaymentModal';
 import { JournalEntryPreview } from '../../../components/ui/JournalEntryPreview';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
+import { exportCustomerInvoicePdf } from '../../../lib/pdfExport';
+import { DocumentSignatureStamp } from '../../../components/ui/DocumentSignatureStamp';
 
 export const InvoicesPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { invoices, contacts, products, accounts, analytics, journalEntries, addInvoice, confirmInvoice, payInvoice } =
@@ -236,6 +238,14 @@ export const InvoicesPage: React.FC<{ onNavigate: (route: string) => void }> = (
                   </Button>
                 )}
 
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => exportCustomerInvoicePdf(viewingInvoice)}
+                  leftIcon={<Download size={14} />}
+                >
+                  Export PDF
+                </Button>
                 <Button variant="outline" size="sm" onClick={() => window.print()} leftIcon={<Printer size={14} />}>
                   Print
                 </Button>
@@ -297,6 +307,13 @@ export const InvoicesPage: React.FC<{ onNavigate: (route: string) => void }> = (
 
             {/* Line items table */}
             <LineItemsTable lines={viewingInvoice.lines} onChange={() => {}} readOnly />
+
+            <DocumentSignatureStamp
+              documentRef={`UF-INV-${viewingInvoice.invoiceNumber}`}
+              signatoryName="Pritam Denria"
+              signatoryRole="Chief Financial Officer / Billing Head"
+              compact
+            />
 
             {/* Auto-generated Journal Entry Preview */}
             {matchedJournalEntry && (

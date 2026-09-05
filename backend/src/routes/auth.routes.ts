@@ -1,5 +1,14 @@
 import { Router } from "express";
-import { register, login, forgotPassword, verifyOtp, resetPassword, getUsers, updateUser } from "../controllers/auth.controller";
+import {
+  register,
+  login,
+  forgotPassword,
+  verifyOtp,
+  resetPassword,
+  getUsers,
+  updateUser,
+  deleteUser,
+} from "../controllers/auth.controller";
 
 const router = Router();
 
@@ -13,5 +22,6 @@ router.post("/reset-password", resetPassword);
 router.get("/users", getUsers);
 router.post("/users", register);
 router.put("/users/:id", updateUser);
+router.delete("/users/:id", deleteUser);
 
 export default router;

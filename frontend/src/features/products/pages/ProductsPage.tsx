@@ -79,7 +79,7 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
       categoryName: matchedCat?.name || 'General',
       salesPrice: Number(salesPrice) || 0,
       cost: Number(cost) || 0,
-      imageUrl: imageUrl || 'https://images.unsplash.com/photo-1584992236310-6edddc08acff?w=120&auto=format&fit=crop&q=60',
+      imageUrl: imageUrl || '',
     };
 
     if (editingProduct) {
@@ -104,15 +104,22 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
       header: 'Image',
       width: '60px',
       render: (p) => (
-        <img
-          src={p.imageUrl || 'https://images.unsplash.com/photo-1584992236310-6edddc08acff?w=120&auto=format&fit=crop&q=60'}
-          alt={p.name}
-          style={{ width: '36px', height: '36px', borderRadius: '6px', objectFit: 'cover' }}
-        />
+        <div style={{ width: '36px', height: '36px', borderRadius: '6px', overflow: 'hidden', backgroundColor: 'var(--color-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {p.imageUrl ? (
+            <img
+              src={p.imageUrl}
+              alt={p.name}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          ) : (
+            <ImageIcon size={18} color="var(--color-text-muted)" />
+          )}
+        </div>
       ),
     },
     {
       key: 'name',
+
       header: 'Product Name',
       render: (p) => <span style={{ fontWeight: 600, color: 'var(--color-primary)' }}>{p.name}</span>,
     },
@@ -214,12 +221,32 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
                 }}
                 onClick={() => openEditModal(p)}
               >
-                <img
-                  src={p.imageUrl || 'https://images.unsplash.com/photo-1584992236310-6edddc08acff?w=120&auto=format&fit=crop&q=60'}
-                  alt={p.name}
-                  style={{ width: '56px', height: '56px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }}
-                />
+                <div
+                  style={{
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    flexShrink: 0,
+                    backgroundColor: 'var(--color-bg)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '1px solid var(--color-border)',
+                  }}
+                >
+                  {p.imageUrl ? (
+                    <img
+                      src={p.imageUrl}
+                      alt={p.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <ImageIcon size={24} color="var(--color-text-muted)" />
+                  )}
+                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0, flex: 1 }}>
+
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--color-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {p.name}

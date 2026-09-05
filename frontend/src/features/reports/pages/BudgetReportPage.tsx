@@ -9,6 +9,7 @@ import { BudgetProgressWidget } from '../../../components/ui/BudgetProgressWidge
 import { AccountantNav } from '../../../components/ui/AccountantNav';
 import { exportBudgetReportPdf, exportBudgetReportCsv } from '../../../lib/pdfExport';
 import { BudgetPieChartModal } from '../../budgets/components/BudgetPieChartModal';
+import { DocumentSignatureStamp } from '../../../components/ui/DocumentSignatureStamp';
 
 export const BudgetReportPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { budgets, getBudgetAchievedAmount } = useAccountingStore();
@@ -180,6 +181,12 @@ export const BudgetReportPage: React.FC<{ onNavigate: (route: string) => void }>
             })}
           </div>
         )}
+
+        <DocumentSignatureStamp
+          documentRef="UF-BUDGET-2026-REP"
+          signatoryName="Pritam Denria"
+          signatoryRole="Chief Financial Officer / Budget Controller"
+        />
       </div>
 
       {/* Interactive Pie Chart Modal */}

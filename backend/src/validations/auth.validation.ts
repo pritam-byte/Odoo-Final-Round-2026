@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
-
 export const registerSchema = z.object({
   loginId: z
     .string()
@@ -12,6 +10,7 @@ export const registerSchema = z.object({
     .string()
     .min(6, "Password must be at least 6 characters"),
   role: z.enum(["ADMIN", "ACCOUNTANT", "PORTAL_USER"]).default("ACCOUNTANT"),
+  name: z.string().optional(),
   contactId: z.string().uuid().optional().nullable(),
 });
 

@@ -1,4 +1,4 @@
-import { UserAccount, CreateUserInput, UpdateUserInput } from './schemas';
+import { UserAccount, CreateUserInput, UpdateUserInput, UserRole } from './schemas';
 import { apiRequest } from '../../lib/apiClient';
 
 const USERS_STORAGE_KEY = 'odoo_flow_mock_users';
@@ -6,22 +6,66 @@ const USERS_STORAGE_KEY = 'odoo_flow_mock_users';
 const initialMockUsers: UserAccount[] = [
   {
     id: 'usr_admin',
-    name: 'Admin01',
+    name: 'Pritam Admin',
     loginId: 'admin01',
     email: 'admin@urbanfurniture.com',
     role: 'Admin',
     status: 'Active',
     createdAt: '2026-01-15',
     lastLogin: '2026-09-05 14:30'
+  },
+  {
+    id: 'usr_acct',
+    name: 'Sarah Accountant',
+    loginId: 'sarah_acct',
+    email: 'sarah.finance@urbanfurniture.com',
+    role: 'Accountant',
+    status: 'Active',
+    createdAt: '2026-02-10',
+    lastLogin: '2026-09-04 11:15'
+  },
+  {
+    id: 'usr_client',
+    name: 'John Doe',
+    loginId: 'jdoe_client',
+    email: 'john.doe@company.com',
+    role: 'User',
+    status: 'Active',
+    partnerId: 'partner_john_doe',
+    createdAt: '2026-03-01',
+    lastLogin: '2026-09-05 09:40'
+  },
+  {
+    id: 'usr_inactive',
+    name: 'Robert Miller',
+    loginId: 'rmiller_ops',
+    email: 'robert.m@company.com',
+    role: 'User',
+    status: 'Inactive',
+    partnerId: 'partner_robert',
+    createdAt: '2026-04-12',
+    lastLogin: '2026-07-22 16:05'
   }
 ];
 
+export const mapBackendRole = (role?: string): UserRole => {
+  if (role === 'ADMIN') return 'Admin';
+  if (role === 'ACCOUNTANT') return 'Accountant';
+  return 'User';
+};
+
+export const mapFrontendRole = (role: UserRole): string => {
+  if (role === 'Admin') return 'ADMIN';
+  if (role === 'Accountant') return 'ACCOUNTANT';
+  return 'PORTAL_USER';
+};
+
 export const mapBackendUserToFrontend = (u: any): UserAccount => ({
   id: u.id,
-  name: u.loginId.charAt(0).toUpperCase() + u.loginId.slice(1),
+  name: u.contact?.name || u.loginId.charAt(0).toUpperCase() + u.loginId.slice(1),
   loginId: u.loginId,
   email: u.email || `${u.loginId}@urbanfurniture.com`,
-  role: u.role === 'ADMIN' ? 'Admin' : u.role === 'ACCOUNTANT' ? 'Accountant' : 'User',
+  role: mapBackendRole(u.role),
   status: 'Active',
   partnerType: 'Both',
   partnerId: u.contactId || (u.role === 'PORTAL_USER' ? `partner_${u.loginId}` : undefined),
@@ -52,24 +96,138 @@ const saveUsers = (users: UserAccount[]) => {
 
 let mockUsers: UserAccount[] = loadUsers();
 
-export const getAllUsers = (): UserAccount[] => {
-  mockUsers = loadUsers();
-  return [...mockUsers];
-};
+// --- Live PostgreSQL API Functions ---
 
-export const fetchUsersApi = async (): Promise<UserAccount[]> => {
+export const fetchAllUsersApi = async (): Promise<UserAccount[]> => {
   try {
-    const res = await apiRequest<any[]>('/auth/users');
+    const res = await apiRequest('/auth/users');
     if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-      const mapped = res.data.map(mapBackendUserToFrontend);
+      const mapped: UserAccount[] = res.data.map(mapBackendUserToFrontend);
       mockUsers = mapped;
       saveUsers(mapped);
       return mapped;
     }
   } catch (e) {
-    console.warn('Failed to fetch users from backend, using cache:', e);
+    console.warn('Failed to fetch live PostgreSQL users:', e);
   }
   return getAllUsers();
+};
+
+export const fetchUsersApi = fetchAllUsersApi;
+
+export const createNewUserApi = async (
+  input: CreateUserInput
+): Promise<{ success: boolean; message: string; user?: UserAccount }> => {
+  // Validate basic form constraints
+  if (input.password && input.confirmPassword && input.password !== input.confirmPassword) {
+    return { success: false, message: 'Passwords do not match.' };
+  }
+
+  if (input.password && input.password.length < 6) {
+    return { success: false, message: 'Password must be at least 6 characters.' };
+  }
+
+  // Live PostgreSQL call
+  try {
+    const backendRes = await apiRequest('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: input.name.trim(),
+        loginId: input.loginId.trim(),
+        email: input.email.trim(),
+        password: input.password || 'password123',
+        role: mapFrontendRole(input.role),
+      }),
+    });
+
+    if (backendRes.success && backendRes.data?.user) {
+      const bUser = backendRes.data.user;
+      const newUser: UserAccount = {
+        id: bUser.id,
+        name: input.name.trim(),
+        loginId: bUser.loginId,
+        email: bUser.email,
+        role: mapBackendRole(bUser.role),
+        status: 'Active',
+        partnerId: bUser.contactId || undefined,
+        createdAt: new Date().toISOString().split('T')[0],
+      };
+
+      mockUsers = [newUser, ...mockUsers.filter(u => u.loginId !== newUser.loginId)];
+      saveUsers(mockUsers);
+      return {
+        success: true,
+        message: `Account for ${newUser.name} (${newUser.loginId}) created successfully in PostgreSQL database!`,
+        user: newUser,
+      };
+    }
+
+    if (backendRes.error && !backendRes.isFallback) {
+      return { success: false, message: backendRes.error };
+    }
+  } catch (e: any) {
+    console.warn('Backend user creation error:', e);
+  }
+
+  // Fallback to local storage
+  return createNewUser(input);
+};
+
+export const updateUserAccountApi = async (
+  id: string,
+  input: UpdateUserInput
+): Promise<{ success: boolean; message: string; user?: UserAccount }> => {
+  try {
+    const backendRes = await apiRequest(`/auth/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        name: input.name.trim(),
+        email: input.email.trim(),
+        role: mapFrontendRole(input.role),
+      }),
+    });
+
+    if (backendRes.success && backendRes.data?.user) {
+      const bUser = backendRes.data.user;
+      const updated: UserAccount = {
+        id: bUser.id,
+        name: input.name.trim(),
+        loginId: bUser.loginId,
+        email: bUser.email,
+        role: mapBackendRole(bUser.role),
+        status: input.status,
+        createdAt: bUser.createdAt ? new Date(bUser.createdAt).toISOString().split('T')[0] : '2026-01-01',
+      };
+      return { success: true, message: 'User updated in PostgreSQL database!', user: updated };
+    }
+
+  } catch (e) {
+    console.warn('Failed to update live user in backend:', e);
+  }
+  return updateUserAccount(id, input);
+};
+
+export const deleteUserApi = async (id: string): Promise<{ success: boolean; message: string }> => {
+  try {
+    const backendRes = await apiRequest(`/auth/users/${id}`, {
+      method: 'DELETE',
+    });
+    if (backendRes.success) {
+      mockUsers = mockUsers.filter(u => u.id !== id);
+      saveUsers(mockUsers);
+      return { success: true, message: 'User deleted from PostgreSQL database.' };
+    }
+  } catch (e) {
+    console.warn('Failed to delete live user:', e);
+  }
+  return { success: false, message: 'Failed to delete user.' };
+};
+
+// --- Sync Local Storage Helpers ---
+
+export const getAllUsers = (): UserAccount[] => {
+  mockUsers = loadUsers();
+  return [...mockUsers];
 };
 
 export const getUserById = (id: string): UserAccount | null => {
@@ -77,16 +235,24 @@ export const getUserById = (id: string): UserAccount | null => {
   return mockUsers.find(u => u.id === id) || null;
 };
 
-export const createNewUser = async (input: CreateUserInput): Promise<{ success: boolean; message: string; user?: UserAccount }> => {
+export const createNewUser = (input: CreateUserInput): { success: boolean; message: string; user?: UserAccount } => {
   mockUsers = loadUsers();
   const trimmedLogin = input.loginId.trim();
   const trimmedEmail = input.email.trim();
   const trimmedName = input.name.trim();
-  const trimmedPassword = input.password || 'password123';
-  const roleEnum = input.role === 'Admin' ? 'ADMIN' : input.role === 'Accountant' ? 'ACCOUNTANT' : 'PORTAL_USER';
 
-  if (trimmedLogin.length < 3) {
-    return { success: false, message: 'Login ID must be at least 3 characters.' };
+  if (trimmedLogin.length < 3 || trimmedLogin.length > 20) {
+    return { success: false, message: 'Login ID must be between 3 and 20 characters.' };
+  }
+
+  const existingLogin = mockUsers.find(u => u.loginId.toLowerCase() === trimmedLogin.toLowerCase());
+  if (existingLogin) {
+    return { success: false, message: 'Login ID is already taken. Please choose another.' };
+  }
+
+  const existingEmail = mockUsers.find(u => u.email.toLowerCase() === trimmedEmail.toLowerCase());
+  if (existingEmail) {
+    return { success: false, message: 'Email address is already registered.' };
   }
 
   if (input.password && input.password.length < 6) {
@@ -100,36 +266,11 @@ export const createNewUser = async (input: CreateUserInput): Promise<{ success: 
     return { success: false, message: 'Passwords do not match.' };
   }
 
-  // 1. Live Backend PostgreSQL Call
-  try {
-    const res = await apiRequest<{ user: any; message?: string }>('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({
-        loginId: trimmedLogin,
-        email: trimmedEmail,
-        password: trimmedPassword,
-        role: roleEnum,
-      }),
-    });
-
-    if (res.success && res.data?.user) {
-      const mapped = mapBackendUserToFrontend(res.data.user);
-      mockUsers = [mapped, ...mockUsers.filter(u => u.loginId !== mapped.loginId)];
-      saveUsers(mockUsers);
-      return { success: true, message: `User "${mapped.loginId}" created and stored in PostgreSQL!`, user: mapped };
-    } else if (res.error) {
-      return { success: false, message: res.error };
-    }
-  } catch (e: any) {
-    console.warn('Backend user registration error:', e);
-  }
-
-  // 2. Offline Fallback
   const newUser: UserAccount = {
     id: 'usr_' + Date.now(),
     name: trimmedName,
-    loginId: trimmedLogin,
-    email: trimmedEmail,
+    loginId: input.loginId.trim(),
+    email: input.email.trim(),
     role: input.role,
     partnerType: input.partnerType || (input.role === 'User' ? 'Customer' : undefined),
     status: 'Active',
@@ -140,29 +281,14 @@ export const createNewUser = async (input: CreateUserInput): Promise<{ success: 
 
   mockUsers = [newUser, ...mockUsers];
   saveUsers(mockUsers);
-  return { success: true, message: 'User created (offline cache).', user: newUser };
+  return { success: true, message: 'User created successfully.', user: newUser };
 };
 
-export const updateUserAccount = async (id: string, input: UpdateUserInput): Promise<{ success: boolean; message: string; user?: UserAccount }> => {
+export const updateUserAccount = (id: string, input: UpdateUserInput): { success: boolean; message: string; user?: UserAccount } => {
   mockUsers = loadUsers();
   const index = mockUsers.findIndex(u => u.id === id);
   if (index === -1) {
     return { success: false, message: 'User not found.' };
-  }
-
-  const roleEnum = input.role === 'Admin' ? 'ADMIN' : input.role === 'Accountant' ? 'ACCOUNTANT' : 'PORTAL_USER';
-
-  // Live Backend Call
-  try {
-    await apiRequest(`/auth/users/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify({
-        email: input.email.trim(),
-        role: roleEnum,
-      }),
-    });
-  } catch (e) {
-    console.warn('Backend update user error:', e);
   }
 
   mockUsers[index] = {

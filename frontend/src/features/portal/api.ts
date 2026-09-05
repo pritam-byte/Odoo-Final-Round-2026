@@ -293,8 +293,9 @@ export const processPortalPayment = (params: {
   payments.unshift(newPayment);
   localStorage.setItem('odoo_payments', JSON.stringify(payments));
 
-  // Trigger custom event so reactive components re-render immediately
+  // Trigger custom events so reactive components re-render immediately
   window.dispatchEvent(new Event('portal:payment'));
+  window.dispatchEvent(new Event('odoo:accounting_updated'));
 
   doc.amountPaid += params.amount;
   doc.amountDue = Math.max(0, doc.total - doc.amountPaid);
@@ -317,6 +318,7 @@ export const updatePortalPaymentStatus = (paymentId: string, status: 'Draft' | '
     p.status = status;
     localStorage.setItem('odoo_payments', JSON.stringify(payments));
     window.dispatchEvent(new Event('portal:payment'));
+    window.dispatchEvent(new Event('odoo:accounting_updated'));
     return true;
   }
   return false;

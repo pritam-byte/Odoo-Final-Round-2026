@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { UserPlus, ArrowLeft, Check, AlertCircle } from 'lucide-react';
 import { UserRole, CreateUserInput } from '../schemas';
-import { createNewUser } from '../api';
+import { createNewUserApi } from '../api';
 
 export interface CreateUserPageProps {
   onSuccess?: () => void;
@@ -13,12 +13,13 @@ export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCan
     name: '',
     loginId: '',
     email: '',
-    role: 'User',
+    role: 'Accountant',
     password: '',
     confirmPassword: '',
   });
 
   const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -38,7 +39,12 @@ export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCan
       return;
     }
 
-    const result = await createNewUser(formData);
+    setLoading(true);
+    setError('');
+
+    const result = await createNewUserApi(formData);
+    setLoading(false);
+
     if (!result.success) {
       setError(result.message);
       return;
@@ -150,7 +156,7 @@ export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCan
             </div>
 
             <div className="form-group">
-              <label className="form-label">Login ID (6–12 characters)</label>
+              <label className="form-label">Login ID (3–20 characters)</label>
               <input
                 type="text"
                 name="loginId"
@@ -158,12 +164,12 @@ export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCan
                 onChange={handleChange}
                 placeholder="e.g. asmith_ops"
                 className="form-input"
-                minLength={6}
-                maxLength={12}
+                minLength={3}
+                maxLength={20}
                 required
               />
               <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                Unique system username between 6 and 12 alphanumeric characters.
+                Unique system username between 3 and 20 alphanumeric characters.
               </span>
             </div>
 
@@ -228,7 +234,7 @@ export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCan
               </div>
             </div>
             <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '-8px' }}>
-              Must be at least 8 characters with uppercase, lowercase, and a special character (!@#$%^&*).
+              Must be at least 6 characters.
             </span>
 
             <div
@@ -243,13 +249,13 @@ export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCan
               }}
             >
               {onCancel && (
-                <button type="button" className="btn btn-outline" onClick={onCancel}>
+                <button type="button" className="btn btn-outline" onClick={onCancel} disabled={loading}>
                   Cancel
                 </button>
               )}
-              <button type="submit" className="btn btn-primary" style={{ gap: '6px' }}>
+              <button type="submit" className="btn btn-primary" style={{ gap: '6px' }} disabled={loading}>
                 <UserPlus size={16} />
-                <span>Create User</span>
+                <span>{loading ? 'Creating in Database...' : 'Create User'}</span>
               </button>
             </div>
           </form>

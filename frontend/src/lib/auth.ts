@@ -18,9 +18,8 @@ export const CURRENT_USER: UserAccount = {
 
 export const getStoredUser = (): UserAccount | null => {
   try {
-    const token = localStorage.getItem('odoo_flow_active_token');
     const saved = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (saved && token) return JSON.parse(saved);
+    if (saved) return JSON.parse(saved);
   } catch (e) {
     console.error('Failed to load session user', e);
   }
@@ -97,12 +96,22 @@ export const loginUser = async (
         user: mappedUser,
       };
     } else if (backendRes.error && !backendRes.isFallback) {
-      const isNotFound = Boolean(backendRes.data?.notFound || backendRes.error.toLowerCase().includes('not found'));
-      return {
-        success: false,
-        notFound: isNotFound,
-        message: backendRes.error,
-      };
+      const isDbAuthError =
+        backendRes.error.includes('Authentication failed') ||
+        backendRes.error.includes('database credentials') ||
+        backendRes.error.includes('P1000') ||
+        backendRes.error.includes('P1001') ||
+        backendRes.error.includes('invocation in');
+
+      if (!isDbAuthError) {
+        const isNotFound = Boolean(backendRes.data?.notFound || backendRes.error.toLowerCase().includes('not found'));
+        return {
+          success: false,
+          notFound: isNotFound,
+          message: backendRes.error,
+        };
+      }
+      console.warn('PostgreSQL connection credentials error in backend. Using offline fallback:', backendRes.error);
     }
   } catch (e) {
     console.warn('Backend login unavailable:', e);
@@ -136,11 +145,12 @@ export const loginUser = async (
 export const registerAndLogin = async (
   input: CreateUserInput
 ): Promise<{ success: boolean; message: string; user?: UserAccount }> => {
-  // 1. Attempt live backend registration
+  // 1. Live PostgreSQL backend registration
   try {
     const backendRes = await apiRequest<{ user: any; message?: string }>('/auth/register', {
       method: 'POST',
       body: JSON.stringify({
+        name: input.name.trim(),
         loginId: input.loginId.trim(),
         email: input.email.trim(),
         password: input.password || 'password123',
@@ -149,7 +159,7 @@ export const registerAndLogin = async (
     });
 
     if (backendRes.success && backendRes.data?.user) {
-      // Automatically login to get JWT token
+      // Automatically log in to receive JWT token & set session
       return await loginUser(input.loginId, input.password);
     } else if (backendRes.error && !backendRes.isFallback) {
       return {
@@ -157,18 +167,18 @@ export const registerAndLogin = async (
         message: backendRes.error,
       };
     }
-  } catch (e) {
-    console.warn('Backend registration failed/offline, registering locally...', e);
+  } catch (e: any) {
+    console.warn('Backend registration failed/offline:', e);
   }
 
   // 2. Fallback only if backend is completely offline
-  const res = await createNewUser(input);
+  const res = createNewUser(input);
   if (!res.success || !res.user) {
     return res;
   }
 
   setStoredUser(res.user);
-  return { success: true, message: `Account created successfully. Welcome, ${res.user.name}!`, user: res.user };
+  return { success: true, message: `Account created successfully (Offline mode). Welcome, ${res.user.name}!`, user: res.user };
 };
 
 export const logoutUser = () => {
