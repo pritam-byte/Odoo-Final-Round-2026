@@ -44,7 +44,11 @@ export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavi
             Welcome, {userName} 👋
           </h1>
           <p className="page-subtitle" style={{ fontSize: '14px' }}>
-            Here is your personal settlement portal overview. View your invoices, vendor bills, and directly pay outstanding dues.
+            {currentUser?.partnerType === 'Vendor'
+              ? 'Here is your vendor procurement portal overview. Track raw material supply bills, outstanding payables, and settlement history.'
+              : currentUser?.partnerType === 'Both'
+              ? 'Here is your dual partner portal overview. View customer billing invoices, raw material vendor bills, and directly manage dues.'
+              : 'Here is your customer billing portal overview. View your furniture purchases, invoices, and directly pay outstanding dues.'}
           </p>
         </div>
       </div>

@@ -7,6 +7,7 @@ export interface UserAccount {
   loginId: string;
   email: string;
   role: UserRole;
+  partnerType?: 'Customer' | 'Vendor' | 'Both';
   status: UserStatus;
   partnerId?: string;
   createdAt: string;
@@ -18,6 +19,7 @@ export interface CreateUserInput {
   loginId: string;
   email: string;
   role: UserRole;
+  partnerType?: 'Customer' | 'Vendor' | 'Both';
   password: string;
   confirmPassword: string;
 }

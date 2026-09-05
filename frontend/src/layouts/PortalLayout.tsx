@@ -84,7 +84,11 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
             </div>
           </div>
           <span className="badge-pill badge-paid" style={{ fontSize: '11px', padding: '2px 8px' }}>
-            Customer Portal
+            {currentUser.partnerType === 'Vendor'
+              ? 'Vendor Portal'
+              : currentUser.partnerType === 'Both'
+              ? 'Partner Portal'
+              : 'Customer Portal'}
           </span>
         </div>
 
@@ -127,7 +131,13 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
               <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
                 {currentUser.name}
               </span>
-              <span style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>Customer Account</span>
+              <span style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>
+                {currentUser.partnerType === 'Vendor'
+                  ? 'Vendor Account'
+                  : currentUser.partnerType === 'Both'
+                  ? 'Dual Partner Account'
+                  : 'Customer Account'}
+              </span>
             </div>
             {onLogout && (
               <button
