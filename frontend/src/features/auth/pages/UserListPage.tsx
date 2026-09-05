@@ -64,7 +64,6 @@ export const UserListPage: React.FC<UserListPageProps> = ({ onNavigateToCreate }
     }
   };
 
-
   const filteredUsers = users.filter((u) => {
     const matchesRole = roleFilter === 'ALL' || u.role === roleFilter;
     const matchesSearch =
@@ -135,7 +134,6 @@ export const UserListPage: React.FC<UserListPageProps> = ({ onNavigateToCreate }
           </button>
         </div>
       </div>
-
 
       <div className="card-panel" style={{ padding: '16px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>

@@ -60,6 +60,19 @@ export const mapFrontendRole = (role: UserRole): string => {
   return 'PORTAL_USER';
 };
 
+export const mapBackendUserToFrontend = (u: any): UserAccount => ({
+  id: u.id,
+  name: u.contact?.name || u.loginId.charAt(0).toUpperCase() + u.loginId.slice(1),
+  loginId: u.loginId,
+  email: u.email || `${u.loginId}@urbanfurniture.com`,
+  role: mapBackendRole(u.role),
+  status: 'Active',
+  partnerType: 'Both',
+  partnerId: u.contactId || (u.role === 'PORTAL_USER' ? `partner_${u.loginId}` : undefined),
+  createdAt: typeof u.createdAt === 'string' ? u.createdAt.split('T')[0] : new Date(u.createdAt).toISOString().split('T')[0],
+  lastLogin: u.updatedAt ? new Date(u.updatedAt).toLocaleString() : undefined,
+});
+
 const loadUsers = (): UserAccount[] => {
   try {
     const saved = localStorage.getItem(USERS_STORAGE_KEY);
@@ -89,17 +102,7 @@ export const fetchAllUsersApi = async (): Promise<UserAccount[]> => {
   try {
     const res = await apiRequest('/auth/users');
     if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-      const mapped: UserAccount[] = res.data.map((u: any) => ({
-        id: u.id,
-        name: u.contact?.name || u.loginId.charAt(0).toUpperCase() + u.loginId.slice(1),
-        loginId: u.loginId,
-        email: u.email,
-        role: mapBackendRole(u.role),
-        status: 'Active',
-        partnerId: u.contactId || undefined,
-        createdAt: u.createdAt ? new Date(u.createdAt).toISOString().split('T')[0] : '2026-01-01',
-        lastLogin: undefined,
-      }));
+      const mapped: UserAccount[] = res.data.map(mapBackendUserToFrontend);
       mockUsers = mapped;
       saveUsers(mapped);
       return mapped;
@@ -109,6 +112,8 @@ export const fetchAllUsersApi = async (): Promise<UserAccount[]> => {
   }
   return getAllUsers();
 };
+
+export const fetchUsersApi = fetchAllUsersApi;
 
 export const createNewUserApi = async (
   input: CreateUserInput
@@ -148,7 +153,7 @@ export const createNewUserApi = async (
         createdAt: new Date().toISOString().split('T')[0],
       };
 
-      mockUsers.unshift(newUser);
+      mockUsers = [newUser, ...mockUsers.filter(u => u.loginId !== newUser.loginId)];
       saveUsers(mockUsers);
       return {
         success: true,
@@ -232,20 +237,20 @@ export const getUserById = (id: string): UserAccount | null => {
 
 export const createNewUser = (input: CreateUserInput): { success: boolean; message: string; user?: UserAccount } => {
   mockUsers = loadUsers();
-  const trimmedLogin = input.loginId.trim().toLowerCase();
-  const trimmedEmail = input.email.trim().toLowerCase();
+  const trimmedLogin = input.loginId.trim();
+  const trimmedEmail = input.email.trim();
   const trimmedName = input.name.trim();
 
   if (trimmedLogin.length < 3 || trimmedLogin.length > 20) {
     return { success: false, message: 'Login ID must be between 3 and 20 characters.' };
   }
 
-  const existingLogin = mockUsers.find(u => u.loginId.toLowerCase() === trimmedLogin);
+  const existingLogin = mockUsers.find(u => u.loginId.toLowerCase() === trimmedLogin.toLowerCase());
   if (existingLogin) {
     return { success: false, message: 'Login ID is already taken. Please choose another.' };
   }
 
-  const existingEmail = mockUsers.find(u => u.email.toLowerCase() === trimmedEmail);
+  const existingEmail = mockUsers.find(u => u.email.toLowerCase() === trimmedEmail.toLowerCase());
   if (existingEmail) {
     return { success: false, message: 'Email address is already registered.' };
   }
@@ -274,7 +279,7 @@ export const createNewUser = (input: CreateUserInput): { success: boolean; messa
     lastLogin: undefined
   };
 
-  mockUsers.unshift(newUser);
+  mockUsers = [newUser, ...mockUsers];
   saveUsers(mockUsers);
   return { success: true, message: 'User created successfully.', user: newUser };
 };

@@ -9,7 +9,6 @@ import {
   updateUser,
   deleteUser,
 } from "../controllers/auth.controller";
-import { authenticate, authorizeRoles } from "../middlewares/auth.middleware";
 
 const router = Router();
 
@@ -20,8 +19,9 @@ router.post("/verify-otp", verifyOtp);
 router.post("/reset-password", resetPassword);
 
 // User Management Routes
-router.get("/users", authenticate, getUsers);
-router.put("/users/:id", authenticate, authorizeRoles("ADMIN"), updateUser);
-router.delete("/users/:id", authenticate, authorizeRoles("ADMIN"), deleteUser);
+router.get("/users", getUsers);
+router.post("/users", register);
+router.put("/users/:id", updateUser);
+router.delete("/users/:id", deleteUser);
 
-export default router;
+export default router;

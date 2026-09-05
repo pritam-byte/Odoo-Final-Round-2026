@@ -56,7 +56,6 @@ export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCan
     }, 1500);
   };
 
-
   return (
     <div style={{ maxWidth: '640px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {onCancel && (
@@ -157,7 +156,7 @@ export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCan
             </div>
 
             <div className="form-group">
-              <label className="form-label">Login ID (6–12 characters)</label>
+              <label className="form-label">Login ID (3–20 characters)</label>
               <input
                 type="text"
                 name="loginId"
@@ -165,12 +164,12 @@ export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCan
                 onChange={handleChange}
                 placeholder="e.g. asmith_ops"
                 className="form-input"
-                minLength={6}
-                maxLength={12}
+                minLength={3}
+                maxLength={20}
                 required
               />
               <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                Unique system username between 6 and 12 alphanumeric characters.
+                Unique system username between 3 and 20 alphanumeric characters.
               </span>
             </div>
 
@@ -235,7 +234,7 @@ export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCan
               </div>
             </div>
             <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '-8px' }}>
-              Must be at least 8 characters with uppercase, lowercase, and a special character (!@#$%^&*).
+              Must be at least 6 characters.
             </span>
 
             <div
@@ -267,4 +266,3 @@ export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCan
 };
 
 export default CreateUserPage;
-

@@ -149,8 +149,14 @@ export async function login(req: Request, res: Response) {
   try {
     const { loginId, password } = loginSchema.parse(req.body);
 
-    const user = await prisma.user.findUnique({
-      where: { loginId },
+    const trimmed = loginId.trim();
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { loginId: { equals: trimmed, mode: 'insensitive' } },
+          { email: { equals: trimmed, mode: 'insensitive' } },
+        ],
+      },
     });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
@@ -344,3 +350,5 @@ export async function resetPassword(req: Request, res: Response) {
     return res.status(500).json({ error: error.message || "Failed to reset password" });
   }
 }
+
+

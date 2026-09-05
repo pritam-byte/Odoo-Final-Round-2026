@@ -11,21 +11,32 @@ import {
 } from 'lucide-react';
 import { StatusBadge } from '../../../components/ui/StatusBadge';
 import { CustomSelect } from '../../../components/ui/CustomSelect';
-import { getMyScopedDocuments } from '../api';
-import { getStoredUser } from '../../../lib/auth';
+import { getMyScopedDocuments, PortalDocument } from '../api';
+import { UserAccount } from '../../auth/schemas';
+import { getStoredUser, CURRENT_USER } from '../../../lib/auth';
 
 export interface PortalDashboardPageProps {
   onNavigate: (view: string, docId?: string) => void;
+  user?: UserAccount | null;
 }
 
-export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavigate }) => {
-  const currentUser = getStoredUser();
+export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavigate, user }) => {
+  const currentUser = user || getStoredUser() || CURRENT_USER;
   const pType = currentUser?.partnerType || 'Both';
-  const userName = currentUser?.name || 'Partner';
+  const userName = currentUser?.name || 'User';
 
   const [dualFilter, setDualFilter] = useState<'ALL' | 'invoice' | 'bill'>('ALL');
+  const [allScopedDocs, setAllScopedDocs] = useState<PortalDocument[]>(() => getMyScopedDocuments());
 
-  const allScopedDocs = getMyScopedDocuments();
+  React.useEffect(() => {
+    const refresh = () => setAllScopedDocs(getMyScopedDocuments());
+    window.addEventListener('odoo:accounting_updated', refresh);
+    window.addEventListener('storage', refresh);
+    return () => {
+      window.removeEventListener('odoo:accounting_updated', refresh);
+      window.removeEventListener('storage', refresh);
+    };
+  }, [currentUser?.partnerType]);
 
   // Filter based on dual filter if in Dual mode
   const displayedDocs = allScopedDocs.filter((d) => {
@@ -52,11 +63,11 @@ export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavi
     .reduce((acc, d) => acc + d.amountDue, 0);
 
   const totalFurnitureItems = invoices.reduce(
-    (acc, d) => acc + (d.lines?.reduce((lAcc, l) => lAcc + l.quantity, 0) || 0),
+    (acc, d) => acc + (d.lines?.reduce((lAcc: number, l: any) => lAcc + (Number(l.quantity) || 0), 0) || 0),
     0
   );
   const totalSupplyLots = bills.reduce(
-    (acc, d) => acc + (d.lines?.reduce((lAcc, l) => lAcc + l.quantity, 0) || 0),
+    (acc, d) => acc + (d.lines?.reduce((lAcc: number, l: any) => lAcc + (Number(l.quantity) || 0), 0) || 0),
     0
   );
 

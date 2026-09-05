@@ -180,7 +180,6 @@ async function main() {
     contactsMap[c.name] = record;
   }
 
-
   // =========================================================================
   // 4. USERS (Admin, Accountant, Portal Client)
   // =========================================================================
@@ -325,6 +324,7 @@ async function main() {
       image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&auto=format&fit=crop&q=80",
     },
   ];
+
 
   const productsMap: Record<string, any> = {};
   for (const p of productsData) {
