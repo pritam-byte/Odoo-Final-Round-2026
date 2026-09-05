@@ -26,7 +26,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({
 }) => {
   return (
     <div className="app-container">
-      <Header user={user} onLogout={onLogout} />
+      <Header user={user} onLogout={onLogout} onNavigate={onNavigate} />
 
       <div className="layout-body">
         <Sidebar currentPath={currentPath} onNavigate={onNavigate} userRole={userRole} />
