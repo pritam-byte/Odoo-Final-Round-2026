@@ -1026,47 +1026,28 @@ input[type="date"]:focus,
 }
 
 /* ==========================================================================
-   AUTH PAGES SPECIFIC STYLING (Login & Signup with Background Image)
+   AUTH PAGES SPECIFIC STYLING (Login & Signup with Full-Bleed Background Image)
    ========================================================================== */
 .auth-wrapper {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-bg);
-  background-image: url('/assets/background.png');
+  background-color: #f1f5f9;
+  background-image: url('/assets/Background.png'), url('/assets/background.png'), url('/background.png');
   background-size: cover;
-  background-position: center;
+  background-position: center center;
   background-repeat: no-repeat;
   background-attachment: fixed;
   position: relative;
 }
 
-.auth-wrapper::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(248, 249, 250, 0.86) 0%, rgba(240, 253, 250, 0.78) 100%);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-  z-index: 0;
-}
-
-.auth-header,
-.auth-main,
-.auth-wrapper .page-footer {
-  position: relative;
-  z-index: 1;
-}
-
 .auth-header {
-  padding: 16px 32px;
+  padding: 20px 36px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+  background: transparent;
+  border: none;
 }
 
 .auth-main {
@@ -1074,7 +1055,19 @@ input[type="date"]:focus,
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32px 16px 48px 16px;
+  padding: 16px 16px 40px 16px;
+}
+
+.auth-main .card-panel {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+}
+
+.auth-wrapper .page-footer {
+  color: #374151;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .auth-card {
