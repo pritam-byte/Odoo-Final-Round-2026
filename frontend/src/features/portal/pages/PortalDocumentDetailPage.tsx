@@ -20,13 +20,17 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
     return (
       <div className="card-panel" style={{ textAlign: 'center', padding: '48px' }}>
         <h3 className="card-title">Document Not Found or Access Denied</h3>
-        <p className="card-subtitle">You do not have permission to view this document or it does not exist.</p>
+        <p className="card-subtitle">
+          You do not have permission to view this document or it is not assigned to your account.
+        </p>
         <button type="button" className="btn btn-outline btn-sm" onClick={onBack} style={{ marginTop: '16px' }}>
           &larr; Back to My List
         </button>
       </div>
     );
   }
+
+  const isBill = doc.type === 'bill';
 
   const handlePaymentSuccess = (updatedDoc: PortalDocument) => {
     setDoc(updatedDoc);
@@ -57,7 +61,9 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
               style={{ gap: '6px' }}
             >
               <CreditCard size={15} />
-              <span>Pay Outstanding (₹${doc.amountDue.toFixed(2)})</span>
+              <span>
+                {isBill ? 'Record Settlement' : 'Pay Outstanding'} (₹{doc.amountDue.toFixed(2)})
+              </span>
             </button>
           )}
         </div>
@@ -76,8 +82,16 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
           }}
         >
           <div>
-            <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
-              {doc.type === 'bill' ? 'Vendor Bill' : 'Customer Invoice'} (Read Only)
+            <span
+              style={{
+                fontSize: '12px',
+                color: 'var(--color-text-muted)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                fontWeight: 600,
+              }}
+            >
+              {isBill ? 'Vendor Supply Bill' : 'Customer Sales Invoice'} (Read Only)
             </span>
             <h1 className="page-title" style={{ fontSize: '26px', marginTop: '4px' }}>
               {doc.number}
@@ -100,10 +114,19 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
             padding: '16px 20px',
             borderRadius: 'var(--radius-md)',
             border: '1px solid var(--color-border)',
+            margin: '20px 0',
           }}
         >
-          <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
-            Partner / Recipient (Self)
+          <span
+            style={{
+              fontSize: '11px',
+              color: 'var(--color-text-muted)',
+              textTransform: 'uppercase',
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+            }}
+          >
+            {isBill ? 'Vendor / Supplier (Self)' : 'Customer / Recipient (Self)'}
           </span>
           <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text-primary)', marginTop: '2px' }}>
             {doc.partnerName}
@@ -112,13 +135,15 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
 
         {/* Line Items Table */}
         <div>
-          <h3 className="card-title" style={{ marginBottom: '12px' }}>Line Items</h3>
+          <h3 className="card-title" style={{ marginBottom: '12px' }}>
+            {isBill ? 'Supplied Raw Materials & Services' : 'Purchased Furniture & Products'}
+          </h3>
           <div className="table-container">
             <table className="custom-table">
               <thead>
                 <tr>
                   <th style={{ width: '50px' }}>#</th>
-                  <th>Product / Service</th>
+                  <th>{isBill ? 'Raw Material / Item Description' : 'Product / Furniture Item'}</th>
                   <th style={{ textAlign: 'center', width: '80px' }}>Qty</th>
                   <th style={{ textAlign: 'right', width: '130px' }}>Unit Price</th>
                   <th style={{ textAlign: 'right', width: '130px' }}>Total</th>
@@ -142,10 +167,10 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
         </div>
 
         {/* Totals & Balance Summary */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
           <div
             style={{
-              width: '300px',
+              width: '320px',
               display: 'flex',
               flexDirection: 'column',
               gap: '10px',
@@ -165,8 +190,11 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
             </div>
             <div style={{ height: '1px', backgroundColor: 'var(--color-border)' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px' }}>
-              <span style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>Amount Due:</span>
-              <strong style={{ color: doc.amountDue > 0 ? 'var(--color-warning)' : 'var(--color-primary)' }}>₹{doc.amountDue.toFixed(2)}
+              <span style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                {isBill ? 'Balance Due:' : 'Amount Due:'}
+              </span>
+              <strong style={{ color: doc.amountDue > 0 ? 'var(--color-warning)' : 'var(--color-primary)' }}>
+                ₹{doc.amountDue.toFixed(2)}
               </strong>
             </div>
           </div>

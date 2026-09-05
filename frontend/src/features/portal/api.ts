@@ -5,7 +5,7 @@ import {
   DocumentType,
   UserDocumentStatus,
 } from './schemas';
-import { getScopedPartnerId } from '../../lib/auth';
+import { getScopedPartnerId, getStoredUser } from '../../lib/auth';
 import { apiRequest } from '../../lib/apiClient';
 
 export type { PortalDocument, DocumentLineItem, PortalPayment, DocumentType, UserDocumentStatus };
@@ -16,7 +16,7 @@ let mockPortalDocuments: PortalDocument[] = [
     number: 'INV/2026/0001',
     type: 'invoice',
     partnerId: 'partner_john_doe',
-    partnerName: 'John Doe (Self)',
+    partnerName: 'John Doe (Customer)',
     date: '2026-08-15',
     dueDate: '2026-09-15',
     total: 1250.0,
@@ -33,7 +33,7 @@ let mockPortalDocuments: PortalDocument[] = [
     number: 'INV/2026/0002',
     type: 'invoice',
     partnerId: 'partner_john_doe',
-    partnerName: 'John Doe (Self)',
+    partnerName: 'John Doe (Customer)',
     date: '2026-07-10',
     dueDate: '2026-08-10',
     total: 450.0,
@@ -49,7 +49,7 @@ let mockPortalDocuments: PortalDocument[] = [
     number: 'BILL/2026/0045',
     type: 'bill',
     partnerId: 'partner_john_doe',
-    partnerName: 'John Doe (Self)',
+    partnerName: 'Urban Timbers & Supplies Ltd (Vendor)',
     date: '2026-08-20',
     dueDate: '2026-09-20',
     total: 620.0,
@@ -57,7 +57,7 @@ let mockPortalDocuments: PortalDocument[] = [
     amountDue: 620.0,
     status: 'Unpaid',
     lines: [
-      { id: 'l4', product: 'Raw Timber Plank Lot', quantity: 10, unitPrice: 62.0, total: 620.0 },
+      { id: 'l4', product: 'Raw Timber Plank Lot (Grade A Teak)', quantity: 10, unitPrice: 62.0, total: 620.0 },
     ],
   },
   {
@@ -65,7 +65,7 @@ let mockPortalDocuments: PortalDocument[] = [
     number: 'BILL/2026/0012',
     type: 'bill',
     partnerId: 'partner_john_doe',
-    partnerName: 'John Doe (Self)',
+    partnerName: 'Urban Timbers & Supplies Ltd (Vendor)',
     date: '2026-06-05',
     dueDate: '2026-07-05',
     total: 980.0,
@@ -73,7 +73,7 @@ let mockPortalDocuments: PortalDocument[] = [
     amountDue: 0.0,
     status: 'Paid',
     lines: [
-      { id: 'l5', product: 'Metal Furniture Hardware Kit', quantity: 20, unitPrice: 49.0, total: 980.0 },
+      { id: 'l5', product: 'Metal Furniture Hardware Kit (Pack of 20)', quantity: 20, unitPrice: 49.0, total: 980.0 },
     ],
   },
 ];
@@ -88,8 +88,8 @@ let mockPortalPayments: PortalPayment[] = [
     date: '2026-09-05',
     paymentMethod: 'Bank',
     reference: 'PAY/2026/3439',
-    partnerName: 'Mr Rahul',
-    note: 'Self-Service settlement for Executive Desk & Mesh Chair',
+    partnerName: 'John Doe (Customer)',
+    note: 'Self-Service customer settlement for Executive Desk & Mesh Chair',
     status: 'Confirm',
   },
   {
@@ -101,8 +101,8 @@ let mockPortalPayments: PortalPayment[] = [
     date: '2026-09-05',
     paymentMethod: 'Bank',
     reference: 'PAY/2026/7437',
-    partnerName: 'Urban Timbers Ltd',
-    note: 'Supplier invoice payout for Raw Timber Lot',
+    partnerName: 'Urban Timbers & Supplies Ltd',
+    note: 'Supplier invoice payout voucher for Raw Timber Lot',
     status: 'Confirm',
   },
   {
@@ -114,7 +114,7 @@ let mockPortalPayments: PortalPayment[] = [
     date: '2026-08-08',
     paymentMethod: 'Bank',
     reference: 'PAY/2026/0088',
-    partnerName: 'Mr Rahul',
+    partnerName: 'John Doe (Customer)',
     note: 'Customer advance for Walnut Coffee Table',
     status: 'Confirm',
   },
@@ -127,20 +127,33 @@ let mockPortalPayments: PortalPayment[] = [
     date: '2026-07-01',
     paymentMethod: 'Cash',
     reference: 'PAY/2026/0052',
-    partnerName: 'Acme Hardware Inc',
+    partnerName: 'Urban Timbers & Supplies Ltd',
     note: 'Cash settlement at counter for Hardware Kit',
     status: 'Confirm',
   },
 ];
 
 export const getMyScopedDocuments = (documentType?: DocumentType): PortalDocument[] => {
+  const current = getStoredUser();
+  const partnerType = current?.partnerType || 'Both';
   const currentPartnerId = getScopedPartnerId();
+
   let docs = mockPortalDocuments.filter(
     (doc) => doc.partnerId === currentPartnerId || !doc.partnerId || doc.partnerId === 'partner_john_doe'
   );
+
+  // Strict persona isolation
+  if (partnerType === 'Customer') {
+    docs = docs.filter((d) => d.type === 'invoice');
+  } else if (partnerType === 'Vendor') {
+    docs = docs.filter((d) => d.type === 'bill');
+  }
+
+  // Filter by documentType parameter if requested
   if (documentType) {
     docs = docs.filter((d) => d.type === documentType);
   }
+
   return docs;
 };
 
@@ -150,7 +163,19 @@ export const getMyScopedDocumentById = (id: string): PortalDocument | null => {
 };
 
 export const getMyPayments = (): PortalPayment[] => {
-  return [...mockPortalPayments];
+  const current = getStoredUser();
+  const partnerType = current?.partnerType || 'Both';
+
+  let payments = [...mockPortalPayments];
+
+  // Strict persona isolation
+  if (partnerType === 'Customer') {
+    payments = payments.filter((p) => p.documentType === 'invoice');
+  } else if (partnerType === 'Vendor') {
+    payments = payments.filter((p) => p.documentType === 'bill');
+  }
+
+  return payments;
 };
 
 export const processPortalPayment = (params: {
@@ -194,6 +219,11 @@ export const processPortalPayment = (params: {
     doc.status = 'Paid';
   }
 
+  const currentUser = getStoredUser();
+  const effectivePartner = doc.type === 'invoice' 
+    ? (currentUser?.name ? `${currentUser.name} (Customer)` : 'John Doe (Customer)')
+    : (doc.partnerName || 'Urban Timbers & Supplies Ltd');
+
   const newPayment: PortalPayment = {
     id: `pay_${Date.now()}`,
     documentId: doc.id,
@@ -203,7 +233,7 @@ export const processPortalPayment = (params: {
     date: params.date,
     paymentMethod: params.paymentMethod,
     reference: params.reference || `PAY/2026/${Math.floor(1000 + Math.random() * 9000)}`,
-    partnerName: doc.partnerName || 'Mr Rahul',
+    partnerName: effectivePartner,
     note: params.reference || `Self-Service Portal settlement for ${doc.number}`,
     status: 'Confirm',
   };

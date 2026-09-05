@@ -185,6 +185,10 @@ export interface Budget {
   type: 'Income' | 'Expense';
   committedAmount: number;
   state: BudgetState;
+  originalBudgetId?: string;
+  originalBudgetName?: string;
+  revisedBudgetId?: string;
+  revisedBudgetName?: string;
 }
 
 export interface PaymentRecord {
@@ -466,7 +470,7 @@ export interface AccountingStoreContextType {
   budgets: Budget[];
   addBudget: (b: Omit<Budget, 'id'>) => Budget;
   updateBudgetState: (id: string, state: BudgetState) => void;
-  reviseBudget: (id: string, newCommittedAmount: number) => void;
+  reviseBudget: (id: string, newCommittedAmount: number) => Budget | undefined;
   getBudgetAchievedAmount: (budget: Budget) => number;
   getBudgetMatchedTransactions: (budget: Budget) => Array<{ id: string; type: 'Invoice' | 'Bill'; number: string; partner: string; date: string; amount: number }>;
 
@@ -1133,23 +1137,40 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
   };
 
   const reviseBudget = (id: string, newCommittedAmount: number) => {
-    setBudgets((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, state: 'Revised' } : b))
-    );
-
     const old = budgets.find((b) => b.id === id);
-    if (old) {
-      const revisedChild: Budget = {
-        ...old,
-        id: `b_rev_${Date.now()}`,
-        name: `${old.name} Revised`,
-        committedAmount: newCommittedAmount,
-        state: 'Confirmed',
-      };
-      setBudgets((prev) => [revisedChild, ...prev]);
-    }
+    if (!old) return;
+
+    const childId = `b_rev_${Date.now()}`;
+    const childName = old.name.includes('(Rev')
+      ? old.name.replace(/\(Rev \d+\)/, `(Rev ${parseInt(old.name.match(/\(Rev (\d+)\)/)?.[1] || '1') + 1})`)
+      : `${old.name} (Rev 1)`;
+
+    const revisedChild: Budget = {
+      ...old,
+      id: childId,
+      name: childName,
+      committedAmount: newCommittedAmount,
+      state: 'Confirmed',
+      originalBudgetId: old.id,
+      originalBudgetName: old.name,
+    };
+
+    setBudgets((prev) => [
+      revisedChild,
+      ...prev.map((b) =>
+        b.id === id
+          ? {
+              ...b,
+              state: 'Revised' as BudgetState,
+              revisedBudgetId: childId,
+              revisedBudgetName: childName,
+            }
+          : b
+      ),
+    ]);
 
     reviseBudgetApi(id, newCommittedAmount).catch((e) => console.warn('Backend revise budget error:', e));
+    return revisedChild;
   };
 
   // Journal Entries with strict Debit == Credit Rule

@@ -1166,12 +1166,17 @@ input, select, textarea {
 }
 
 /* ==========================================================================
-   CLEAN ENTERPRISE PRINTING STYLES
-   Ensures printed reports, statements, and receipts only display the clean document,
-   hiding headers, navigation bars, search bars, sidebars, buttons, and tools.
+   CLEAN ENTERPRISE FULL-PAGE PRINTING & PDF EXPORT STYLES
+   Ensures printed reports, statements, and receipts occupy the full width of
+   the page without squeezing or clipping, hiding all UI navigation and tools.
    ========================================================================== */
+@page {
+  size: A4 portrait;
+  margin: 12mm 15mm;
+}
+
 @media print {
-  /* Hide all top navigation, sidebars, accountant nav, and action bars */
+  /* Hide all top navigation, sidebars, accountant nav, buttons, and computation sidecards */
   header,
   nav,
   .top-header,
@@ -1189,15 +1194,16 @@ input, select, textarea {
     display: none !important;
   }
 
-  /* Reset layout and background for crisp printing */
+  /* Reset layout, width, and background for crisp printing */
   html,
   body,
   #root {
     background: #ffffff !important;
-    color: #000000 !important;
+    color: #111827 !important;
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
+    max-width: 100% !important;
     font-size: 11pt !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -1205,39 +1211,47 @@ input, select, textarea {
 
   .main-content,
   .app-container,
-  .page-container {
+  .page-container,
+  .report-grid-container {
+    display: block !important;
     padding: 0 !important;
     margin: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
   }
 
-  /* Expand printable card and tables to 100% width with clean borders */
-  .printable-document,
-  .card-panel {
-    border: 1px solid #9ca3af !important;
-    box-shadow: none !important;
-    padding: 24px !important;
-    margin: 0 auto !important;
+  /* Expand printable card and tables to 100% full page width with clean corporate borders */
+  .printable-document {
+    display: block !important;
     width: 100% !important;
     max-width: 100% !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    padding: 24px 28px !important;
+    margin: 0 auto !important;
     background: #ffffff !important;
     page-break-inside: avoid !important;
+    box-sizing: border-box !important;
   }
 
-  /* Tables in print */
-  .custom-table,
-  table {
+  .print-only-header {
+    display: block !important;
+  }
+
+  /* Full-width tables in print */
+  .printable-document .custom-table,
+  .printable-document table {
     width: 100% !important;
     border-collapse: collapse !important;
+    table-layout: auto !important;
+    font-size: 12pt !important;
   }
 
-  .custom-table th,
-  .custom-table td,
-  th,
-  td {
-    border: 1px solid #e5e7eb !important;
-    padding: 8px 12px !important;
+  .printable-document .custom-table th,
+  .printable-document .custom-table td {
+    padding: 10px 14px !important;
+    border-color: #e5e7eb !important;
     color: #111827 !important;
   }
 

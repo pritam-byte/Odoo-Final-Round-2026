@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Building2, Banknote, IndianRupee } from 'lucide-react';
 import { PortalDocument, processPortalPayment } from '../api';
+import { CustomDatePicker } from '../../../components/ui/CustomDatePicker';
 
 export interface DemoBankPaymentFormProps {
   document: PortalDocument;
@@ -20,6 +21,8 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
   const [error, setError] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
+  const isBill = document.type === 'bill';
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (amount <= 0) {
@@ -28,6 +31,10 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
     }
     if (amount > document.amountDue) {
       setError(`Amount cannot exceed the current balance due (₹${document.amountDue.toFixed(2)})`);
+      return;
+    }
+    if (!date) {
+      setError('Please select a payment date.');
       return;
     }
 
@@ -78,9 +85,13 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
         <div className="card-header" style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '14px' }}>
           <div>
             <h3 className="card-title" style={{ fontSize: '18px' }}>
-              Pay Dues: {document.number}
+              {isBill ? 'Record Settlement' : 'Pay Dues'}: {document.number}
             </h3>
-            <p className="card-subtitle">Direct self-service settlement</p>
+            <p className="card-subtitle">
+              {isBill
+                ? 'Vendor supply bill payout acknowledgment'
+                : 'Direct self-service customer invoice settlement'}
+            </p>
           </div>
           <button
             type="button"
@@ -101,13 +112,14 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
               borderRadius: 'var(--radius-sm)',
               fontSize: '13px',
               fontWeight: 500,
+              marginTop: '12px',
             }}
           >
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
           {/* Summary Box */}
           <div
             style={{
@@ -124,14 +136,16 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
               <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
                 Total Amount
               </span>
-              <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-text-primary)' }}>₹{document.total.toFixed(2)}
+              <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                ₹{document.total.toFixed(2)}
               </div>
             </div>
             <div>
               <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
-                Amount Due
+                {isBill ? 'Balance Due' : 'Amount Due'}
               </span>
-              <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-primary)' }}>₹{document.amountDue.toFixed(2)}
+              <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-primary)' }}>
+                ₹{document.amountDue.toFixed(2)}
               </div>
             </div>
           </div>
@@ -161,9 +175,9 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
             </div>
           </div>
 
-          {/* Amount */}
+          {/* Amount to Pay */}
           <div className="form-group">
-            <label className="form-label">Amount to Pay ($)</label>
+            <label className="form-label">Amount (₹)</label>
             <div className="input-with-icon-wrapper">
               <div className="input-leading-icon">
                 <IndianRupee size={15} />
@@ -184,15 +198,14 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
             </span>
           </div>
 
-          {/* Date */}
+          {/* Custom Date Picker */}
           <div className="form-group">
             <label className="form-label">Payment Date</label>
-            <input
-              type="date"
+            <CustomDatePicker
               value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="form-input"
-              required
+              onChange={(d) => setDate(d)}
+              placeholder="Select payment date"
+              width="100%"
             />
           </div>
 
@@ -201,7 +214,7 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
             <label className="form-label">Reference / Memo (Optional)</label>
             <input
               type="text"
-              placeholder="e.g. Bank Ref # / Transaction ID"
+              placeholder={isBill ? 'e.g. Supplier Ref # / NEFT Ref' : 'e.g. Bank Ref # / UTR'}
               value={reference}
               onChange={(e) => setReference(e.target.value)}
               className="form-input"
@@ -224,7 +237,9 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
               Cancel
             </button>
             <button type="submit" className="btn btn-primary" disabled={isProcessing}>
-              {isProcessing ? 'Processing...' : `Confirm Payment (₹${amount.toFixed(2)})`}
+              {isProcessing
+                ? 'Processing...'
+                : `${isBill ? 'Confirm Settlement' : 'Confirm Payment'} (₹${amount.toFixed(2)})`}
             </button>
           </div>
         </form>

@@ -46,8 +46,8 @@ export const JournalEntryPreview: React.FC<JournalEntryPreviewProps> = ({ entry,
           <tr>
             <th>Account</th>
             <th>Partner</th>
-            <th style={{ textAlign: 'right' }}>Debit ($)</th>
-            <th style={{ textAlign: 'right' }}>Credit ($)</th>
+            <th style={{ textAlign: 'right' }}>Debit (₹)</th>
+            <th style={{ textAlign: 'right' }}>Credit (₹)</th>
           </tr>
         </thead>
         <tbody>

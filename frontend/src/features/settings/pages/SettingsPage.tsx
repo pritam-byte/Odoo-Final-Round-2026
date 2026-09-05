@@ -171,7 +171,7 @@ export const SettingsPage: React.FC<{ onNavigate: (route: string) => void }> = (
                   onChange={(e) => setCurrency(e.target.value)}
                 >
                   <option value="INR (₹)">Indian Rupee (INR ₹)</option>
-                  <option value="USD ($)">US Dollar (USD $)</option>
+                  <option value="USD (₹)">US Dollar (USD $)</option>
                   <option value="EUR (€)">Euro (EUR €)</option>
                 </select>
               </div>

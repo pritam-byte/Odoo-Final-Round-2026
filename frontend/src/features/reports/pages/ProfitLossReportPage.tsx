@@ -117,7 +117,7 @@ export const ProfitLossReportPage: React.FC<{ onNavigate: (route: string) => voi
       </div>
 
       {/* Grid: Statement Table + Field Computation Guide */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(0, 1.2fr)', gap: '24px', alignItems: 'start' }}>
+      <div className="report-grid-container" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(0, 1.2fr)', gap: '24px', alignItems: 'start' }}>
         {/* Left: Profit and Loss Report Document Frame */}
         <div
           className="card-panel printable-document"
@@ -129,7 +129,26 @@ export const ProfitLossReportPage: React.FC<{ onNavigate: (route: string) => voi
             backgroundColor: '#ffffff',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid var(--color-border)', paddingBottom: '12px', marginBottom: '16px' }}>
+          {/* Print-Only Corporate Document Header */}
+          <div className="print-only-header" style={{ display: 'none', borderBottom: '2px solid var(--color-primary)', paddingBottom: '12px', marginBottom: '18px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '20px', color: 'var(--color-primary)', fontWeight: 800 }}>
+                  Urban Furniture Enterprise Pvt. Ltd.
+                </h2>
+                <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#4b5563', fontWeight: 600 }}>
+                  Official Statement of Profit and Loss (Income Statement)
+                </p>
+              </div>
+              <div style={{ textAlign: 'right', fontSize: '12px', color: '#4b5563', lineHeight: 1.4 }}>
+                <div><strong>Fiscal Period:</strong> FY {selectedYear}</div>
+                <div><strong>Accounting Method:</strong> Accrual Basis</div>
+                <div><strong>Currency:</strong> INR (₹)</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid var(--color-border)', paddingBottom: '12px', marginBottom: '16px' }}>
             <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-primary)' }}>
               Urban Furniture — Profit and Loss Report ({selectedYear})
             </span>
