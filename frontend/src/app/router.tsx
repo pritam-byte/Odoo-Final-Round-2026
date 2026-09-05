@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PortalLayout from '../layouts/PortalLayout';
 import StaffLayout from '../layouts/StaffLayout';
 import LoginPage from '../features/auth/pages/LoginPage';
@@ -12,26 +12,62 @@ import CreateUserPage from '../features/auth/pages/CreateUserPage';
 import { UserAccount } from '../features/auth/schemas';
 import { getStoredUser, logoutUser } from '../lib/auth';
 
+// Accountant Section Pages
+import { DashboardPage } from '../features/dashboard/pages/DashboardPage';
+import { ContactsPage } from '../features/contacts/pages/ContactsPage';
+import { ProductsPage } from '../features/products/pages/ProductsPage';
+import { AccountsPage } from '../features/accounts/pages/AccountsPage';
+import { JournalsPage } from '../features/journals/pages/JournalsPage';
+import { JournalEntriesPage } from '../features/accounting/pages/JournalEntriesPage';
+import { AnalyticAccountsPage } from '../features/analytics/pages/AnalyticAccountsPage';
+import { BudgetsPage } from '../features/budgets/pages/BudgetsPage';
+import { SalesOrdersPage } from '../features/orders/pages/SalesOrdersPage';
+import { InvoicesPage } from '../features/orders/pages/InvoicesPage';
+import { PurchaseOrdersPage } from '../features/orders/pages/PurchaseOrdersPage';
+import { VendorBillsPage } from '../features/orders/pages/VendorBillsPage';
+import { ProfitLossReportPage } from '../features/reports/pages/ProfitLossReportPage';
+import { BalanceSheetPage } from '../features/reports/pages/BalanceSheetPage';
+import { BudgetReportPage } from '../features/reports/pages/BudgetReportPage';
+
 export const AppRouter: React.FC = () => {
   // Session User
   const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => getStoredUser());
   const [authView, setAuthView] = useState<'login' | 'signup'>('login');
 
   // Navigation states
-  const [currentPath, setCurrentPath] = useState<string>('/dashboard');
+  const [currentPath, setCurrentPath] = useState<string>(() => {
+    const hash = window.location.hash.replace('#', '');
+    return hash || '/dashboard';
+  });
   const [portalView, setPortalView] = useState<string>('dashboard');
   const [selectedDocId, setSelectedDocId] = useState<string | undefined>(undefined);
   const [isCreatingUser, setIsCreatingUser] = useState<boolean>(false);
 
-  // When user logs in or creates account, direct them to their role-specific dashboard
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash) {
+        setCurrentPath(hash);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  const navigate = (path: string) => {
+    window.location.hash = path;
+    setCurrentPath(path);
+  };
+
+  // Direct role routing
   const handleAuthSuccess = (user: UserAccount) => {
     setCurrentUser(user);
     if (user.role === 'User') {
       setPortalView('dashboard');
     } else if (user.role === 'Admin') {
-      setCurrentPath('/users');
+      navigate('/users');
     } else {
-      setCurrentPath('/dashboard');
+      navigate('/dashboard');
     }
   };
 
@@ -41,9 +77,12 @@ export const AppRouter: React.FC = () => {
     setAuthView('login');
   };
 
-  // ----------------------------------------------------
-  // 1. UNATHENTICATED STATE -> Show Login or Signup Form
-  // ----------------------------------------------------
+  const handlePortalNavigate = (view: string, docId?: string) => {
+    setPortalView(view);
+    if (docId) setSelectedDocId(docId);
+  };
+
+  // 1. Unauthenticated View
   if (!currentUser) {
     if (authView === 'signup') {
       return (
@@ -61,181 +100,151 @@ export const AppRouter: React.FC = () => {
     );
   }
 
-  // ----------------------------------------------------
-  // 2. USER ROLE -> Customer Portal Dashboard
-  // ----------------------------------------------------
+  // 2. Client Portal View for Customer Role
   if (currentUser.role === 'User') {
     return (
       <PortalLayout
         activeNav={portalView}
-        onNavigate={(navId: string) => {
-          setPortalView(navId);
+        onNavigate={handlePortalNavigate}
+        onSwitchToAdmin={() => {
+          const adminUser: UserAccount = {
+            id: 'admin_temp',
+            name: 'Pritam Admin',
+            email: 'admin@odoo-flow.com',
+            role: 'Admin',
+            status: 'Active',
+            createdAt: new Date().toISOString(),
+          };
+          setCurrentUser(adminUser);
         }}
-        onSwitchToAdmin={handleLogout}
       >
-        {/* Active User session bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-muted)' }}>
-              Logged in as:
-            </span>
-            <strong>{currentUser.name}</strong>
-            <span className="badge-pill badge-paid">User Portal Role</span>
-          </div>
-
-          <button
-            type="button"
-            className="btn btn-outline btn-sm"
-            onClick={handleLogout}
-            style={{ color: 'var(--color-danger-text)' }}
-          >
-            Sign Out / Switch Account
-          </button>
-        </div>
-
-        {portalView === 'dashboard' && (
-          <PortalDashboardPage
-            onNavigate={(view, id) => {
-              setPortalView(view);
-              if (id) setSelectedDocId(id);
-            }}
-          />
-        )}
-        {portalView === 'invoices' && (
-          <PortalDocumentListPage
-            documentType="invoice"
-            onNavigate={(view, id) => {
-              setPortalView(view);
-              if (id) setSelectedDocId(id);
-            }}
-          />
-        )}
-        {portalView === 'bills' && (
-          <PortalDocumentListPage
-            documentType="bill"
-            onNavigate={(view, id) => {
-              setPortalView(view);
-              if (id) setSelectedDocId(id);
-            }}
-          />
-        )}
+        {portalView === 'dashboard' && <PortalDashboardPage onNavigate={handlePortalNavigate} />}
+        {portalView === 'invoices' && <PortalDocumentListPage documentType="invoice" onNavigate={handlePortalNavigate} />}
+        {portalView === 'bills' && <PortalDocumentListPage documentType="bill" onNavigate={handlePortalNavigate} />}
         {portalView === 'payments' && <PortalPaymentHistoryPage />}
         {portalView === 'detail' && selectedDocId && (
-          <PortalDocumentDetailPage
-            documentId={selectedDocId}
-            onBack={() => setPortalView('dashboard')}
-          />
+          <PortalDocumentDetailPage documentId={selectedDocId} onBack={() => setPortalView('dashboard')} />
         )}
       </PortalLayout>
     );
   }
 
-  // ----------------------------------------------------
-  // 3. ADMIN & ACCOUNTANT ROLES -> Staff Management View
-  // ----------------------------------------------------
+  // 3. User Management Page for Admin Role
+  if (currentPath === '/users') {
+    return (
+      <StaffLayout
+        currentPath={currentPath}
+        onNavigate={navigate}
+        user={{ name: currentUser.name, email: currentUser.email, role: currentUser.role }}
+        onLogout={handleLogout}
+      >
+        {isCreatingUser ? (
+          <CreateUserPage onBack={() => setIsCreatingUser(false)} onUserCreated={() => setIsCreatingUser(false)} />
+        ) : (
+          <UserListPage onCreateUser={() => setIsCreatingUser(true)} />
+        )}
+      </StaffLayout>
+    );
+  }
+
+  // 4. Staff / Accountant Section Views
+  const renderAccountantContent = () => {
+    switch (currentPath) {
+      case '/contacts':
+        return <ContactsPage onNavigate={navigate} />;
+      case '/products':
+        return <ProductsPage onNavigate={navigate} />;
+      case '/accounts':
+        return <AccountsPage onNavigate={navigate} />;
+      case '/journals':
+        return <JournalsPage onNavigate={navigate} />;
+      case '/journal-entries':
+      case '/accounting':
+        return <JournalEntriesPage onNavigate={navigate} />;
+      case '/analytics':
+        return <AnalyticAccountsPage onNavigate={navigate} />;
+      case '/budgets':
+        return <BudgetsPage onNavigate={navigate} />;
+      case '/sales/orders':
+      case '/orders':
+        return <SalesOrdersPage onNavigate={navigate} />;
+      case '/sales/invoices':
+      case '/invoices':
+        return <InvoicesPage onNavigate={navigate} />;
+      case '/purchase/orders':
+        return <PurchaseOrdersPage onNavigate={navigate} />;
+      case '/purchase/bills':
+      case '/bills':
+        return <VendorBillsPage onNavigate={navigate} />;
+      case '/reports/pnl':
+        return <ProfitLossReportPage onNavigate={navigate} />;
+      case '/reports/balance-sheet':
+        return <BalanceSheetPage onNavigate={navigate} />;
+      case '/reports/budget':
+      case '/reports':
+        return <BudgetReportPage onNavigate={navigate} />;
+      case '/dashboard':
+      case '/':
+      default:
+        return <DashboardPage onNavigate={navigate} />;
+    }
+  };
+
   return (
     <StaffLayout
       currentPath={currentPath}
-      onNavigate={(path) => {
-        setCurrentPath(path);
-        setIsCreatingUser(false);
-      }}
-      user={{
-        name: currentUser.name,
-        email: currentUser.email,
-        role: currentUser.role,
-      }}
-      userRole={currentUser.role}
+      onNavigate={navigate}
+      user={{ name: currentUser.name, email: currentUser.email, role: currentUser.role }}
       onLogout={handleLogout}
     >
-      {/* Session Top Bar */}
-      <div className="card-panel" style={{ padding: '12px 20px', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-muted)' }}>
-              Logged In:
-            </span>
-            <strong>{currentUser.name}</strong>
-            <span
-              className={`badge-pill ${
-                currentUser.role === 'Admin' ? 'badge-overdue' : 'badge-pending'
-              }`}
-            >
-              {currentUser.role}
-            </span>
-          </div>
-
-          <button
-            type="button"
-            className="btn btn-outline btn-sm"
-            onClick={handleLogout}
-            style={{ color: 'var(--color-danger-text)' }}
-          >
-            Sign Out / Switch Account
-          </button>
-        </div>
+      {/* Floating Demo Switcher */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: '16px',
+          right: '16px',
+          zIndex: 100,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          backgroundColor: '#ffffff',
+          padding: '6px 12px',
+          borderRadius: 'var(--radius-full)',
+          boxShadow: 'var(--shadow-lg)',
+          border: '1px solid var(--color-border)',
+          fontSize: '12px',
+        }}
+      >
+        <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Quick Nav:</span>
+        <button
+          type="button"
+          className="btn-ghost"
+          style={{ padding: '4px 8px', fontSize: '12px' }}
+          onClick={() => {
+            const portalUser: UserAccount = {
+              id: 'user_temp',
+              name: 'Alice Client',
+              email: 'client@portal.com',
+              role: 'User',
+              status: 'Active',
+              createdAt: new Date().toISOString(),
+            };
+            setCurrentUser(portalUser);
+          }}
+        >
+          Customer Portal ↗
+        </button>
+        <button
+          type="button"
+          className="btn-ghost"
+          style={{ padding: '4px 8px', fontSize: '12px', color: 'var(--color-danger)' }}
+          onClick={handleLogout}
+        >
+          Logout
+        </button>
       </div>
 
-      {/* Route: User Management (Admin Only) */}
-      {currentPath === '/users' && (
-        currentUser.role === 'Admin' ? (
-          isCreatingUser ? (
-            <CreateUserPage
-              onSuccess={() => setIsCreatingUser(false)}
-              onCancel={() => setIsCreatingUser(false)}
-            />
-          ) : (
-            <UserListPage onNavigateToCreate={() => setIsCreatingUser(true)} />
-          )
-        ) : (
-          <div className="card-panel" style={{ textAlign: 'center', padding: '48px' }}>
-            <h3 className="card-title" style={{ color: 'var(--color-danger-text)' }}>
-              403 - Permission Denied
-            </h3>
-            <p className="card-subtitle" style={{ marginTop: '8px' }}>
-              The <strong>/users</strong> management module is strictly restricted to Administrators. Your current role is <strong>{currentUser.role}</strong>.
-            </p>
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              onClick={() => setCurrentPath('/dashboard')}
-              style={{ marginTop: '16px' }}
-            >
-              Back to Dashboard
-            </button>
-          </div>
-        )
-      )}
-
-      {/* Default Dashboard & Other Modules */}
-      {currentPath !== '/users' && (
-        <div className="card-panel">
-          <div className="card-header">
-            <div>
-              <h2 className="card-title">
-                {currentPath.replace('/', '').toUpperCase() || 'DASHBOARD'} MODULE
-              </h2>
-              <p className="card-subtitle">
-                Logged in as <strong>{currentUser.name}</strong> ({currentUser.role}).
-              </p>
-            </div>
-            {currentUser.role === 'Admin' && (
-              <button
-                type="button"
-                className="btn btn-outline btn-sm"
-                onClick={() => setCurrentPath('/users')}
-              >
-                Go to User Management &rarr;
-              </button>
-            )}
-          </div>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px', lineHeight: 1.6 }}>
-            {currentUser.role === 'Admin'
-              ? 'As an Administrator, you have full master permissions across Sales, Purchases, Chart of Accounts, Journal Entries, Budgets, Financial Reports, and User Management.'
-              : 'As an Accountant, you have operational access to Sales, Purchases, Chart of Accounts, Journal Entries, Budgets, and Financial Reports.'}
-          </p>
-        </div>
-      )}
+      {renderAccountantContent()}
     </StaffLayout>
   );
 };
