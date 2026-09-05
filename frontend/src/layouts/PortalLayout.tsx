@@ -46,22 +46,28 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
     return () => clearInterval(interval);
   }, []);
 
+  const pType = currentUser.partnerType || 'Both';
+
   const navItems = [
     {
       id: 'dashboard',
       label: 'My Dashboard',
       icon: <LayoutDashboard size={17} strokeWidth={1.75} />,
     },
-    {
-      id: 'invoices',
-      label: 'My Invoices',
-      icon: <FileText size={17} strokeWidth={1.75} />,
-    },
-    {
-      id: 'bills',
-      label: 'My Bills',
-      icon: <Receipt size={17} strokeWidth={1.75} />,
-    },
+    ...(pType === 'Vendor' ? [] : [
+      {
+        id: 'invoices',
+        label: 'My Invoices',
+        icon: <FileText size={17} strokeWidth={1.75} />,
+      },
+    ]),
+    ...(pType === 'Customer' ? [] : [
+      {
+        id: 'bills',
+        label: pType === 'Vendor' ? 'My Supply Bills' : 'My Bills',
+        icon: <Receipt size={17} strokeWidth={1.75} />,
+      },
+    ]),
     {
       id: 'payments',
       label: 'Payment History',
@@ -84,7 +90,11 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
             </div>
           </div>
           <span className="badge-pill badge-paid" style={{ fontSize: '11px', padding: '2px 8px' }}>
-            Customer Portal
+            {pType === 'Vendor'
+              ? 'Vendor Portal'
+              : pType === 'Customer'
+              ? 'Customer Portal'
+              : 'Partner Portal (Customer + Vendor)'}
           </span>
         </div>
 
@@ -97,7 +107,7 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
             <input
               type="text"
               className="search-bar-input"
-              placeholder="Search invoices, bills, payments..."
+              placeholder={pType === 'Vendor' ? 'Search supply bills, payments...' : 'Search invoices, bills, payments...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -127,7 +137,13 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
               <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
                 {currentUser.name}
               </span>
-              <span style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>Customer Account</span>
+              <span style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>
+                {pType === 'Vendor'
+                  ? 'Vendor Supplier'
+                  : pType === 'Customer'
+                  ? 'Customer Account'
+                  : 'Customer + Vendor'}
+              </span>
             </div>
             {onLogout && (
               <button

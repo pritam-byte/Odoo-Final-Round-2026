@@ -1,6 +1,14 @@
 // Accounting Enterprise In-Memory Reactive Store
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { apiRequest } from '../../lib/apiClient';
+import { apiRequest, checkBackendHealth } from '../../lib/apiClient';
+import { fetchContactsApi } from '../contacts/api';
+import { fetchProductsApi } from '../products/api';
+import { fetchAnalyticsApi, createAnalyticApi } from '../analytics/api';
+import { fetchAccountsApi } from '../accounts/api';
+import { fetchJournalsApi } from '../journals/api';
+import { fetchBudgetsApi, createBudgetApi, confirmBudgetApi, cancelBudgetApi, reviseBudgetApi } from '../budgets/api';
+
+
 
 export type ContactType = 'customer' | 'vendor' | 'partner' | 'other';
 export type ProductType = 'Goods' | 'Service' | 'Combo';
@@ -452,6 +460,7 @@ export interface AccountingStoreContextType {
   budgets: Budget[];
   addBudget: (b: Omit<Budget, 'id'>) => Budget;
   updateBudgetState: (id: string, state: BudgetState) => void;
+  reviseBudget: (id: string, newCommittedAmount: number) => void;
   getBudgetAchievedAmount: (budget: Budget) => number;
   getBudgetMatchedTransactions: (budget: Budget) => Array<{ id: string; type: 'Invoice' | 'Bill'; number: string; partner: string; date: string; amount: number }>;
 
@@ -477,6 +486,11 @@ export interface AccountingStoreContextType {
 
   // Payments
   payments: PaymentRecord[];
+
+  // Backend Integration & Synchronization
+  isBackendConnected: boolean;
+  isSyncing: boolean;
+  refreshFromBackend: () => Promise<void>;
 
   // Helpers
   nextSeq: (prefix: string) => string;
@@ -549,6 +563,9 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
     const s = localStorage.getItem('odoo_payments');
     return s ? JSON.parse(s) : [];
   });
+
+  const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
   // Helper mappers between Backend DB and Frontend Store
   const mapBackendContact = (c: any): Contact => ({
@@ -740,12 +757,13 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
       accountName: it.account?.name || 'Account',
       partnerId: it.partnerId,
       partnerName: it.partner?.name,
+      label: it.description || '',
       debit: Number(it.debit) || 0,
       credit: Number(it.credit) || 0,
     })),
   });
 
-  // Initial Backend Data Loader
+  // Load all existing backend data once on mount or when token is present
   const loadBackendData = useCallback(async () => {
     try {
       const [
@@ -760,33 +778,27 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
         sosRes,
         invoicesRes,
         paymentsRes,
-        entriesRes,
+        entriesRes
       ] = await Promise.all([
-        apiRequest('/contacts'),
-        apiRequest('/products'),
-        apiRequest('/accounts'),
-        apiRequest('/journals'),
-        apiRequest('/analytics'),
-        apiRequest('/budgets'),
-        apiRequest('/purchase-orders'),
-        apiRequest('/vendor-bills'),
-        apiRequest('/sales-orders'),
-        apiRequest('/customer-invoices'),
-        apiRequest('/payments'),
-        apiRequest('/journal-entries'),
+        apiRequest<any[]>('/contacts').catch(() => ({ success: false, data: [] })),
+        apiRequest<any[]>('/products').catch(() => ({ success: false, data: [] })),
+        apiRequest<any[]>('/accounts').catch(() => ({ success: false, data: [] })),
+        apiRequest<any[]>('/journals').catch(() => ({ success: false, data: [] })),
+        apiRequest<any[]>('/analytics').catch(() => ({ success: false, data: [] })),
+        apiRequest<any[]>('/budgets').catch(() => ({ success: false, data: [] })),
+        apiRequest<any[]>('/transactions/purchase-orders').catch(() => ({ success: false, data: [] })),
+        apiRequest<any[]>('/transactions/vendor-bills').catch(() => ({ success: false, data: [] })),
+        apiRequest<any[]>('/transactions/sales-orders').catch(() => ({ success: false, data: [] })),
+        apiRequest<any[]>('/transactions/customer-invoices').catch(() => ({ success: false, data: [] })),
+        apiRequest<any[]>('/transactions/payments').catch(() => ({ success: false, data: [] })),
+        apiRequest<any[]>('/transactions/journal-entries').catch(() => ({ success: false, data: [] })),
       ]);
 
       if (contactsRes.success && Array.isArray(contactsRes.data) && contactsRes.data.length > 0) {
         setContacts(contactsRes.data.map(mapBackendContact));
       }
       if (productsRes.success && Array.isArray(productsRes.data) && productsRes.data.length > 0) {
-        const mappedProducts = productsRes.data.map(mapBackendProduct);
-        setProducts(mappedProducts);
-        const uniqueCats = Array.from(new Set(mappedProducts.map((p) => p.categoryName))).map((name, idx) => ({
-          id: `cat_${idx + 1}`,
-          name,
-        }));
-        if (uniqueCats.length > 0) setCategories(uniqueCats);
+        setProducts(productsRes.data.map(mapBackendProduct));
       }
       if (accountsRes.success && Array.isArray(accountsRes.data) && accountsRes.data.length > 0) {
         setAccounts(accountsRes.data.map(mapBackendAccount));
@@ -849,6 +861,119 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
   useEffect(() => { localStorage.setItem('odoo_bills', JSON.stringify(bills)); }, [bills]);
   useEffect(() => { localStorage.setItem('odoo_payments', JSON.stringify(payments)); }, [payments]);
 
+  // Live Backend Hydration
+  const refreshFromBackend = useCallback(async () => {
+    setIsSyncing(true);
+    try {
+      const health = await checkBackendHealth();
+      setIsBackendConnected(health.isOnline);
+
+      if (health.isOnline) {
+        // 1. Fetch Contacts
+        const contactsRes = await fetchContactsApi();
+        if (contactsRes.success && contactsRes.data && contactsRes.data.length > 0) {
+          const mappedContacts: Contact[] = contactsRes.data.map((c) => ({
+            id: c.id,
+            name: c.name,
+            email: c.email,
+            phone: c.phone || '',
+            imageUrl: c.image || undefined,
+            address: {
+              street: c.address || '',
+              city: c.city || '',
+              state: c.state || '',
+              country: 'India',
+              pincode: c.pincode || '',
+            },
+            type: c.type === 'CUSTOMER' ? 'customer' : c.type === 'VENDOR' ? 'vendor' : 'partner',
+          }));
+          setContacts(mappedContacts);
+        }
+
+        // 2. Fetch Products
+        const prodRes = await fetchProductsApi();
+        if (prodRes.success && prodRes.data && prodRes.data.length > 0) {
+          const mappedProducts: Product[] = prodRes.data.map((p) => ({
+            id: p.id,
+            name: p.name,
+            type: p.type === 'GOODS' ? 'Goods' : p.type === 'SERVICE' ? 'Service' : 'Combo',
+            categoryId: 'cat1',
+            categoryName: p.category || 'General',
+            salesPrice: Number(p.salesPrice) || 0,
+            cost: Number(p.cost) || 0,
+            imageUrl: p.image || undefined,
+          }));
+          setProducts(mappedProducts);
+        }
+
+        // 3. Fetch Analytics
+        const analyticsRes = await fetchAnalyticsApi();
+        if (analyticsRes.success && analyticsRes.data && analyticsRes.data.length > 0) {
+          const mappedAnalytics: AnalyticAccount[] = analyticsRes.data.map((a) => ({
+            id: a.id,
+            name: a.name,
+            type: a.type === 'INCOME' ? 'Income' : 'Expense',
+            code: a.name.substring(0, 4).toUpperCase(),
+          }));
+          setAnalytics(mappedAnalytics);
+        }
+
+        // 4. Fetch Accounts
+        const accRes = await fetchAccountsApi();
+        if (accRes.success && accRes.data && accRes.data.length > 0) {
+          const mappedAccounts: Account[] = accRes.data.map((a, idx) => ({
+            id: a.id,
+            code: (1000 + idx * 100).toString(),
+            name: a.name,
+            type: a.type === 'ASSET' ? 'Asset' : a.type === 'LIABILITY' ? 'Liability' : a.type === 'INCOME' ? 'Income' : a.type === 'EXPENSE' ? 'Expense' : 'Capital',
+            balance: 0,
+          }));
+          setAccounts(mappedAccounts);
+        }
+
+        // 5. Fetch Journals
+        const jRes = await fetchJournalsApi();
+        if (jRes.success && jRes.data && jRes.data.length > 0) {
+          const mappedJournals: Journal[] = jRes.data.map((j) => ({
+            id: j.id,
+            code: j.name.substring(0, 3).toUpperCase(),
+            name: j.name,
+            type: j.type === 'SALES' ? 'Sales' : j.type === 'PURCHASE' ? 'Purchase' : j.type === 'BANK' ? 'Bank' : 'Cash',
+            defaultAccountId: j.defaultAccountId || 'acc1',
+            defaultAccountName: j.defaultAccount?.name || 'Default Account',
+          }));
+          setJournals(mappedJournals);
+        }
+
+        // 6. Fetch Budgets
+        const budgetRes = await fetchBudgetsApi();
+        if (budgetRes.success && budgetRes.data && budgetRes.data.length > 0) {
+          const mappedBudgets: Budget[] = budgetRes.data.map((b) => ({
+            id: b.id,
+            name: b.name,
+            startDate: typeof b.startDate === 'string' ? b.startDate.split('T')[0] : new Date(b.startDate).toISOString().split('T')[0],
+            endDate: typeof b.endDate === 'string' ? b.endDate.split('T')[0] : new Date(b.endDate).toISOString().split('T')[0],
+            responsible: b.responsible?.name || 'Pritam Admin',
+            analyticId: b.analyticId,
+            analyticName: b.analytic?.name || 'General Operations',
+            type: b.type === 'INCOME' ? 'Income' : 'Expense',
+            committedAmount: Number(b.committedAmount) || 0,
+            state: b.status === 'CONFIRMED' ? 'Confirmed' : b.status === 'CANCELLED' ? 'Cancelled' : b.status === 'REVISED' ? 'Revised' : 'Draft',
+          }));
+          setBudgets(mappedBudgets);
+        }
+      }
+    } catch (e) {
+      console.warn('Backend sync failed, continuing offline:', e);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshFromBackend();
+  }, [refreshFromBackend]);
+
   const nextSeq = (prefix: string) => {
     const year = new Date().getFullYear();
     const rand = Math.floor(1000 + Math.random() * 9000);
@@ -887,7 +1012,7 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
         const serverC = mapBackendContact(res.data);
         setContacts((prev) => prev.map((item) => (item.id === tempId ? serverC : item)));
       }
-    });
+    }).catch((e) => console.warn('Backend contact create sync error:', e));
 
     return newC;
   };
@@ -930,7 +1055,7 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
         const serverP = mapBackendProduct(res.data);
         setProducts((prev) => prev.map((item) => (item.id === tempId ? serverP : item)));
       }
-    });
+    }).catch((e) => console.warn('Backend product create sync error:', e));
 
     return newP;
   };
@@ -951,6 +1076,74 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
     const newJ: Journal = { ...j, id: `j_${Date.now()}` };
     setJournals((prev) => [...prev, newJ]);
     return newJ;
+  };
+
+  // Analytics & Budgets
+  const addAnalytic = (a: Omit<AnalyticAccount, 'id'>) => {
+    const newA: AnalyticAccount = { ...a, id: `an_${Date.now()}` };
+    setAnalytics((prev) => [...prev, newA]);
+
+    createAnalyticApi({
+      name: a.name,
+      type: a.type === 'Income' ? 'INCOME' : 'EXPENSE',
+    }).then((res) => {
+      if (res.success && res.data) {
+        setAnalytics((prev) => prev.map((item) => (item.id === newA.id ? { ...item, id: res.data!.id } : item)));
+      }
+    }).catch((e) => console.warn('Backend analytic create sync error:', e));
+
+    return newA;
+  };
+
+  const addBudget = (b: Omit<Budget, 'id'>) => {
+    const newB: Budget = { ...b, id: `b_${Date.now()}` };
+    setBudgets((prev) => [newB, ...prev]);
+
+    // Backend Sync
+    createBudgetApi({
+      name: b.name,
+      startDate: b.startDate,
+      endDate: b.endDate,
+      analyticId: b.analyticId,
+      responsibleId: contacts[0]?.id || 'c1',
+      committedAmount: b.committedAmount,
+    }).then((res) => {
+      if (res.success && res.data) {
+        setBudgets((prev) => prev.map((item) => (item.id === newB.id ? { ...item, id: res.data!.id } : item)));
+      }
+    }).catch((e) => console.warn('Backend budget create sync error:', e));
+
+    return newB;
+  };
+
+  const updateBudgetState = (id: string, state: BudgetState) => {
+    setBudgets((prev) => prev.map((b) => (b.id === id ? { ...b, state } : b)));
+
+    if (state === 'Confirmed') {
+      confirmBudgetApi(id).catch((e) => console.warn('Backend confirm budget error:', e));
+    } else if (state === 'Cancelled') {
+      cancelBudgetApi(id).catch((e) => console.warn('Backend cancel budget error:', e));
+    }
+  };
+
+  const reviseBudget = (id: string, newCommittedAmount: number) => {
+    setBudgets((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, state: 'Revised' } : b))
+    );
+
+    const old = budgets.find((b) => b.id === id);
+    if (old) {
+      const revisedChild: Budget = {
+        ...old,
+        id: `b_rev_${Date.now()}`,
+        name: `${old.name} Revised`,
+        committedAmount: newCommittedAmount,
+        state: 'Confirmed',
+      };
+      setBudgets((prev) => [revisedChild, ...prev]);
+    }
+
+    reviseBudgetApi(id, newCommittedAmount).catch((e) => console.warn('Backend revise budget error:', e));
   };
 
   // Journal Entries with strict Debit == Credit Rule
@@ -986,65 +1179,6 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
     setJournalEntries((prev) =>
       prev.map((je) => (je.id === id ? { ...je, status: 'Cancelled' } : je))
     );
-  };
-
-  // Analytics & Budgets
-  const addAnalytic = (a: Omit<AnalyticAccount, 'id'>) => {
-    const tempId = `an_${Date.now()}`;
-    const newA: AnalyticAccount = { ...a, id: tempId };
-    setAnalytics((prev) => [...prev, newA]);
-
-    apiRequest('/analytics', {
-      method: 'POST',
-      body: JSON.stringify({
-        name: a.name,
-        type: (a.type?.toUpperCase() || 'EXPENSE'),
-      }),
-    }).then((res) => {
-      if (res.success && res.data) {
-        const serverA = mapBackendAnalytic(res.data);
-        setAnalytics((prev) => prev.map((item) => (item.id === tempId ? serverA : item)));
-      }
-    });
-
-    return newA;
-  };
-
-  const addBudget = (b: Omit<Budget, 'id'>) => {
-    const tempId = `b_${Date.now()}`;
-    const newB: Budget = { ...b, id: tempId };
-    setBudgets((prev) => [newB, ...prev]);
-
-    const analyticId = resolveUUID(b.analyticId, analytics);
-    const responsibleId = resolveUUID(b.responsibleId || '', contacts);
-
-    apiRequest('/budgets', {
-      method: 'POST',
-      body: JSON.stringify({
-        name: b.name,
-        startDate: b.startDate,
-        endDate: b.endDate,
-        analyticId,
-        responsibleId,
-        committedAmount: b.committedAmount,
-      }),
-    }).then((res) => {
-      if (res.success && res.data) {
-        const serverB = mapBackendBudget(res.data);
-        setBudgets((prev) => prev.map((item) => (item.id === tempId ? serverB : item)));
-      }
-    });
-
-    return newB;
-  };
-
-  const updateBudgetState = (id: string, state: BudgetState) => {
-    setBudgets((prev) => prev.map((b) => (b.id === id ? { ...b, state } : b)));
-    if (state === 'Confirmed') {
-      apiRequest(`/budgets/${id}/confirm`, { method: 'POST' });
-    } else if (state === 'Cancelled') {
-      apiRequest(`/budgets/${id}/cancel`, { method: 'POST' });
-    }
   };
 
   const getBudgetAchievedAmount = (budget: Budget): number => {
@@ -1433,6 +1567,7 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
         budgets,
         addBudget,
         updateBudgetState,
+        reviseBudget,
         getBudgetAchievedAmount,
         getBudgetMatchedTransactions,
         salesOrders,
@@ -1450,6 +1585,9 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
         confirmBill,
         payBill,
         payments,
+        isBackendConnected,
+        isSyncing,
+        refreshFromBackend,
         nextSeq,
       }}
     >

@@ -152,7 +152,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span className="sidebar-group-title">{group.title}</span>
             )}
             {group.items.map((item) => {
-              const isActive = currentPath === item.path || (item.path !== '/dashboard' && currentPath.startsWith(item.path));
+              const isActive =
+                currentPath === item.path ||
+                (item.path === '/stock' && (currentPath === '/products' || currentPath === '/stock')) ||
+                (item.path === '/accounting' && (currentPath === '/journal-entries' || currentPath === '/accounting')) ||
+                (item.path === '/orders' && (currentPath.startsWith('/sales') || currentPath.startsWith('/orders') || currentPath.startsWith('/invoices'))) ||
+                (item.path === '/payments' && (currentPath.startsWith('/purchase') || currentPath.startsWith('/bills') || currentPath === '/payments')) ||
+                (item.path === '/reports' && currentPath.startsWith('/reports')) ||
+                (item.path !== '/dashboard' && currentPath.startsWith(item.path));
               return (
                 <a
                   key={item.id}
