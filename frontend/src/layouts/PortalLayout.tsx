@@ -194,8 +194,21 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
 
   // Search Results Computation
   const cleanQuery = searchQuery.trim().toLowerCase();
-  const allScopedDocs = getMyScopedDocuments();
-  const allPayments = getMyPayments();
+  const [allScopedDocs, setAllScopedDocs] = useState<PortalDocument[]>(() => getMyScopedDocuments());
+  const [allPayments, setAllPayments] = useState<PortalPayment[]>(() => getMyPayments());
+
+  useEffect(() => {
+    const refreshData = () => {
+      setAllScopedDocs(getMyScopedDocuments());
+      setAllPayments(getMyPayments());
+    };
+    window.addEventListener('odoo:accounting_updated', refreshData);
+    window.addEventListener('storage', refreshData);
+    return () => {
+      window.removeEventListener('odoo:accounting_updated', refreshData);
+      window.removeEventListener('storage', refreshData);
+    };
+  }, [pType]);
 
   const matchingInvoices: PortalDocument[] = cleanQuery
     ? allScopedDocs.filter(

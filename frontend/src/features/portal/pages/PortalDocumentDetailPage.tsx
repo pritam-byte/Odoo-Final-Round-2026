@@ -18,6 +18,17 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
   const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
   const [selectedVoucher, setSelectedVoucher] = useState<PortalPayment | null>(null);
 
+  React.useEffect(() => {
+    const refresh = () => setDoc(getMyScopedDocumentById(documentId));
+    refresh();
+    window.addEventListener('odoo:accounting_updated', refresh);
+    window.addEventListener('storage', refresh);
+    return () => {
+      window.removeEventListener('odoo:accounting_updated', refresh);
+      window.removeEventListener('storage', refresh);
+    };
+  }, [documentId]);
+
   if (!doc) {
     return (
       <div className="card-panel" style={{ textAlign: 'center', padding: '48px' }}>
