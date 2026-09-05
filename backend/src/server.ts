@@ -29,6 +29,10 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok", service: "Urban Furniture API" });
 });
 
+app.get("/api/health", (_req, res) => {
+  res.json({ status: "ok", service: "Urban Furniture API" });
+});
+
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });

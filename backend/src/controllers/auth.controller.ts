@@ -2,9 +2,9 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { prisma } from "../lib/prisma";
-import { registerSchema, loginSchema } from "../validations/auth.validation";
-import { JWT_SECRET } from "../config/constants";
-import { sendPasswordResetOtp } from "../services/mail.service";
+import { registerSchema, loginSchema } from "../validations/auth.validation.js";
+import { JWT_SECRET } from "../config/constants.js";
+import { sendPasswordResetOtp } from "../services/mail.service.js";
 
 // In-memory OTP storage with 10-minute expiry
 interface OtpRecord {
