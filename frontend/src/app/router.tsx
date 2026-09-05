@@ -168,6 +168,7 @@ export const AppRouter: React.FC = () => {
       case '/contacts':
         return <ContactsPage onNavigate={navigate} />;
       case '/products':
+      case '/stock':
         return <ProductsPage onNavigate={navigate} />;
       case '/accounts':
         return <AccountsPage onNavigate={navigate} />;
@@ -190,6 +191,7 @@ export const AppRouter: React.FC = () => {
         return <PurchaseOrdersPage onNavigate={navigate} />;
       case '/purchase/bills':
       case '/bills':
+      case '/payments':
         return <VendorBillsPage onNavigate={navigate} />;
       case '/reports/pnl':
         return <ProfitLossReportPage onNavigate={navigate} />;

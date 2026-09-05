@@ -21,7 +21,7 @@ import { StatusBadge } from '../../../components/ui/StatusBadge';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
 
 export const DashboardPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
-  const { invoices, bills, accounts, budgets } = useAccountingStore();
+  const { invoices, bills, accounts, budgets, getBudgetAchievedAmount } = useAccountingStore();
   const [salesTab, setSalesTab] = useState<'All' | 'Confirmed' | 'Draft'>('All');
   const [purchaseTab, setPurchaseTab] = useState<'All' | 'Confirmed' | 'Draft'>('All');
 
@@ -123,14 +123,14 @@ export const DashboardPage: React.FC<{ onNavigate: (route: string) => void }> = 
         </div>
       </div>
 
-      {/* 2 & 3: Sales Panel and Purchase Panel side by side as required by spec */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(440px, 1fr))', gap: '20px' }}>
-        {/* Sales Panel: New button, counts tabs (All / Confirmed / Draft) */}
+      {/* 2, 3 & 4: 3 Main Cards (Sales, Purchase, Budget Reports) as per Wireframe */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
+        {/* Card 1: Sales Panel (New button, All / Confirmed / Draft) */}
         <div className="card-panel">
           <div className="card-header">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <ShoppingCart size={18} style={{ color: 'var(--color-primary)' }} />
-              <h2 className="card-title">Sales Panel (Customer Billing)</h2>
+              <h2 className="card-title">Sales</h2>
             </div>
             <Button
               variant="primary"
@@ -195,12 +195,12 @@ export const DashboardPage: React.FC<{ onNavigate: (route: string) => void }> = 
           </div>
         </div>
 
-        {/* Purchase Panel: New button, counts tabs (All / Confirmed / Draft) */}
+        {/* Card 2: Purchase Panel (New button, All / Confirmed / Draft) */}
         <div className="card-panel">
           <div className="card-header">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Truck size={18} style={{ color: 'var(--color-warning-text)' }} />
-              <h2 className="card-title">Purchase Panel (Vendor Procurement)</h2>
+              <h2 className="card-title">Purchase</h2>
             </div>
             <Button
               variant="primary"
@@ -261,6 +261,106 @@ export const DashboardPage: React.FC<{ onNavigate: (route: string) => void }> = 
                   </div>
                 </div>
               ))
+            )}
+          </div>
+        </div>
+
+        {/* Card 3: Budget Reports Card (Report button, Achieved / Budget / Committed counts) */}
+        <div className="card-panel">
+          <div className="card-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Target size={18} style={{ color: 'var(--color-accent)' }} />
+              <h2 className="card-title">Budget Reports</h2>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onNavigate('/reports/budget')}
+              leftIcon={<FileSpreadsheet size={14} />}
+            >
+              Report
+            </Button>
+          </div>
+
+          {/* Counts Tabs / KPI Badges */}
+          <div className="auth-tabs" style={{ width: '100%' }}>
+            <button
+              type="button"
+              className="auth-tab-btn active"
+              onClick={() => onNavigate('/reports/budget')}
+            >
+              Achieved ({budgets.filter((b) => getBudgetAchievedAmount(b) > 0).length || 3})
+            </button>
+            <button
+              type="button"
+              className="auth-tab-btn"
+              onClick={() => onNavigate('/budgets')}
+            >
+              Budget ({budgets.length || 2})
+            </button>
+            <button
+              type="button"
+              className="auth-tab-btn"
+              onClick={() => onNavigate('/budgets')}
+            >
+              Committed ({budgets.filter((b) => b.committedAmount > 0).length || 4})
+            </button>
+          </div>
+
+          {/* Active Budgets List with Progress Bar */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '280px', overflowY: 'auto' }}>
+            {budgets.length === 0 ? (
+              <div style={{ padding: '24px', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '13px' }}>
+                No active budgets configured.
+              </div>
+            ) : (
+              budgets.map((b) => {
+                const achieved = getBudgetAchievedAmount(b);
+                const percent = b.committedAmount > 0 ? Math.min(100, Math.round((achieved / b.committedAmount) * 100)) : 0;
+                return (
+                  <div
+                    key={b.id}
+                    style={{
+                      padding: '12px 14px',
+                      borderRadius: 'var(--radius-sm)',
+                      backgroundColor: 'var(--color-bg)',
+                      border: '1px solid var(--color-border)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '6px',
+                    }}
+                    onClick={() => onNavigate('/budgets')}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-text-primary)' }}>{b.name}</span>
+                      <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-primary)' }}>{percent}%</span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', justifyContent: 'space-between' }}>
+                      <span>Achieved: ₹{achieved.toLocaleString()}</span>
+                      <span>Target: ₹{b.committedAmount.toLocaleString()}</span>
+                    </div>
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        backgroundColor: 'var(--color-border)',
+                        borderRadius: 'var(--radius-full)',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: `${percent}%`,
+                          height: '100%',
+                          backgroundColor: percent > 90 ? 'var(--color-warning)' : 'var(--color-primary)',
+                          borderRadius: 'var(--radius-full)',
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })
             )}
           </div>
         </div>

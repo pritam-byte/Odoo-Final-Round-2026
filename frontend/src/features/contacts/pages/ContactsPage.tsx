@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, Mail, Phone, MapPin, Image as ImageIcon, Check, ArrowLeft } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Plus, Mail, Phone, MapPin, Image as ImageIcon, Check, ArrowLeft, Upload, Trash2 } from 'lucide-react';
 import { useAccountingStore, Contact } from '../../accounting/store';
 import { Button } from '../../../components/ui/Button';
 import { ViewToggle } from '../../../components/ui/ViewToggle';
@@ -14,6 +14,7 @@ export const ContactsPage: React.FC<{ onNavigate: (route: string) => void }> = (
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form State
   const [name, setName] = useState('');
@@ -27,6 +28,19 @@ export const ContactsPage: React.FC<{ onNavigate: (route: string) => void }> = (
   const [pincode, setPincode] = useState('');
   const [type, setType] = useState<'customer' | 'vendor' | 'partner'>('customer');
   const [error, setError] = useState('');
+
+  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setImageUrl(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const openCreateModal = () => {
     setEditingContact(null);
@@ -290,10 +304,17 @@ export const ContactsPage: React.FC<{ onNavigate: (route: string) => void }> = (
             {/* Image Upload Box matching Wireframe */}
             <div className="form-group" style={{ textAlign: 'center' }}>
               <label className="form-label">Profile Image</label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleImageFileUpload}
+              />
               <div
                 style={{
-                  width: '120px',
-                  height: '120px',
+                  width: '100px',
+                  height: '100px',
                   border: '2px dashed var(--color-border)',
                   borderRadius: 'var(--radius-md)',
                   display: 'flex',
@@ -303,20 +324,40 @@ export const ContactsPage: React.FC<{ onNavigate: (route: string) => void }> = (
                   cursor: 'pointer',
                   backgroundColor: 'var(--color-bg)',
                   overflow: 'hidden',
-                  margin: '0 auto',
+                  margin: '0 auto 8px auto',
                 }}
-                onClick={() => {
-                  const url = prompt('Enter image URL or avatar seed:', imageUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=60');
-                  if (url) setImageUrl(url);
-                }}
+                onClick={() => fileInputRef.current?.click()}
+                title="Click to upload image file"
               >
                 {imageUrl ? (
                   <img src={imageUrl} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', color: 'var(--color-text-muted)' }}>
-                    <ImageIcon size={24} strokeWidth={1.5} />
-                    <span style={{ fontSize: '11px', fontWeight: 600 }}>Upload Image</span>
+                    <ImageIcon size={22} strokeWidth={1.5} />
+                    <span style={{ fontSize: '10px', fontWeight: 600 }}>Choose File</span>
                   </div>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  leftIcon={<Upload size={13} />}
+                >
+                  {imageUrl ? 'Change' : 'Upload'}
+                </Button>
+                {imageUrl && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setImageUrl('')}
+                    leftIcon={<Trash2 size={13} />}
+                  >
+                    Remove
+                  </Button>
                 )}
               </div>
             </div>
