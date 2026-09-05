@@ -152,9 +152,10 @@ export const ProfitLossReportPage: React.FC<{ onNavigate: (route: string) => voi
             {/* Net Profit Summary */}
             <tr
               style={{
-                backgroundColor: netIncome >= 0 ? 'var(--color-primary-light)' : 'var(--color-danger-bg)',
+                backgroundColor: 'var(--color-surface-active)',
                 fontWeight: 800,
-                fontSize: '16px',
+                fontSize: '15px',
+                borderTop: '2px solid var(--color-border)',
               }}
             >
               <td style={{ textAlign: 'right', color: netIncome >= 0 ? 'var(--color-primary)' : 'var(--color-danger)' }}>

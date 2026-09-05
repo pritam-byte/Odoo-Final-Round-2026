@@ -517,14 +517,26 @@ export const JournalEntriesPage: React.FC<{ onNavigate: (route: string) => void 
                 ))}
               </tbody>
               <tfoot>
-                <tr style={{ fontWeight: 700, backgroundColor: isBalanced ? 'var(--color-primary-light)' : 'var(--color-danger-bg)' }}>
+                <tr
+                  style={{
+                    fontWeight: 700,
+                    backgroundColor: isBalanced ? 'var(--color-surface-active)' : 'var(--color-danger-bg)',
+                    borderTop: '2px solid var(--color-border)',
+                  }}
+                >
                   <td colSpan={2} style={{ textAlign: 'right', fontSize: '12px' }}>
-                    {isBalanced ? 'BALANCED TOTALS:' : 'UNBALANCED DISCREPANCY:'}
+                    {isBalanced ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: 'var(--color-primary)' }}>
+                        <CheckCircle2 size={14} /> BALANCED TOTALS:
+                      </span>
+                    ) : (
+                      <span style={{ color: 'var(--color-danger)' }}>UNBALANCED DISCREPANCY:</span>
+                    )}
                   </td>
-                  <td style={{ textAlign: 'right', color: isBalanced ? 'var(--color-primary)' : 'var(--color-danger)' }}>
+                  <td style={{ textAlign: 'right', color: isBalanced ? 'var(--color-text-primary)' : 'var(--color-danger)', fontSize: '13px' }}>
                     ${totalDebit.toFixed(2)}
                   </td>
-                  <td style={{ textAlign: 'right', color: isBalanced ? 'var(--color-primary)' : 'var(--color-danger)' }}>
+                  <td style={{ textAlign: 'right', color: isBalanced ? 'var(--color-text-primary)' : 'var(--color-danger)', fontSize: '13px' }}>
                     ${totalCredit.toFixed(2)}
                   </td>
                   <td></td>

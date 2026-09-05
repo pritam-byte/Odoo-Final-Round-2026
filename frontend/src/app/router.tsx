@@ -12,7 +12,7 @@ import CreateUserPage from '../features/auth/pages/CreateUserPage';
 import { UserAccount } from '../features/auth/schemas';
 import { getStoredUser, logoutUser } from '../lib/auth';
 
-// Accountant Section Pages
+// Staff Section Pages
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage';
 import { ContactsPage } from '../features/contacts/pages/ContactsPage';
 import { ProductsPage } from '../features/products/pages/ProductsPage';
@@ -59,13 +59,13 @@ export const AppRouter: React.FC = () => {
     setCurrentPath(path);
   };
 
-  // Direct role routing
+  // Direct role-based redirection on authentication
   const handleAuthSuccess = (user: UserAccount) => {
     setCurrentUser(user);
     if (user.role === 'User') {
       setPortalView('dashboard');
     } else if (user.role === 'Admin') {
-      navigate('/users');
+      navigate('/dashboard');
     } else {
       navigate('/dashboard');
     }
@@ -82,7 +82,7 @@ export const AppRouter: React.FC = () => {
     if (docId) setSelectedDocId(docId);
   };
 
-  // 1. Unauthenticated View
+  // 1. Unauthenticated View (Login / Signup)
   if (!currentUser) {
     if (authView === 'signup') {
       return (
@@ -106,18 +106,8 @@ export const AppRouter: React.FC = () => {
       <PortalLayout
         activeNav={portalView}
         onNavigate={handlePortalNavigate}
-        onSwitchToAdmin={() => {
-          const adminUser: UserAccount = {
-            id: 'admin_temp',
-            loginId: 'admin',
-            name: 'Pritam Admin',
-            email: 'admin@odoo-flow.com',
-            role: 'Admin',
-            status: 'Active',
-            createdAt: new Date().toISOString(),
-          };
-          setCurrentUser(adminUser);
-        }}
+        user={currentUser}
+        onLogout={handleLogout}
       >
         {portalView === 'dashboard' && <PortalDashboardPage onNavigate={handlePortalNavigate} />}
         {portalView === 'invoices' && <PortalDocumentListPage documentType="invoice" onNavigate={handlePortalNavigate} />}
@@ -130,13 +120,37 @@ export const AppRouter: React.FC = () => {
     );
   }
 
-  // 3. User Management Page for Admin Role
+  // 3. User Management Route Guard (ADMIN ONLY)
   if (currentPath === '/users') {
+    if (currentUser.role !== 'Admin') {
+      // Access Denied / Redirect for non-admin
+      return (
+        <StaffLayout
+          currentPath="/dashboard"
+          onNavigate={navigate}
+          user={{ name: currentUser.name, email: currentUser.email, role: currentUser.role }}
+          userRole={currentUser.role}
+          onLogout={handleLogout}
+        >
+          <div className="card-panel" style={{ padding: '36px', textAlign: 'center' }}>
+            <h2 style={{ color: 'var(--color-danger)', marginBottom: '8px' }}>Access Restricted</h2>
+            <p style={{ color: 'var(--color-text-secondary)', marginBottom: '16px' }}>
+              User Management is restricted to Administrators only. Your account role is <strong>{currentUser.role}</strong>.
+            </p>
+            <button type="button" className="btn btn-primary" onClick={() => navigate('/dashboard')}>
+              Back to Dashboard
+            </button>
+          </div>
+        </StaffLayout>
+      );
+    }
+
     return (
       <StaffLayout
         currentPath={currentPath}
         onNavigate={navigate}
         user={{ name: currentUser.name, email: currentUser.email, role: currentUser.role }}
+        userRole={currentUser.role}
         onLogout={handleLogout}
       >
         {isCreatingUser ? (
@@ -148,7 +162,7 @@ export const AppRouter: React.FC = () => {
     );
   }
 
-  // 4. Staff / Accountant Section Views
+  // 4. Staff Views (Admin & Accountant)
   const renderAccountantContent = () => {
     switch (currentPath) {
       case '/contacts':
@@ -196,56 +210,9 @@ export const AppRouter: React.FC = () => {
       currentPath={currentPath}
       onNavigate={navigate}
       user={{ name: currentUser.name, email: currentUser.email, role: currentUser.role }}
+      userRole={currentUser.role}
       onLogout={handleLogout}
     >
-      {/* Floating Demo Switcher */}
-      <div
-        style={{
-          position: 'fixed',
-          bottom: '16px',
-          right: '16px',
-          zIndex: 100,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          backgroundColor: '#ffffff',
-          padding: '6px 12px',
-          borderRadius: 'var(--radius-full)',
-          boxShadow: 'var(--shadow-lg)',
-          border: '1px solid var(--color-border)',
-          fontSize: '12px',
-        }}
-      >
-        <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Quick Nav:</span>
-        <button
-          type="button"
-          className="btn-ghost"
-          style={{ padding: '4px 8px', fontSize: '12px' }}
-          onClick={() => {
-            const portalUser: UserAccount = {
-              id: 'user_temp',
-              loginId: 'alice_client',
-              name: 'Alice Client',
-              email: 'client@portal.com',
-              role: 'User',
-              status: 'Active',
-              createdAt: new Date().toISOString(),
-            };
-            setCurrentUser(portalUser);
-          }}
-        >
-          Customer Portal ↗
-        </button>
-        <button
-          type="button"
-          className="btn-ghost"
-          style={{ padding: '4px 8px', fontSize: '12px', color: 'var(--color-danger)' }}
-          onClick={handleLogout}
-        >
-          Logout
-        </button>
-      </div>
-
       {renderAccountantContent()}
     </StaffLayout>
   );

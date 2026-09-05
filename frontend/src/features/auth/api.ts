@@ -1,6 +1,8 @@
 import { UserAccount, CreateUserInput, UpdateUserInput } from './schemas';
 
-let mockUsers: UserAccount[] = [
+const USERS_STORAGE_KEY = 'odoo_flow_mock_users';
+
+const initialMockUsers: UserAccount[] = [
   {
     id: 'usr_admin',
     name: 'Pritam Admin',
@@ -45,57 +47,89 @@ let mockUsers: UserAccount[] = [
   }
 ];
 
+const loadUsers = (): UserAccount[] => {
+  try {
+    const saved = localStorage.getItem(USERS_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {
+    console.error('Failed to load users from storage', e);
+  }
+  return [...initialMockUsers];
+};
+
+const saveUsers = (users: UserAccount[]) => {
+  try {
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+  } catch (e) {
+    console.error('Failed to save users to storage', e);
+  }
+};
+
+let mockUsers: UserAccount[] = loadUsers();
+
 export const getAllUsers = (): UserAccount[] => {
+  mockUsers = loadUsers();
   return [...mockUsers];
 };
 
 export const getUserById = (id: string): UserAccount | null => {
+  mockUsers = loadUsers();
   return mockUsers.find(u => u.id === id) || null;
 };
 
 export const createNewUser = (input: CreateUserInput): { success: boolean; message: string; user?: UserAccount } => {
-  if (input.loginId.length < 6 || input.loginId.length > 12) {
-    return { success: false, message: 'Login ID must be between 6 and 12 characters.' };
+  mockUsers = loadUsers();
+  const trimmedLogin = input.loginId.trim().toLowerCase();
+  const trimmedEmail = input.email.trim().toLowerCase();
+  const trimmedName = input.name.trim();
+
+  if (trimmedLogin.length < 3 || trimmedLogin.length > 20) {
+    return { success: false, message: 'Login ID must be between 3 and 20 characters.' };
   }
 
-  const existingLogin = mockUsers.find(u => u.loginId.toLowerCase() === input.loginId.toLowerCase());
+  const existingLogin = mockUsers.find(u => u.loginId.toLowerCase() === trimmedLogin);
   if (existingLogin) {
-    return { success: false, message: 'Login ID already exists. Please choose a unique ID.' };
+    return { success: false, message: 'Login ID is already taken. Please choose another.' };
   }
 
-  const existingEmail = mockUsers.find(u => u.email.toLowerCase() === input.email.toLowerCase());
+  const existingEmail = mockUsers.find(u => u.email.toLowerCase() === trimmedEmail);
   if (existingEmail) {
     return { success: false, message: 'Email address is already registered.' };
   }
 
-  const pwdRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
-  if (!pwdRegex.test(input.password)) {
+  if (input.password && input.password.length < 6) {
     return {
       success: false,
-      message: 'Password must be at least 8 characters long and contain uppercase, lowercase, and a special character.'
+      message: 'Password must be at least 6 characters long.'
     };
   }
 
-  if (input.password !== input.confirmPassword) {
+  if (input.password && input.confirmPassword && input.password !== input.confirmPassword) {
     return { success: false, message: 'Passwords do not match.' };
   }
 
   const newUser: UserAccount = {
     id: 'usr_' + Date.now(),
-    name: input.name.trim(),
+    name: trimmedName,
     loginId: input.loginId.trim(),
     email: input.email.trim(),
     role: input.role,
     status: 'Active',
+    partnerId: input.role === 'User' ? 'partner_' + trimmedLogin.replace(/[^a-z0-9]/g, '_') : undefined,
     createdAt: new Date().toISOString().split('T')[0],
     lastLogin: undefined
   };
 
   mockUsers.push(newUser);
+  saveUsers(mockUsers);
   return { success: true, message: 'User created successfully.', user: newUser };
 };
 
 export const updateUserAccount = (id: string, input: UpdateUserInput): { success: boolean; message: string; user?: UserAccount } => {
+  mockUsers = loadUsers();
   const index = mockUsers.findIndex(u => u.id === id);
   if (index === -1) {
     return { success: false, message: 'User not found.' };
@@ -109,24 +143,30 @@ export const updateUserAccount = (id: string, input: UpdateUserInput): { success
     status: input.status
   };
 
+  saveUsers(mockUsers);
   return { success: true, message: 'User updated successfully.', user: mockUsers[index] };
 };
 
 export const toggleUserStatus = (id: string): { success: boolean; message: string; status?: 'Active' | 'Inactive' } => {
-  const user = mockUsers.find(u => u.id === id);
-  if (!user) {
+  mockUsers = loadUsers();
+  const index = mockUsers.findIndex(u => u.id === id);
+  if (index === -1) {
     return { success: false, message: 'User not found.' };
   }
 
-  user.status = user.status === 'Active' ? 'Inactive' : 'Active';
+  const newStatus = mockUsers[index].status === 'Active' ? 'Inactive' : 'Active';
+  mockUsers[index].status = newStatus;
+  saveUsers(mockUsers);
+
   return {
     success: true,
-    message: 'User status updated to ' + user.status,
-    status: user.status
+    message: `User status changed to ${newStatus}.`,
+    status: newStatus
   };
 };
 
 export const triggerPasswordReset = (id: string): { success: boolean; message: string } => {
+  mockUsers = loadUsers();
   const user = mockUsers.find(u => u.id === id);
   if (!user) {
     return { success: false, message: 'User not found.' };
@@ -134,6 +174,6 @@ export const triggerPasswordReset = (id: string): { success: boolean; message: s
 
   return {
     success: true,
-    message: 'Password reset link dispatched to ' + user.email
+    message: `Secure password reset link generated and sent to ${user.email}.`
   };
 };

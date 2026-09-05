@@ -127,9 +127,9 @@ export const BalanceSheetPage: React.FC<{ onNavigate: (route: string) => void }>
               </tr>
             </tbody>
             <tfoot>
-              <tr style={{ fontWeight: 800, backgroundColor: 'var(--color-primary-light)', fontSize: '15px' }}>
-                <td style={{ color: 'var(--color-primary)' }}>TOTAL ASSETS:</td>
-                <td style={{ textAlign: 'right', color: 'var(--color-primary)' }}>
+              <tr style={{ fontWeight: 800, backgroundColor: 'var(--color-surface-active)', fontSize: '14px', borderTop: '2px solid var(--color-border)' }}>
+                <td style={{ color: 'var(--color-text-primary)' }}>TOTAL ASSETS:</td>
+                <td style={{ textAlign: 'right', color: 'var(--color-text-primary)' }}>
                   ${totalAssets.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </td>
               </tr>
@@ -170,9 +170,9 @@ export const BalanceSheetPage: React.FC<{ onNavigate: (route: string) => void }>
               </tr>
             </tbody>
             <tfoot>
-              <tr style={{ fontWeight: 800, backgroundColor: 'var(--color-primary-light)', fontSize: '15px' }}>
-                <td style={{ color: 'var(--color-primary)' }}>TOTAL LIABILITIES & EQUITY:</td>
-                <td style={{ textAlign: 'right', color: 'var(--color-primary)' }}>
+              <tr style={{ fontWeight: 800, backgroundColor: 'var(--color-surface-active)', fontSize: '14px', borderTop: '2px solid var(--color-border)' }}>
+                <td style={{ color: 'var(--color-text-primary)' }}>TOTAL LIABILITIES & EQUITY:</td>
+                <td style={{ textAlign: 'right', color: 'var(--color-text-primary)' }}>
                   ${totalLiabilitiesEquity.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </td>
               </tr>

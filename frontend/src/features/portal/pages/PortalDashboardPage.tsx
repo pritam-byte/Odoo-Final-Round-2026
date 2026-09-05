@@ -32,7 +32,6 @@ export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavi
       <div
         className="card-panel"
         style={{
-          background: 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)',
           borderLeft: '4px solid var(--color-primary)',
           padding: '24px 28px',
         }}

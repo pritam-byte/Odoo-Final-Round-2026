@@ -6,25 +6,30 @@ import {
   LayoutDashboard,
   FileText,
   Receipt,
-  Wallet
+  Wallet,
+  LogOut,
 } from 'lucide-react';
-import { CURRENT_USER } from '../lib/auth';
+import { UserAccount } from '../features/auth/schemas';
+import { getStoredUser, CURRENT_USER } from '../lib/auth';
 
 export interface PortalLayoutProps {
   children?: React.ReactNode;
   activeNav?: string;
   onNavigate?: (navId: string) => void;
-  onSwitchToAdmin?: () => void;
+  user?: UserAccount | null;
+  onLogout?: () => void;
 }
 
 export const PortalLayout: React.FC<PortalLayoutProps> = ({
   children,
   activeNav = 'dashboard',
   onNavigate,
-  onSwitchToAdmin,
+  user,
+  onLogout,
 }) => {
   const [time, setTime] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const currentUser = user || getStoredUser() || CURRENT_USER;
 
   useEffect(() => {
     const update = () =>
@@ -66,31 +71,24 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
 
   return (
     <div className="app-container">
-      {/* Fixed Top Navbar */}
+      {/* Top Navbar */}
       <header className="top-navbar">
-        {/* Brand / Logo (Left) */}
+        {/* Brand Left */}
         <div className="navbar-left">
-          <a
-            href="#/dashboard"
-            className="brand-logo"
-            onClick={(e) => {
-              e.preventDefault();
-              onNavigate?.('dashboard');
-            }}
-          >
+          <div className="brand-logo" style={{ cursor: 'pointer' }} onClick={() => onNavigate?.('dashboard')}>
             <div className="brand-logo-icon">
               <Layers size={18} strokeWidth={2.2} />
             </div>
             <div>
               <span className="brand-word">Odoo</span> <span className="brand-secondary">Flow</span>
             </div>
-          </a>
+          </div>
           <span className="badge-pill badge-paid" style={{ fontSize: '11px', padding: '2px 8px' }}>
-            User Portal
+            Customer Portal
           </span>
         </div>
 
-        {/* Search Bar, Live Clock & User Profile (Right) */}
+        {/* Right Section: Search, Clock, User Profile, Logout */}
         <div className="navbar-center-right">
           <div className="search-bar-wrapper">
             <div className="search-bar-icon">
@@ -123,26 +121,31 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
             }}
           >
             <div className="navbar-avatar" style={{ width: '28px', height: '28px', fontSize: '12px' }}>
-              {CURRENT_USER.name.charAt(0)}
+              {currentUser.name.charAt(0)}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
               <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
-                {CURRENT_USER.name}
+                {currentUser.name}
               </span>
-              <span style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>Customer User</span>
+              <span style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>Customer Account</span>
             </div>
+            {onLogout && (
+              <button
+                type="button"
+                onClick={onLogout}
+                className="btn btn-ghost btn-sm"
+                title="Sign Out of Portal"
+                style={{
+                  color: 'var(--color-danger)',
+                  padding: '4px 6px',
+                  borderRadius: 'var(--radius-full)',
+                  marginLeft: '4px',
+                }}
+              >
+                <LogOut size={14} />
+              </button>
+            )}
           </div>
-
-          {onSwitchToAdmin && (
-            <button
-              type="button"
-              onClick={onSwitchToAdmin}
-              className="btn btn-outline btn-sm"
-              title="Switch to Staff Admin View"
-            >
-              Staff View
-            </button>
-          )}
         </div>
       </header>
 

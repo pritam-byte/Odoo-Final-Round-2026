@@ -4,10 +4,10 @@ import { getAllUsers, createNewUser } from '../features/auth/api';
 const AUTH_STORAGE_KEY = 'odoo_flow_active_user';
 
 export const CURRENT_USER: UserAccount = {
-  id: 'usr_user',
+  id: 'usr_client',
   name: 'John Doe',
-  loginId: 'john',
-  email: 'john@example.com',
+  loginId: 'jdoe_client',
+  email: 'john.doe@company.com',
   role: 'User',
   status: 'Active',
   partnerId: 'partner_john_doe',
@@ -40,22 +40,35 @@ export const loginUser = (loginIdOrEmail: string, _password?: string): { success
   const users = getAllUsers();
   const trimmed = loginIdOrEmail.trim().toLowerCase();
 
-  const user = users.find(
+  // 1. Direct match by loginId or email
+  let user = users.find(
     u => u.loginId.toLowerCase() === trimmed || u.email.toLowerCase() === trimmed
   );
 
+  // 2. Convenience aliases for testing
   if (!user) {
-    return { success: false, message: 'Invalid Login ID or Email address.' };
+    if (trimmed === 'admin') {
+      user = users.find(u => u.role === 'Admin');
+    } else if (trimmed === 'accountant') {
+      user = users.find(u => u.role === 'Accountant');
+    } else if (trimmed === 'user' || trimmed === 'john') {
+      user = users.find(u => u.role === 'User' && u.status === 'Active');
+    }
+  }
+
+  if (!user) {
+    return { success: false, message: 'Invalid Login ID or Email address. Please check your credentials.' };
   }
 
   if (user.status === 'Inactive') {
     return {
       success: false,
-      message: 'Account is deactivated. Please contact your system administrator.'
+      message: 'This account has been deactivated. Please contact your system administrator.'
     };
   }
 
-  // Record login
+  // Update last login
+  user.lastLogin = new Date().toLocaleString();
   setStoredUser(user);
   return { success: true, message: `Welcome back, ${user.name}!`, user };
 };
