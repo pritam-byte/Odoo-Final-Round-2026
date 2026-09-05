@@ -1,5 +1,6 @@
 // Accounting Enterprise In-Memory Reactive Store
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { apiRequest } from '../../lib/apiClient';
 
 export type ContactType = 'customer' | 'vendor' | 'partner' | 'other';
 export type ProductType = 'Goods' | 'Service' | 'Combo';
@@ -153,7 +154,7 @@ export interface VendorBill {
 
 export interface AnalyticAccount {
   id: string;
-  code: string;
+  code?: string;
   name: string;
   type: 'Income' | 'Expense';
 }
@@ -164,6 +165,7 @@ export interface Budget {
   startDate: string;
   endDate: string;
   responsible: string;
+  responsibleId?: string;
   analyticId: string;
   analyticName: string;
   type: 'Income' | 'Expense';
@@ -548,6 +550,283 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
     return s ? JSON.parse(s) : [];
   });
 
+  // Helper mappers between Backend DB and Frontend Store
+  const mapBackendContact = (c: any): Contact => ({
+    id: c.id,
+    name: c.name,
+    email: c.email,
+    phone: c.phone || '',
+    imageUrl: c.image || undefined,
+    address: {
+      street: c.address || '',
+      city: c.city || '',
+      state: c.state || '',
+      country: 'India',
+      pincode: c.pincode || '',
+    },
+    type: (c.type?.toLowerCase() as ContactType) || 'partner',
+  });
+
+  const mapBackendProduct = (p: any): Product => ({
+    id: p.id,
+    name: p.name,
+    type: p.type === 'SERVICE' ? 'Service' : p.type === 'COMBO' ? 'Combo' : 'Goods',
+    categoryId: `cat_${p.category || 'general'}`,
+    categoryName: p.category || 'General',
+    salesPrice: Number(p.salesPrice) || 0,
+    cost: Number(p.cost) || 0,
+    imageUrl: p.image || undefined,
+  });
+
+  const mapBackendAccount = (a: any): Account => ({
+    id: a.id,
+    code: a.name.toLowerCase().replace(/\s+/g, '-'),
+    name: a.name,
+    type: (a.type.charAt(0) + a.type.slice(1).toLowerCase()) as AccountCategory,
+    balance: 0,
+  });
+
+  const mapBackendJournal = (j: any): Journal => ({
+    id: j.id,
+    code: j.name.substring(0, 3).toUpperCase(),
+    name: j.name,
+    type: (j.type.charAt(0) + j.type.slice(1).toLowerCase()) as JournalType,
+    defaultAccountId: j.defaultAccountId || '',
+    defaultAccountName: j.defaultAccount?.name || '',
+  });
+
+  const mapBackendAnalytic = (a: any): AnalyticAccount => ({
+    id: a.id,
+    name: a.name,
+    type: (a.type.charAt(0) + a.type.slice(1).toLowerCase()) as 'Income' | 'Expense',
+  });
+
+  const mapBackendBudget = (b: any): Budget => ({
+    id: b.id,
+    name: b.name,
+    startDate: typeof b.startDate === 'string' ? b.startDate.split('T')[0] : new Date(b.startDate).toISOString().split('T')[0],
+    endDate: typeof b.endDate === 'string' ? b.endDate.split('T')[0] : new Date(b.endDate).toISOString().split('T')[0],
+    responsible: b.responsible?.name || 'Admin',
+    responsibleId: b.responsibleId,
+    analyticId: b.analyticId,
+    analyticName: b.analytic?.name || 'General',
+    type: b.type === 'INCOME' ? 'Income' : 'Expense',
+    committedAmount: Number(b.committedAmount) || 0,
+    state: b.status === 'CONFIRMED' ? 'Confirmed' : b.status === 'REVISED' ? 'Revised' : b.status === 'CANCELLED' ? 'Cancelled' : 'Draft',
+  });
+
+  const mapBackendPurchaseOrder = (po: any): PurchaseOrder => ({
+    id: po.id,
+    orderNumber: po.poNo,
+    date: typeof po.poDate === 'string' ? po.poDate.split('T')[0] : new Date(po.poDate).toISOString().split('T')[0],
+    partnerId: po.vendorId,
+    partnerName: po.vendor?.name || 'Vendor',
+    status: po.status === 'CONFIRMED' ? 'Confirmed' : po.status === 'CANCELLED' ? 'Cancelled' : 'Draft',
+    lines: (po.lines || []).map((l: any) => ({
+      id: l.id,
+      productId: l.productId,
+      productName: l.product?.name || 'Product',
+      accountId: '',
+      accountName: '',
+      analyticId: l.analyticId,
+      analyticName: l.analytic?.name,
+      quantity: l.qty,
+      unitPrice: Number(l.unitPrice) || 0,
+      total: Number(l.subtotal) || ((l.qty || 1) * (Number(l.unitPrice) || 0)),
+    })),
+    total: Number(po.totalAmount) || 0,
+  });
+
+  const mapBackendVendorBill = (b: any): VendorBill => ({
+    id: b.id,
+    billNumber: b.billNo,
+    reference: b.billReference || '',
+    partnerId: b.vendorId,
+    partnerName: b.vendor?.name || 'Vendor',
+    date: typeof b.billDate === 'string' ? b.billDate.split('T')[0] : new Date(b.billDate).toISOString().split('T')[0],
+    dueDate: typeof b.dueDate === 'string' ? b.dueDate.split('T')[0] : new Date(b.dueDate).toISOString().split('T')[0],
+    lines: (b.lines || []).map((l: any) => ({
+      id: l.id,
+      productId: l.productId,
+      productName: l.product?.name || 'Product',
+      accountId: l.accountId,
+      accountName: l.account?.name || 'Purchase Account',
+      analyticId: l.analyticId,
+      analyticName: l.analytic?.name,
+      quantity: l.qty,
+      unitPrice: Number(l.unitPrice) || 0,
+      total: Number(l.subtotal) || ((l.qty || 1) * (Number(l.unitPrice) || 0)),
+    })),
+    total: Number(b.totalAmount) || 0,
+    amountPaid: (Number(b.totalAmount) || 0) - (Number(b.amountDue) || 0),
+    amountDue: Number(b.amountDue) || 0,
+    status: b.status === 'CONFIRMED' ? (Number(b.amountDue) <= 0.01 ? 'Paid' : 'Confirmed') : b.status === 'CANCELLED' ? 'Cancelled' : 'Draft',
+    journalEntryId: b.journalEntryId || undefined,
+  });
+
+  const mapBackendSalesOrder = (so: any): SalesOrder => ({
+    id: so.id,
+    orderNumber: so.soNo,
+    date: typeof so.soDate === 'string' ? so.soDate.split('T')[0] : new Date(so.soDate).toISOString().split('T')[0],
+    partnerId: so.customerId,
+    partnerName: so.customer?.name || 'Customer',
+    status: so.status === 'CONFIRMED' ? 'Confirmed' : so.status === 'CANCELLED' ? 'Cancelled' : 'Draft',
+    lines: (so.lines || []).map((l: any) => ({
+      id: l.id,
+      productId: l.productId,
+      productName: l.product?.name || 'Product',
+      accountId: '',
+      accountName: '',
+      quantity: l.qty,
+      unitPrice: Number(l.unitPrice) || 0,
+      total: Number(l.subtotal) || ((l.qty || 1) * (Number(l.unitPrice) || 0)),
+    })),
+    total: Number(so.totalAmount) || 0,
+  });
+
+  const mapBackendCustomerInvoice = (inv: any): CustomerInvoice => ({
+    id: inv.id,
+    invoiceNumber: inv.invoiceNo,
+    reference: inv.reference || '',
+    partnerId: inv.customerId,
+    partnerName: inv.customer?.name || 'Customer',
+    date: typeof inv.invoiceDate === 'string' ? inv.invoiceDate.split('T')[0] : new Date(inv.invoiceDate).toISOString().split('T')[0],
+    dueDate: typeof inv.dueDate === 'string' ? inv.dueDate.split('T')[0] : new Date(inv.dueDate).toISOString().split('T')[0],
+    lines: (inv.lines || []).map((l: any) => ({
+      id: l.id,
+      productId: l.productId,
+      productName: l.product?.name || 'Product',
+      accountId: l.accountId,
+      accountName: l.account?.name || 'Sales Account',
+      analyticId: l.analyticId,
+      analyticName: l.analytic?.name,
+      quantity: l.qty,
+      unitPrice: Number(l.unitPrice) || 0,
+      total: Number(l.subtotal) || ((l.qty || 1) * (Number(l.unitPrice) || 0)),
+    })),
+    total: Number(inv.totalAmount) || 0,
+    amountPaid: (Number(inv.totalAmount) || 0) - (Number(inv.amountDue) || 0),
+    amountDue: Number(inv.amountDue) || 0,
+    status: inv.status === 'CONFIRMED' ? (Number(inv.amountDue) <= 0.01 ? 'Paid' : 'Confirmed') : inv.status === 'CANCELLED' ? 'Cancelled' : 'Draft',
+    journalEntryId: inv.journalEntryId || undefined,
+  });
+
+  const mapBackendPayment = (p: any): PaymentRecord => ({
+    id: p.id,
+    type: p.paymentType === 'RECEIVE' ? 'Receive' : 'Send',
+    date: typeof p.date === 'string' ? p.date.split('T')[0] : new Date(p.date).toISOString().split('T')[0],
+    partnerId: p.partnerId,
+    partnerName: p.partner?.name || 'Partner',
+    paymentVia: p.paymentVia === 'CASH' ? 'Cash' : 'Bank',
+    amount: Number(p.amount) || 0,
+    sourceDocType: p.customerInvoiceId ? 'Invoice' : 'Bill',
+    sourceDocId: p.customerInvoiceId || p.vendorBillId || '',
+    reference: p.note || (p.customerInvoice?.invoiceNo ? `Payment for ${p.customerInvoice.invoiceNo}` : p.vendorBill?.billNo ? `Payment for ${p.vendorBill.billNo}` : 'Payment'),
+  });
+
+  const mapBackendJournalEntry = (je: any): JournalEntry => ({
+    id: je.id,
+    entryNumber: je.entryNo,
+    date: typeof je.accountingDate === 'string' ? je.accountingDate.split('T')[0] : new Date(je.accountingDate).toISOString().split('T')[0],
+    journalId: je.journalId,
+    journalName: je.journal?.name || 'General Journal',
+    status: je.status === 'POSTED' ? 'Posted' : je.status === 'CANCELLED' ? 'Cancelled' : 'Draft',
+    reference: je.reference || '',
+    totalDebit: Number(je.totalDebit) || 0,
+    totalCredit: Number(je.totalCredit) || 0,
+    lines: (je.items || []).map((it: any) => ({
+      id: it.id,
+      accountId: it.accountId,
+      accountName: it.account?.name || 'Account',
+      partnerId: it.partnerId,
+      partnerName: it.partner?.name,
+      debit: Number(it.debit) || 0,
+      credit: Number(it.credit) || 0,
+    })),
+  });
+
+  // Initial Backend Data Loader
+  const loadBackendData = useCallback(async () => {
+    try {
+      const [
+        contactsRes,
+        productsRes,
+        accountsRes,
+        journalsRes,
+        analyticsRes,
+        budgetsRes,
+        posRes,
+        billsRes,
+        sosRes,
+        invoicesRes,
+        paymentsRes,
+        entriesRes,
+      ] = await Promise.all([
+        apiRequest('/contacts'),
+        apiRequest('/products'),
+        apiRequest('/accounts'),
+        apiRequest('/journals'),
+        apiRequest('/analytics'),
+        apiRequest('/budgets'),
+        apiRequest('/purchase-orders'),
+        apiRequest('/vendor-bills'),
+        apiRequest('/sales-orders'),
+        apiRequest('/customer-invoices'),
+        apiRequest('/payments'),
+        apiRequest('/journal-entries'),
+      ]);
+
+      if (contactsRes.success && Array.isArray(contactsRes.data) && contactsRes.data.length > 0) {
+        setContacts(contactsRes.data.map(mapBackendContact));
+      }
+      if (productsRes.success && Array.isArray(productsRes.data) && productsRes.data.length > 0) {
+        const mappedProducts = productsRes.data.map(mapBackendProduct);
+        setProducts(mappedProducts);
+        const uniqueCats = Array.from(new Set(mappedProducts.map((p) => p.categoryName))).map((name, idx) => ({
+          id: `cat_${idx + 1}`,
+          name,
+        }));
+        if (uniqueCats.length > 0) setCategories(uniqueCats);
+      }
+      if (accountsRes.success && Array.isArray(accountsRes.data) && accountsRes.data.length > 0) {
+        setAccounts(accountsRes.data.map(mapBackendAccount));
+      }
+      if (journalsRes.success && Array.isArray(journalsRes.data) && journalsRes.data.length > 0) {
+        setJournals(journalsRes.data.map(mapBackendJournal));
+      }
+      if (analyticsRes.success && Array.isArray(analyticsRes.data) && analyticsRes.data.length > 0) {
+        setAnalytics(analyticsRes.data.map(mapBackendAnalytic));
+      }
+      if (budgetsRes.success && Array.isArray(budgetsRes.data) && budgetsRes.data.length > 0) {
+        setBudgets(budgetsRes.data.map(mapBackendBudget));
+      }
+      if (posRes.success && Array.isArray(posRes.data) && posRes.data.length > 0) {
+        setPurchaseOrders(posRes.data.map(mapBackendPurchaseOrder));
+      }
+      if (billsRes.success && Array.isArray(billsRes.data) && billsRes.data.length > 0) {
+        setBills(billsRes.data.map(mapBackendVendorBill));
+      }
+      if (sosRes.success && Array.isArray(sosRes.data) && sosRes.data.length > 0) {
+        setSalesOrders(sosRes.data.map(mapBackendSalesOrder));
+      }
+      if (invoicesRes.success && Array.isArray(invoicesRes.data) && invoicesRes.data.length > 0) {
+        setInvoices(invoicesRes.data.map(mapBackendCustomerInvoice));
+      }
+      if (paymentsRes.success && Array.isArray(paymentsRes.data) && paymentsRes.data.length > 0) {
+        setPayments(paymentsRes.data.map(mapBackendPayment));
+      }
+      if (entriesRes.success && Array.isArray(entriesRes.data) && entriesRes.data.length > 0) {
+        setJournalEntries(entriesRes.data.map(mapBackendJournalEntry));
+      }
+    } catch (e) {
+      console.warn('Backend data sync encountered an issue, using local storage fallback:', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadBackendData();
+  }, [loadBackendData]);
+
   // Sync to local storage
   useEffect(() => { localStorage.setItem('odoo_contacts', JSON.stringify(contacts)); }, [contacts]);
   useEffect(() => { localStorage.setItem('odoo_categories', JSON.stringify(categories)); }, [categories]);
@@ -569,10 +848,40 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
     return `${prefix}/${year}/${rand}`;
   };
 
+  // Helper to ensure valid DB UUID reference
+  const resolveUUID = (id: string, list: Array<{ id: string }>, fallback?: string) => {
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    if (isUUID) return id;
+    const found = list.find((item) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.id));
+    return found ? found.id : fallback || id;
+  };
+
   // Contact operations
   const addContact = (c: Omit<Contact, 'id'>) => {
-    const newC: Contact = { ...c, id: `c_${Date.now()}` };
+    const tempId = `c_${Date.now()}`;
+    const newC: Contact = { ...c, id: tempId };
     setContacts((prev) => [newC, ...prev]);
+
+    apiRequest('/contacts', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: c.name,
+        type: (c.type === 'customer' ? 'CUSTOMER' : c.type === 'vendor' ? 'VENDOR' : 'BOTH'),
+        email: c.email || `contact_${Date.now()}@company.com`,
+        phone: c.phone || '',
+        address: c.address?.street || '',
+        city: c.address?.city || '',
+        state: c.address?.state || '',
+        pincode: c.address?.pincode || '',
+        image: c.imageUrl || '',
+      }),
+    }).then((res) => {
+      if (res.success && res.data) {
+        const serverC = mapBackendContact(res.data);
+        setContacts((prev) => prev.map((item) => (item.id === tempId ? serverC : item)));
+      }
+    });
+
     return newC;
   };
 
@@ -595,8 +904,27 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
 
   // Products
   const addProduct = (p: Omit<Product, 'id'>) => {
-    const newP: Product = { ...p, id: `p_${Date.now()}` };
+    const tempId = `p_${Date.now()}`;
+    const newP: Product = { ...p, id: tempId };
     setProducts((prev) => [newP, ...prev]);
+
+    apiRequest('/products', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: p.name,
+        category: p.categoryName || 'General',
+        salesPrice: p.salesPrice,
+        cost: p.cost,
+        type: (p.type?.toUpperCase() || 'GOODS'),
+        image: p.imageUrl || '',
+      }),
+    }).then((res) => {
+      if (res.success && res.data) {
+        const serverP = mapBackendProduct(res.data);
+        setProducts((prev) => prev.map((item) => (item.id === tempId ? serverP : item)));
+      }
+    });
+
     return newP;
   };
 
@@ -655,19 +983,61 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
 
   // Analytics & Budgets
   const addAnalytic = (a: Omit<AnalyticAccount, 'id'>) => {
-    const newA: AnalyticAccount = { ...a, id: `an_${Date.now()}` };
+    const tempId = `an_${Date.now()}`;
+    const newA: AnalyticAccount = { ...a, id: tempId };
     setAnalytics((prev) => [...prev, newA]);
+
+    apiRequest('/analytics', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: a.name,
+        type: (a.type?.toUpperCase() || 'EXPENSE'),
+      }),
+    }).then((res) => {
+      if (res.success && res.data) {
+        const serverA = mapBackendAnalytic(res.data);
+        setAnalytics((prev) => prev.map((item) => (item.id === tempId ? serverA : item)));
+      }
+    });
+
     return newA;
   };
 
   const addBudget = (b: Omit<Budget, 'id'>) => {
-    const newB: Budget = { ...b, id: `b_${Date.now()}` };
+    const tempId = `b_${Date.now()}`;
+    const newB: Budget = { ...b, id: tempId };
     setBudgets((prev) => [newB, ...prev]);
+
+    const analyticId = resolveUUID(b.analyticId, analytics);
+    const responsibleId = resolveUUID(b.responsibleId || '', contacts);
+
+    apiRequest('/budgets', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: b.name,
+        startDate: b.startDate,
+        endDate: b.endDate,
+        analyticId,
+        responsibleId,
+        committedAmount: b.committedAmount,
+      }),
+    }).then((res) => {
+      if (res.success && res.data) {
+        const serverB = mapBackendBudget(res.data);
+        setBudgets((prev) => prev.map((item) => (item.id === tempId ? serverB : item)));
+      }
+    });
+
     return newB;
   };
 
   const updateBudgetState = (id: string, state: BudgetState) => {
     setBudgets((prev) => prev.map((b) => (b.id === id ? { ...b, state } : b)));
+    if (state === 'Confirmed') {
+      apiRequest(`/budgets/${id}/confirm`, { method: 'POST' });
+    } else if (state === 'Cancelled') {
+      apiRequest(`/budgets/${id}/cancel`, { method: 'POST' });
+    }
   };
 
   const getBudgetAchievedAmount = (budget: Budget): number => {
@@ -732,8 +1102,31 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
 
   // Sales Orders & Invoices
   const addSalesOrder = (so: Omit<SalesOrder, 'id' | 'orderNumber'>) => {
-    const newSO: SalesOrder = { ...so, id: `so_${Date.now()}`, orderNumber: nextSeq('SO') };
+    const tempId = `so_${Date.now()}`;
+    const newSO: SalesOrder = { ...so, id: tempId, orderNumber: nextSeq('SO') };
     setSalesOrders((prev) => [newSO, ...prev]);
+
+    const customerId = resolveUUID(so.partnerId, contacts);
+    const validLines = so.lines.map((l) => ({
+      productId: resolveUUID(l.productId, products),
+      qty: l.quantity,
+      unitPrice: l.unitPrice,
+    }));
+
+    apiRequest('/sales-orders', {
+      method: 'POST',
+      body: JSON.stringify({
+        customerId,
+        soDate: so.date || new Date().toISOString(),
+        lines: validLines,
+      }),
+    }).then((res) => {
+      if (res.success && res.data) {
+        const serverSO = mapBackendSalesOrder(res.data);
+        setSalesOrders((prev) => prev.map((item) => (item.id === tempId ? serverSO : item)));
+      }
+    });
+
     return newSO;
   };
 
@@ -749,58 +1142,59 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
   };
 
   const addInvoice = (inv: Omit<CustomerInvoice, 'id' | 'invoiceNumber' | 'amountPaid' | 'amountDue'>) => {
+    const tempId = `inv_${Date.now()}`;
     const newInv: CustomerInvoice = {
       ...inv,
-      id: `inv_${Date.now()}`,
+      id: tempId,
       invoiceNumber: nextSeq('INV'),
       amountPaid: 0,
       amountDue: inv.total,
     };
     setInvoices((prev) => [newInv, ...prev]);
+
+    const customerId = resolveUUID(inv.partnerId, contacts);
+    const defaultIncomeAcc = accounts.find((a) => a.type === 'Income') || accounts[0];
+    const validLines = inv.lines.map((l) => ({
+      productId: resolveUUID(l.productId, products),
+      accountId: resolveUUID(l.accountId || defaultIncomeAcc?.id || '', accounts),
+      analyticId: l.analyticId ? resolveUUID(l.analyticId, analytics) : undefined,
+      qty: l.quantity,
+      unitPrice: l.unitPrice,
+    }));
+
+    apiRequest('/customer-invoices', {
+      method: 'POST',
+      body: JSON.stringify({
+        customerId,
+        reference: inv.reference || '',
+        invoiceDate: inv.date || new Date().toISOString(),
+        dueDate: inv.dueDate || inv.date || new Date().toISOString(),
+        lines: validLines,
+      }),
+    }).then((res) => {
+      if (res.success && res.data) {
+        const serverInv = mapBackendCustomerInvoice(res.data);
+        setInvoices((prev) => prev.map((item) => (item.id === tempId ? serverInv : item)));
+      }
+    });
+
     return newInv;
   };
 
-  // On Confirm Customer Invoice -> Auto-create Journal Entry (Sales A/c Cr, Debtor A/c Dr)
   const confirmInvoice = (id: string) => {
     setInvoices((prev) =>
-      prev.map((inv) => {
-        if (inv.id === id && inv.status === 'Draft') {
-          const salesAcc = accounts.find((a) => a.code === '4000') || accounts.find((a) => a.type === 'Income') || accounts[0];
-          const debtorAcc = accounts.find((a) => a.code === '1050') || accounts.find((a) => a.type === 'Asset') || accounts[0];
-
-          const autoEntryResult = addJournalEntry({
-            date: inv.date,
-            journalId: journals.find((j) => j.type === 'Sales')?.id || 'j1',
-            journalName: 'Customer Invoices Journal',
-            status: 'Posted',
-            reference: inv.invoiceNumber,
-            lines: [
-              {
-                id: `jel_${Date.now()}_1`,
-                accountId: debtorAcc.id,
-                accountName: debtorAcc.name,
-                partnerId: inv.partnerId,
-                partnerName: inv.partnerName,
-                debit: inv.total,
-                credit: 0,
-              },
-              {
-                id: `jel_${Date.now()}_2`,
-                accountId: salesAcc.id,
-                accountName: salesAcc.name,
-                partnerId: inv.partnerId,
-                partnerName: inv.partnerName,
-                debit: 0,
-                credit: inv.total,
-              },
-            ],
-          });
-
-          return { ...inv, status: 'Confirmed', journalEntryId: autoEntryResult.entry?.id };
-        }
-        return inv;
-      })
+      prev.map((inv) => (inv.id === id ? { ...inv, status: 'Confirmed' } : inv))
     );
+
+    apiRequest(`/customer-invoices/${id}/confirm`, { method: 'POST' }).then((res) => {
+      if (res.success) {
+        apiRequest('/journal-entries').then((jeRes) => {
+          if (jeRes.success && Array.isArray(jeRes.data)) {
+            setJournalEntries(jeRes.data.map(mapBackendJournalEntry));
+          }
+        });
+      }
+    });
   };
 
   const payInvoice = (id: string, amount: number, paymentVia: 'Bank' | 'Cash', date: string) => {
@@ -811,7 +1205,6 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
           const newDue = Math.max(0, inv.total - newPaid);
           const newStatus = newDue <= 0.01 ? 'Paid' : 'Confirmed';
 
-          // Record payment transaction
           const paymentRec: PaymentRecord = {
             id: `pay_${Date.now()}`,
             type: 'Receive',
@@ -826,20 +1219,25 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
           };
           setPayments((p) => [paymentRec, ...p]);
 
-          // Auto-record Bank/Cash Journal Entry
-          const bankCashAcc = accounts.find((a) => a.type === paymentVia) || accounts.find((a) => a.type === 'Bank') || accounts[0];
-          const debtorAcc = accounts.find((a) => a.code === '1050') || accounts.find((a) => a.type === 'Asset') || accounts[0];
-
-          addJournalEntry({
-            date,
-            journalId: journals.find((j) => j.type === paymentVia)?.id || 'j3',
-            journalName: `${paymentVia} Register Journal`,
-            status: 'Posted',
-            reference: `Payment for ${inv.invoiceNumber}`,
-            lines: [
-              { id: `jel_p1_${Date.now()}`, accountId: bankCashAcc.id, accountName: bankCashAcc.name, partnerId: inv.partnerId, partnerName: inv.partnerName, debit: amount, credit: 0 },
-              { id: `jel_p2_${Date.now()}`, accountId: debtorAcc.id, accountName: debtorAcc.name, partnerId: inv.partnerId, partnerName: inv.partnerName, debit: 0, credit: amount },
-            ],
+          const partnerId = resolveUUID(inv.partnerId, contacts);
+          apiRequest('/payments', {
+            method: 'POST',
+            body: JSON.stringify({
+              paymentType: 'RECEIVE',
+              partnerId,
+              amount,
+              paymentVia: paymentVia.toUpperCase(),
+              customerInvoiceId: id,
+              note: `Payment for ${inv.invoiceNumber}`,
+            }),
+          }).then((res) => {
+            if (res.success) {
+              apiRequest('/journal-entries').then((jeRes) => {
+                if (jeRes.success && Array.isArray(jeRes.data)) {
+                  setJournalEntries(jeRes.data.map(mapBackendJournalEntry));
+                }
+              });
+            }
           });
 
           return {
@@ -856,75 +1254,96 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
 
   // Purchases & Bills
   const addPurchaseOrder = (po: Omit<PurchaseOrder, 'id' | 'orderNumber'>) => {
-    const newPO: PurchaseOrder = { ...po, id: `po_${Date.now()}`, orderNumber: nextSeq('PO') };
+    const tempId = `po_${Date.now()}`;
+    const newPO: PurchaseOrder = { ...po, id: tempId, orderNumber: nextSeq('PO') };
     setPurchaseOrders((prev) => [newPO, ...prev]);
+
+    const vendorId = resolveUUID(po.partnerId, contacts);
+    const validLines = po.lines.map((l) => ({
+      productId: resolveUUID(l.productId, products),
+      analyticId: l.analyticId ? resolveUUID(l.analyticId, analytics) : undefined,
+      qty: l.quantity,
+      unitPrice: l.unitPrice,
+    }));
+
+    apiRequest('/purchase-orders', {
+      method: 'POST',
+      body: JSON.stringify({
+        vendorId,
+        poDate: po.date || new Date().toISOString(),
+        lines: validLines,
+      }),
+    }).then((res) => {
+      if (res.success && res.data) {
+        const serverPO = mapBackendPurchaseOrder(res.data);
+        setPurchaseOrders((prev) => prev.map((item) => (item.id === tempId ? serverPO : item)));
+      }
+    });
+
     return newPO;
   };
 
   const confirmPurchaseOrder = (id: string) => {
     setPurchaseOrders((prev) =>
-      prev.map((po) => {
-        if (po.id === id && po.status === 'Draft') {
-          return { ...po, status: 'Confirmed' };
-        }
-        return po;
-      })
+      prev.map((po) => (po.id === id ? { ...po, status: 'Confirmed' } : po))
     );
+    apiRequest(`/purchase-orders/${id}/confirm`, { method: 'POST' });
   };
 
   const addBill = (b: Omit<VendorBill, 'id' | 'billNumber' | 'amountPaid' | 'amountDue'>) => {
+    const tempId = `bill_${Date.now()}`;
     const newBill: VendorBill = {
       ...b,
-      id: `bill_${Date.now()}`,
+      id: tempId,
       billNumber: nextSeq('BILL'),
       amountPaid: 0,
       amountDue: b.total,
     };
     setBills((prev) => [newBill, ...prev]);
+
+    const vendorId = resolveUUID(b.partnerId, contacts);
+    const defaultExpenseAcc = accounts.find((a) => a.type === 'Expense') || accounts[0];
+    const validLines = b.lines.map((l) => ({
+      productId: resolveUUID(l.productId, products),
+      accountId: resolveUUID(l.accountId || defaultExpenseAcc?.id || '', accounts),
+      analyticId: l.analyticId ? resolveUUID(l.analyticId, analytics) : undefined,
+      qty: l.quantity,
+      unitPrice: l.unitPrice,
+    }));
+
+    apiRequest('/vendor-bills', {
+      method: 'POST',
+      body: JSON.stringify({
+        vendorId,
+        billReference: b.reference || '',
+        billDate: b.date || new Date().toISOString(),
+        dueDate: b.dueDate || b.date || new Date().toISOString(),
+        lines: validLines,
+      }),
+    }).then((res) => {
+      if (res.success && res.data) {
+        const serverBill = mapBackendVendorBill(res.data);
+        setBills((prev) => prev.map((item) => (item.id === tempId ? serverBill : item)));
+      }
+    });
+
     return newBill;
   };
 
-  // On Confirm Vendor Bill -> Auto-create Journal Entry (Purchase A/c Dr, Creditor A/c Cr)
   const confirmBill = (id: string) => {
     setBills((prev) =>
-      prev.map((b) => {
-        if (b.id === id && b.status === 'Draft') {
-          const purchaseAcc = accounts.find((a) => a.code === '5000') || accounts.find((a) => a.type === 'Expense') || accounts[0];
-          const creditorAcc = accounts.find((a) => a.code === '2010') || accounts.find((a) => a.type === 'Liability') || accounts[0];
-
-          const autoEntryResult = addJournalEntry({
-            date: b.date,
-            journalId: journals.find((j) => j.type === 'Purchase')?.id || 'j2',
-            journalName: 'Vendor Bills Journal',
-            status: 'Posted',
-            reference: b.billNumber,
-            lines: [
-              {
-                id: `jel_${Date.now()}_b1`,
-                accountId: purchaseAcc.id,
-                accountName: purchaseAcc.name,
-                partnerId: b.partnerId,
-                partnerName: b.partnerName,
-                debit: b.total,
-                credit: 0,
-              },
-              {
-                id: `jel_${Date.now()}_b2`,
-                accountId: creditorAcc.id,
-                accountName: creditorAcc.name,
-                partnerId: b.partnerId,
-                partnerName: b.partnerName,
-                debit: 0,
-                credit: b.total,
-              },
-            ],
-          });
-
-          return { ...b, status: 'Confirmed', journalEntryId: autoEntryResult.entry?.id };
-        }
-        return b;
-      })
+      prev.map((b) => (b.id === id ? { ...b, status: 'Confirmed' } : b))
     );
+
+    apiRequest(`/vendor-bills/${id}/confirm`, { method: 'POST' }).then((res) => {
+      if (res.success) {
+        apiRequest('/journal-entries').then((jeRes) => {
+          if (jeRes.success && Array.isArray(jeRes.data)) {
+            setJournalEntries(jeRes.data.map(mapBackendJournalEntry));
+          }
+        });
+      }
+    });
   };
 
   const payBill = (id: string, amount: number, paymentVia: 'Bank' | 'Cash', date: string) => {
@@ -935,7 +1354,6 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
           const newDue = Math.max(0, b.total - newPaid);
           const newStatus = newDue <= 0.01 ? 'Paid' : 'Confirmed';
 
-          // Record payment transaction
           const paymentRec: PaymentRecord = {
             id: `pay_${Date.now()}`,
             type: 'Send',
@@ -950,20 +1368,25 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
           };
           setPayments((p) => [paymentRec, ...p]);
 
-          // Auto-record Bank/Cash Journal Entry (Creditor Dr, Bank/Cash Cr)
-          const bankCashAcc = accounts.find((a) => a.type === paymentVia) || accounts.find((a) => a.type === 'Bank') || accounts[0];
-          const creditorAcc = accounts.find((a) => a.code === '2010') || accounts.find((a) => a.type === 'Liability') || accounts[0];
-
-          addJournalEntry({
-            date,
-            journalId: journals.find((j) => j.type === paymentVia)?.id || 'j3',
-            journalName: `${paymentVia} Register Journal`,
-            status: 'Posted',
-            reference: `Payment for ${b.billNumber}`,
-            lines: [
-              { id: `jel_pb1_${Date.now()}`, accountId: creditorAcc.id, accountName: creditorAcc.name, partnerId: b.partnerId, partnerName: b.partnerName, debit: amount, credit: 0 },
-              { id: `jel_pb2_${Date.now()}`, accountId: bankCashAcc.id, accountName: bankCashAcc.name, partnerId: b.partnerId, partnerName: b.partnerName, debit: 0, credit: amount },
-            ],
+          const partnerId = resolveUUID(b.partnerId, contacts);
+          apiRequest('/payments', {
+            method: 'POST',
+            body: JSON.stringify({
+              paymentType: 'SEND',
+              partnerId,
+              amount,
+              paymentVia: paymentVia.toUpperCase(),
+              vendorBillId: id,
+              note: `Payment for ${b.billNumber}`,
+            }),
+          }).then((res) => {
+            if (res.success) {
+              apiRequest('/journal-entries').then((jeRes) => {
+                if (jeRes.success && Array.isArray(jeRes.data)) {
+                  setJournalEntries(jeRes.data.map(mapBackendJournalEntry));
+                }
+              });
+            }
           });
 
           return {

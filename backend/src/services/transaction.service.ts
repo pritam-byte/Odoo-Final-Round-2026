@@ -347,4 +347,88 @@ export class TransactionService {
       return payment;
     });
   }
+
+  // --- QUERY LISTS ---
+  static async listPurchaseOrders() {
+    return prisma.purchaseOrder.findMany({
+      include: {
+        vendor: true,
+        lines: {
+          include: { product: true, analytic: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  static async listVendorBills() {
+    return prisma.vendorBill.findMany({
+      include: {
+        vendor: true,
+        lines: {
+          include: { product: true, account: true, analytic: true },
+        },
+        payments: true,
+        journalEntry: {
+          include: { items: { include: { account: true } } },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  static async listSalesOrders() {
+    return prisma.salesOrder.findMany({
+      include: {
+        customer: true,
+        lines: {
+          include: { product: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  static async listCustomerInvoices() {
+    return prisma.customerInvoice.findMany({
+      include: {
+        customer: true,
+        lines: {
+          include: { product: true, account: true, analytic: true },
+        },
+        payments: true,
+        journalEntry: {
+          include: { items: { include: { account: true } } },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  static async listPayments() {
+    return prisma.payment.findMany({
+      include: {
+        partner: true,
+        vendorBill: true,
+        customerInvoice: true,
+        journalEntry: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  static async listJournalEntries() {
+    return prisma.journalEntry.findMany({
+      include: {
+        journal: true,
+        items: {
+          include: {
+            account: true,
+            partner: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
 }
