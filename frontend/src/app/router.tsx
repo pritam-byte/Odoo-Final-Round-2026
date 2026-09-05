@@ -28,6 +28,8 @@ import { VendorBillsPage } from '../features/orders/pages/VendorBillsPage';
 import { ProfitLossReportPage } from '../features/reports/pages/ProfitLossReportPage';
 import { BalanceSheetPage } from '../features/reports/pages/BalanceSheetPage';
 import { BudgetReportPage } from '../features/reports/pages/BudgetReportPage';
+import { PaymentHistoryPage } from '../features/payments/pages/PaymentHistoryPage';
+import { SettingsPage } from '../features/settings/pages/SettingsPage';
 
 export const AppRouter: React.FC = () => {
   // Session User
@@ -191,8 +193,9 @@ export const AppRouter: React.FC = () => {
         return <PurchaseOrdersPage onNavigate={navigate} />;
       case '/purchase/bills':
       case '/bills':
-      case '/payments':
         return <VendorBillsPage onNavigate={navigate} />;
+      case '/payments':
+        return <PaymentHistoryPage onNavigate={navigate} />;
       case '/reports/pnl':
         return <ProfitLossReportPage onNavigate={navigate} />;
       case '/reports/balance-sheet':
@@ -200,6 +203,8 @@ export const AppRouter: React.FC = () => {
       case '/reports/budget':
       case '/reports':
         return <BudgetReportPage onNavigate={navigate} />;
+      case '/settings':
+        return <SettingsPage onNavigate={navigate} />;
       case '/dashboard':
       case '/':
       default:
