@@ -1,0 +1,2 @@
+// journals API service
+export {};

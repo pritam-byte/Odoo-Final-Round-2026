@@ -1,0 +1,2 @@
+// portal API service
+export {};

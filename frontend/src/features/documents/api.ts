@@ -1,0 +1,2 @@
+// documents API service
+export {};

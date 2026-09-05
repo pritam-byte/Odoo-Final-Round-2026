@@ -1,0 +1,2 @@
+// stock API service
+export {};
