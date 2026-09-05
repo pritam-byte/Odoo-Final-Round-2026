@@ -163,7 +163,7 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
 
           {/* Amount */}
           <div className="form-group">
-            <label className="form-label">Amount to Pay ($)</label>
+            <label className="form-label">Amount to Pay (₹)</label>
             <div className="input-with-icon-wrapper">
               <div className="input-leading-icon">
                 <IndianRupee size={15} />
@@ -184,8 +184,8 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
             </span>
           </div>
 
-          {/* Date */}
-          <div className="form-group">
+          {/* Date with Custom Calendar Picker */}
+          <div className="form-group" style={{ position: 'relative' }}>
             <label className="form-label">Payment Date</label>
             <input
               type="date"

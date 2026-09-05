@@ -115,13 +115,13 @@ export const InvoicesPage: React.FC<{ onNavigate: (route: string) => void }> = (
     },
     {
       key: 'total',
-      header: 'Total ($)',
+      header: 'Total (₹)',
       align: 'right',
       render: (inv) => <span>₹{inv.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>,
     },
     {
       key: 'amountDue',
-      header: 'Amount Due ($)',
+      header: 'Amount Due (₹)',
       align: 'right',
       render: (inv) => (
         <span style={{ fontWeight: 700, color: inv.amountDue > 0 ? 'var(--color-warning)' : 'var(--color-primary)' }}>₹{inv.amountDue.toLocaleString(undefined, { minimumFractionDigits: 2 })}

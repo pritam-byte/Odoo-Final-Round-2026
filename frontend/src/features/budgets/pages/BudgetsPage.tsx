@@ -153,13 +153,13 @@ export const BudgetsPage: React.FC<{ onNavigate: (route: string) => void }> = ({
     },
     {
       key: 'committedAmount',
-      header: 'Committed Target ($)',
+      header: 'Committed Target (₹)',
       align: 'right',
       render: (b) => <span style={{ fontWeight: 600 }}>₹{b.committedAmount.toLocaleString()}</span>,
     },
     {
       key: 'achieved',
-      header: 'Achieved ($)',
+      header: 'Achieved (₹)',
       align: 'right',
       render: (b) => {
         const achieved = getBudgetAchievedAmount(b);
@@ -753,7 +753,7 @@ export const BudgetsPage: React.FC<{ onNavigate: (route: string) => void }> = ({
                     <th>Document #</th>
                     <th>Partner</th>
                     <th>Date</th>
-                    <th style={{ textAlign: 'right' }}>Matched Amount ($)</th>
+                    <th style={{ textAlign: 'right' }}>Matched Amount (₹)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -867,7 +867,7 @@ export const BudgetsPage: React.FC<{ onNavigate: (route: string) => void }> = ({
           </div>
 
           <FormField
-            label="Committed Target Amount ($)"
+            label="Committed Target Amount (₹)"
             type="number"
             step="100"
             value={committedAmount}

@@ -88,7 +88,7 @@ export const AccountsPage: React.FC<{ onNavigate: (route: string) => void }> = (
     },
     {
       key: 'balance',
-      header: 'Current Balance ($)',
+      header: 'Current Balance (₹)',
       align: 'right',
       render: (a) => (
         <span style={{ fontWeight: 600, color: a.balance >= 0 ? 'var(--color-text-primary)' : 'var(--color-danger)' }}>₹{a.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -212,7 +212,7 @@ export const AccountsPage: React.FC<{ onNavigate: (route: string) => void }> = (
           </div>
 
           <FormField
-            label="Initial Opening Balance ($)"
+            label="Initial Opening Balance (₹)"
             type="number"
             step="0.01"
             value={balance}

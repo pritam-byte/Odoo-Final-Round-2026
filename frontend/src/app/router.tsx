@@ -31,6 +31,8 @@ import { BudgetReportPage } from '../features/reports/pages/BudgetReportPage';
 import { PaymentHistoryPage } from '../features/payments/pages/PaymentHistoryPage';
 import { SettingsPage } from '../features/settings/pages/SettingsPage';
 
+import { getMyScopedDocumentById } from '../features/portal/api';
+
 export const AppRouter: React.FC = () => {
   // Session User
   const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => getStoredUser());
@@ -43,6 +45,7 @@ export const AppRouter: React.FC = () => {
   });
   const [portalView, setPortalView] = useState<string>('dashboard');
   const [selectedDocId, setSelectedDocId] = useState<string | undefined>(undefined);
+  const [lastDocumentView, setLastDocumentView] = useState<'bills' | 'invoices'>('bills');
   const [isCreatingUser, setIsCreatingUser] = useState<boolean>(false);
 
   useEffect(() => {
@@ -99,6 +102,16 @@ export const AppRouter: React.FC = () => {
   };
 
   const handlePortalNavigate = (view: string, docId?: string) => {
+    if (view === 'bills') {
+      setLastDocumentView('bills');
+    } else if (view === 'invoices') {
+      setLastDocumentView('invoices');
+    } else if (view === 'detail' && docId) {
+      const doc = getMyScopedDocumentById(docId);
+      if (doc) {
+        setLastDocumentView(doc.type === 'bill' ? 'bills' : 'invoices');
+      }
+    }
     setPortalView(view);
     if (docId) setSelectedDocId(docId);
   };
@@ -125,7 +138,7 @@ export const AppRouter: React.FC = () => {
   if (currentUser.role === 'User') {
     return (
       <PortalLayout
-        activeNav={portalView}
+        activeNav={portalView === 'detail' ? lastDocumentView : portalView}
         onNavigate={handlePortalNavigate}
         user={currentUser}
         onLogout={handleLogout}
@@ -135,7 +148,7 @@ export const AppRouter: React.FC = () => {
         {portalView === 'bills' && <PortalDocumentListPage documentType="bill" onNavigate={handlePortalNavigate} />}
         {portalView === 'payments' && <PortalPaymentHistoryPage />}
         {portalView === 'detail' && selectedDocId && (
-          <PortalDocumentDetailPage documentId={selectedDocId} onBack={() => setPortalView('dashboard')} />
+          <PortalDocumentDetailPage documentId={selectedDocId} onBack={() => setPortalView(lastDocumentView)} />
         )}
       </PortalLayout>
     );

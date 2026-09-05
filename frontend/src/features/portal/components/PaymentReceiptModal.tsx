@@ -42,7 +42,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
   const [partnerName, setPartnerName] = useState<string>(
     payment.partnerName || (payment.documentType === 'bill' ? 'Urban Timbers Ltd' : 'Mr Rahul')
   );
-  const [amount, setAmount] = useState<number>(payment.amount);
+  const amount = payment.amount;
   const [paymentVia, setPaymentVia] = useState<'Bank' | 'Cash'>(payment.paymentMethod || 'Bank');
   const [date, setDate] = useState<string>(payment.date || new Date().toISOString().split('T')[0]);
   const [note, setNote] = useState<string>(
@@ -966,7 +966,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                 )}
               </div>
 
-              {/* Row 3 Left: Amount */}
+              {/* Row 3 Left: Amount (Non-customizable / Read Only) */}
               <div className="form-group">
                 <label className="form-label" style={{ fontWeight: 600, color: 'var(--color-text-secondary)' }}>
                   Amount
@@ -976,26 +976,13 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     borderBottom: '2px solid var(--color-border)',
+                    padding: '6px 0',
                   }}
                 >
-                  <span style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-primary)', marginRight: '6px' }}>₹</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={amount}
-                    onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-                    style={{
-                      width: '100%',
-                      backgroundColor: 'transparent',
-                      border: 'none',
-                      borderRadius: 0,
-                      color: 'var(--color-text-primary)',
-                      padding: '6px 0',
-                      fontSize: '16px',
-                      fontWeight: 700,
-                      outline: 'none',
-                    }}
-                  />
+                  <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-primary)', marginRight: '4px' }}>₹</span>
+                  <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-text-primary)' }}>
+                    {amount.toFixed(2)}
+                  </span>
                 </div>
                 <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
                   Autofill Amount Due from Invoice/Bill

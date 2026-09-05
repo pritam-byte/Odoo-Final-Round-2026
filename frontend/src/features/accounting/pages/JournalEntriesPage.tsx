@@ -307,8 +307,8 @@ export const JournalEntriesPage: React.FC<{ onNavigate: (route: string) => void 
                 <tr>
                   <th>Account</th>
                   <th>Partner</th>
-                  <th style={{ textAlign: 'right' }}>Debit ($)</th>
-                  <th style={{ textAlign: 'right' }}>Credit ($)</th>
+                  <th style={{ textAlign: 'right' }}>Debit (₹)</th>
+                  <th style={{ textAlign: 'right' }}>Credit (₹)</th>
                 </tr>
               </thead>
               <tbody>
@@ -438,8 +438,8 @@ export const JournalEntriesPage: React.FC<{ onNavigate: (route: string) => void 
                 <tr>
                   <th style={{ minWidth: '180px' }}>Account</th>
                   <th style={{ minWidth: '140px' }}>Partner</th>
-                  <th style={{ width: '120px', textAlign: 'right' }}>Debit ($)</th>
-                  <th style={{ width: '120px', textAlign: 'right' }}>Credit ($)</th>
+                  <th style={{ width: '120px', textAlign: 'right' }}>Debit (₹)</th>
+                  <th style={{ width: '120px', textAlign: 'right' }}>Credit (₹)</th>
                   <th style={{ width: '40px' }}></th>
                 </tr>
               </thead>

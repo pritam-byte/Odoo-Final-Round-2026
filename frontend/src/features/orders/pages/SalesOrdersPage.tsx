@@ -112,7 +112,7 @@ export const SalesOrdersPage: React.FC<{ onNavigate: (route: string) => void }> 
     },
     {
       key: 'total',
-      header: 'Total Value ($)',
+      header: 'Total Value (₹)',
       align: 'right',
       render: (so) => (
         <span style={{ fontWeight: 700 }}>₹{so.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>

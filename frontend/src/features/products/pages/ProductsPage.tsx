@@ -308,7 +308,7 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
           {/* Sales Price & Cost */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <FormField
-              label="Sales Price ($)"
+              label="Sales Price (₹)"
               type="number"
               step="0.01"
               value={salesPrice}
@@ -317,7 +317,7 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
               required
             />
             <FormField
-              label="Cost Price ($)"
+              label="Cost Price (₹)"
               type="number"
               step="0.01"
               value={cost}
