@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Printer, ArrowLeft, Info } from 'lucide-react';
+import { Printer, ArrowLeft, Info, Download } from 'lucide-react';
 import { useAccountingStore } from '../../accounting/store';
 import { Button } from '../../../components/ui/Button';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
 import { fetchProfitLossApi, ProfitLossReportData } from '../api';
+import { exportProfitLossPdf } from '../../../lib/pdfExport';
 
 export const ProfitLossReportPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { invoices, bills, accounts } = useAccountingStore();
@@ -70,6 +71,22 @@ export const ProfitLossReportPage: React.FC<{ onNavigate: (route: string) => voi
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Button
+            variant="outline"
+            onClick={() => exportProfitLossPdf({
+              year: selectedYear,
+              totalIncome,
+              salesIncome,
+              totalExpenses,
+              purchaseExpenses,
+              otherExpenses,
+              netIncome,
+            })}
+            leftIcon={<Download size={15} />}
+          >
+            Export PDF
+          </Button>
+
           <Button
             variant="outline"
             onClick={() => window.print()}

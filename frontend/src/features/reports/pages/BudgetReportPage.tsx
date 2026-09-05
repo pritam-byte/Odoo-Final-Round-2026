@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Printer, Download } from 'lucide-react';
+import { Download, FileSpreadsheet } from 'lucide-react';
 import { useAccountingStore, Budget } from '../../accounting/store';
 import { Button } from '../../../components/ui/Button';
 import { StatusBadge } from '../../../components/ui/StatusBadge';
@@ -7,6 +7,7 @@ import { ViewToggle } from '../../../components/ui/ViewToggle';
 import { DataTable, Column } from '../../../components/ui/DataTable';
 import { BudgetProgressWidget } from '../../../components/ui/BudgetProgressWidget';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
+import { exportBudgetReportPdf, exportBudgetReportCsv } from '../../../lib/pdfExport';
 
 export const BudgetReportPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { budgets, getBudgetAchievedAmount } = useAccountingStore();
@@ -103,12 +104,16 @@ export const BudgetReportPage: React.FC<{ onNavigate: (route: string) => void }>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
-          <Button variant="outline" onClick={() => window.print()} leftIcon={<Printer size={15} />}>
-            Print Report
+          <Button
+            variant="outline"
+            onClick={() => exportBudgetReportCsv(filteredBudgets, getBudgetAchievedAmount)}
+            leftIcon={<FileSpreadsheet size={15} />}
+          >
+            Export CSV
           </Button>
           <Button
             variant="primary"
-            onClick={() => alert('Exported Budget Variance Report as PDF.')}
+            onClick={() => exportBudgetReportPdf(filteredBudgets, getBudgetAchievedAmount)}
             leftIcon={<Download size={15} strokeWidth={2} />}
           >
             Export PDF

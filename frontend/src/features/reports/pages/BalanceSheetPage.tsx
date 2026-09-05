@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Printer, ArrowLeft, Info, CheckCircle2 } from 'lucide-react';
+import { Printer, ArrowLeft, Info, CheckCircle2, Download } from 'lucide-react';
 import { useAccountingStore } from '../../accounting/store';
 import { Button } from '../../../components/ui/Button';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
 import { fetchBalanceSheetApi, BalanceSheetReportData } from '../api';
+import { exportBalanceSheetPdf } from '../../../lib/pdfExport';
 
 export const BalanceSheetPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { accounts, invoices, bills } = useAccountingStore();
@@ -75,6 +76,23 @@ export const BalanceSheetPage: React.FC<{ onNavigate: (route: string) => void }>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Button
+            variant="outline"
+            onClick={() => exportBalanceSheetPdf({
+              year: selectedYear,
+              bankBalance,
+              cashBalance,
+              debtorsBalance,
+              totalAsset,
+              capitalBalance,
+              creditorsBalance,
+              totalLiability,
+            })}
+            leftIcon={<Download size={15} />}
+          >
+            Export PDF
+          </Button>
+
           <Button
             variant="outline"
             onClick={() => window.print()}
