@@ -97,12 +97,22 @@ export const loginUser = async (
         user: mappedUser,
       };
     } else if (backendRes.error && !backendRes.isFallback) {
-      const isNotFound = Boolean(backendRes.data?.notFound || backendRes.error.toLowerCase().includes('not found'));
-      return {
-        success: false,
-        notFound: isNotFound,
-        message: backendRes.error,
-      };
+      const isDbAuthError =
+        backendRes.error.includes('Authentication failed') ||
+        backendRes.error.includes('database credentials') ||
+        backendRes.error.includes('P1000') ||
+        backendRes.error.includes('P1001') ||
+        backendRes.error.includes('invocation in');
+
+      if (!isDbAuthError) {
+        const isNotFound = Boolean(backendRes.data?.notFound || backendRes.error.toLowerCase().includes('not found'));
+        return {
+          success: false,
+          notFound: isNotFound,
+          message: backendRes.error,
+        };
+      }
+      console.warn('PostgreSQL connection credentials error in backend. Using offline fallback:', backendRes.error);
     }
   } catch (e) {
     console.warn('Backend login unavailable:', e);
