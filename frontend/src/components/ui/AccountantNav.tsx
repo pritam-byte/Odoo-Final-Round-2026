@@ -84,32 +84,27 @@ export const AccountantNav: React.FC<AccountantNavProps> = ({ currentRoute, onNa
 
         {openDropdown === 'sales' && (
           <div
-            className="card-panel"
+            className="dropdown-menu"
             style={{
-              position: 'absolute',
               top: 'calc(100% + 6px)',
               left: 0,
-              width: '200px',
-              padding: '6px',
-              boxShadow: 'var(--shadow-dropdown)',
-              zIndex: 40,
-              gap: '2px',
+              width: '210px',
             }}
           >
             <button
               type="button"
-              className="sidebar-item"
+              className="dropdown-item"
               onClick={() => handleDropdownSelect('/sales/orders')}
             >
-              <ShoppingCart size={15} strokeWidth={1.75} />
+              <span className="dropdown-item-icon"><ShoppingCart size={15} strokeWidth={1.75} /></span>
               <span>Sales Orders</span>
             </button>
             <button
               type="button"
-              className="sidebar-item"
+              className="dropdown-item"
               onClick={() => handleDropdownSelect('/sales/invoices')}
             >
-              <Receipt size={15} strokeWidth={1.75} />
+              <span className="dropdown-item-icon"><Receipt size={15} strokeWidth={1.75} /></span>
               <span>Customer Invoices</span>
             </button>
           </div>
@@ -133,32 +128,27 @@ export const AccountantNav: React.FC<AccountantNavProps> = ({ currentRoute, onNa
 
         {openDropdown === 'purchase' && (
           <div
-            className="card-panel"
+            className="dropdown-menu"
             style={{
-              position: 'absolute',
               top: 'calc(100% + 6px)',
               left: 0,
-              width: '200px',
-              padding: '6px',
-              boxShadow: 'var(--shadow-dropdown)',
-              zIndex: 40,
-              gap: '2px',
+              width: '210px',
             }}
           >
             <button
               type="button"
-              className="sidebar-item"
+              className="dropdown-item"
               onClick={() => handleDropdownSelect('/purchase/orders')}
             >
-              <Truck size={15} strokeWidth={1.75} />
+              <span className="dropdown-item-icon"><Truck size={15} strokeWidth={1.75} /></span>
               <span>Purchase Orders</span>
             </button>
             <button
               type="button"
-              className="sidebar-item"
+              className="dropdown-item"
               onClick={() => handleDropdownSelect('/purchase/bills')}
             >
-              <Receipt size={15} strokeWidth={1.75} />
+              <span className="dropdown-item-icon"><Receipt size={15} strokeWidth={1.75} /></span>
               <span>Vendor Bills</span>
             </button>
           </div>
@@ -182,79 +172,74 @@ export const AccountantNav: React.FC<AccountantNavProps> = ({ currentRoute, onNa
 
         {openDropdown === 'account' && (
           <div
-            className="card-panel"
+            className="dropdown-menu"
             style={{
-              position: 'absolute',
               top: 'calc(100% + 6px)',
               left: 0,
               width: '240px',
-              padding: '6px',
-              boxShadow: 'var(--shadow-dropdown)',
-              zIndex: 40,
-              gap: '2px',
             }}
           >
-            <div className="sidebar-group-title">Master Data</div>
+            <div className="dropdown-header">Master Data</div>
             <button
               type="button"
-              className="sidebar-item"
+              className="dropdown-item"
               onClick={() => handleDropdownSelect('/contacts')}
             >
-              <Users size={15} strokeWidth={1.75} />
+              <span className="dropdown-item-icon"><Users size={15} strokeWidth={1.75} /></span>
               <span>Contacts / CRM</span>
             </button>
             <button
               type="button"
-              className="sidebar-item"
+              className="dropdown-item"
               onClick={() => handleDropdownSelect('/products')}
             >
-              <Package size={15} strokeWidth={1.75} />
+              <span className="dropdown-item-icon"><Package size={15} strokeWidth={1.75} /></span>
               <span>Products & Services</span>
             </button>
 
-            <div className="sidebar-divider" style={{ margin: '4px 0' }} />
-            <div className="sidebar-group-title">Ledger & Journals</div>
+            <div className="dropdown-divider" />
+            <div className="dropdown-header">Ledger & Journals</div>
             <button
               type="button"
-              className="sidebar-item"
+              className="dropdown-item"
               onClick={() => handleDropdownSelect('/accounts')}
             >
-              <Receipt size={15} strokeWidth={1.75} />
+              <span className="dropdown-item-icon"><Receipt size={15} strokeWidth={1.75} /></span>
               <span>Chart of Accounts</span>
             </button>
             <button
               type="button"
-              className="sidebar-item"
+              className="dropdown-item"
               onClick={() => handleDropdownSelect('/journals')}
             >
-              <BookOpen size={15} strokeWidth={1.75} />
+              <span className="dropdown-item-icon"><BookOpen size={15} strokeWidth={1.75} /></span>
               <span>Journals</span>
             </button>
             <button
               type="button"
-              className="sidebar-item"
+              className="dropdown-item"
               onClick={() => handleDropdownSelect('/journal-entries')}
             >
-              <FileSpreadsheet size={15} strokeWidth={1.75} />
+              <span className="dropdown-item-icon"><FileSpreadsheet size={15} strokeWidth={1.75} /></span>
               <span>Journal Entries</span>
             </button>
 
-            <div className="sidebar-divider" style={{ margin: '4px 0' }} />
-            <div className="sidebar-group-title">Analytics & Budgeting</div>
+            <div className="dropdown-divider" />
+            <div className="dropdown-header">Analytics & Budgeting</div>
             <button
               type="button"
-              className="sidebar-item"
+              className="dropdown-item"
               onClick={() => handleDropdownSelect('/analytics')}
             >
-              <PieChart size={15} strokeWidth={1.75} />
+              <span className="dropdown-item-icon"><PieChart size={15} strokeWidth={1.75} /></span>
               <span>Analytic Accounts</span>
             </button>
             <button
               type="button"
-              className="sidebar-item"
+              className="dropdown-item"
               onClick={() => handleDropdownSelect('/budgets')}
             >
-              <Target size={15} strokeWidth={1.75} />
+              <span className="dropdown-item-icon"><Target size={15} strokeWidth={1.75} /></span>
               <span>Analytical Budgets</span>
             </button>
           </div>
@@ -278,40 +263,35 @@ export const AccountantNav: React.FC<AccountantNavProps> = ({ currentRoute, onNa
 
         {openDropdown === 'report' && (
           <div
-            className="card-panel"
+            className="dropdown-menu"
             style={{
-              position: 'absolute',
               top: 'calc(100% + 6px)',
               left: 0,
-              width: '220px',
-              padding: '6px',
-              boxShadow: 'var(--shadow-dropdown)',
-              zIndex: 40,
-              gap: '2px',
+              width: '230px',
             }}
           >
             <button
               type="button"
-              className="sidebar-item"
+              className="dropdown-item"
               onClick={() => handleDropdownSelect('/reports/pnl')}
             >
-              <TrendingUp size={15} strokeWidth={1.75} />
+              <span className="dropdown-item-icon"><TrendingUp size={15} strokeWidth={1.75} /></span>
               <span>Profit & Loss (P&L)</span>
             </button>
             <button
               type="button"
-              className="sidebar-item"
+              className="dropdown-item"
               onClick={() => handleDropdownSelect('/reports/balance-sheet')}
             >
-              <Scale size={15} strokeWidth={1.75} />
+              <span className="dropdown-item-icon"><Scale size={15} strokeWidth={1.75} /></span>
               <span>Balance Sheet</span>
             </button>
             <button
               type="button"
-              className="sidebar-item"
+              className="dropdown-item"
               onClick={() => handleDropdownSelect('/reports/budget')}
             >
-              <Target size={15} strokeWidth={1.75} />
+              <span className="dropdown-item-icon"><Target size={15} strokeWidth={1.75} /></span>
               <span>Budget Variance Report</span>
             </button>
           </div>
