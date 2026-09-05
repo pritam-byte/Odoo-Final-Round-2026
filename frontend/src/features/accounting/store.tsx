@@ -200,7 +200,7 @@ export interface PaymentRecord {
   reference: string;
 }
 
-const CACHE_VERSION = 'odoo_pg_v2';
+const CACHE_VERSION = 'odoo_pg_v3';
 
 // Helper to get cached data from localStorage while filtering out legacy mock IDs
 const getCachedData = <T,>(key: string): T[] => {
