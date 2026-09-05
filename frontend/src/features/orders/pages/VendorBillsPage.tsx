@@ -11,6 +11,7 @@ import {
   FileText,
   PieChart,
   ExternalLink,
+  Download,
 } from 'lucide-react';
 import { useAccountingStore, VendorBill, OrderLine } from '../../accounting/store';
 import { Button } from '../../../components/ui/Button';
@@ -22,6 +23,8 @@ import { LineItemsTable } from '../../../components/ui/LineItemsTable';
 import { Many2OneSelect } from '../../../components/ui/Many2OneSelect';
 import { PaymentModal } from '../../../components/ui/PaymentModal';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
+import { exportVendorBillPdf } from '../../../lib/pdfExport';
+import { DocumentSignatureStamp } from '../../../components/ui/DocumentSignatureStamp';
 
 export const VendorBillsPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const {
@@ -316,6 +319,14 @@ export const VendorBillsPage: React.FC<{ onNavigate: (route: string) => void }> 
                   </Button>
                 )}
 
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => exportVendorBillPdf(viewingBill)}
+                  leftIcon={<Download size={14} />}
+                >
+                  Export PDF
+                </Button>
                 <Button variant="outline" size="sm" onClick={() => window.print()} leftIcon={<Printer size={14} />}>
                   Print
                 </Button>
@@ -502,6 +513,13 @@ export const VendorBillsPage: React.FC<{ onNavigate: (route: string) => void }> 
                 </table>
               </div>
             )}
+
+            <DocumentSignatureStamp
+              documentRef={`UF-BILL-${viewingBill.billNumber}`}
+              signatoryName="Pritam Denria"
+              signatoryRole="Chief Financial Officer / Procurement Auditor"
+              compact
+            />
           </div>
         </Modal>
       )}
