@@ -13,8 +13,10 @@ import {
   Layers,
   Calendar,
   ShieldCheck,
+  Package,
 } from 'lucide-react';
-import { PortalPayment } from '../schemas';
+import { PortalPayment, DocumentLineItem } from '../schemas';
+import { getMyScopedDocuments } from '../api';
 
 export interface PaymentReceiptModalProps {
   payment: PortalPayment;
@@ -36,6 +38,24 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
   const paymentVia = payment.paymentMethod || 'Bank';
   const date = payment.date || new Date().toISOString().split('T')[0];
   const note = payment.note || `Self-Service Portal settlement for ${payment.documentNumber}`;
+
+  // Retrieve linked document line items (furniture products or raw materials)
+  const allDocs = getMyScopedDocuments();
+  const linkedDoc = allDocs.find(
+    (d) => d.id === payment.documentId || d.number === payment.documentNumber
+  );
+
+  const lineItems: DocumentLineItem[] = linkedDoc?.lines && linkedDoc.lines.length > 0
+    ? linkedDoc.lines
+    : [
+        {
+          id: 'l_default',
+          product: isBill ? 'Raw Timber Plank & Hardware Supplies' : 'Solid Wood Furniture Order Items',
+          quantity: 1,
+          unitPrice: amount,
+          total: amount,
+        },
+      ];
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -99,7 +119,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
         @media print {
           @page {
             size: A4 portrait;
-            margin: 15mm;
+            margin: 12mm;
           }
           body * {
             visibility: hidden !important;
@@ -154,7 +174,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
           className="card-panel"
           style={{
             width: '100%',
-            maxWidth: '620px',
+            maxWidth: '680px',
             backgroundColor: '#ffffff',
             borderRadius: 'var(--radius-lg, 12px)',
             border: '1px solid var(--color-border)',
@@ -164,6 +184,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
             display: 'flex',
             flexDirection: 'column',
             position: 'relative',
+            maxHeight: '90vh',
           }}
         >
           {/* Toast Notification inside Modal */}
@@ -358,15 +379,15 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
             </div>
           </div>
 
-          {/* Official Voucher Body (Screen Presentation) */}
-          <div style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Official Voucher Body (Scrollable Screen Presentation) */}
+          <div style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: '18px', overflowY: 'auto' }}>
             {/* Slip Header Box */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                paddingBottom: '16px',
+                paddingBottom: '14px',
                 borderBottom: '1px dashed var(--color-border)',
               }}
             >
@@ -379,7 +400,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                     Urban Furniture
                   </div>
                   <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                    Official Settlement Voucher
+                    Official Settlement Receipt Voucher
                   </span>
                 </div>
               </div>
@@ -407,14 +428,14 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
               style={{
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
-                gap: '16px',
+                gap: '14px',
                 backgroundColor: 'var(--color-bg)',
-                padding: '16px 20px',
+                padding: '14px 18px',
                 borderRadius: 'var(--radius-md)',
                 border: '1px solid var(--color-border)',
               }}
             >
-              {/* Partner / Customer / Supplier (Pure Read-Only) */}
+              {/* Partner / Customer / Supplier */}
               <div>
                 <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
                   {isBill ? 'Supplier / Payee' : 'Customer / Billed To'}
@@ -441,7 +462,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
               {/* Payment Date */}
               <div>
                 <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
-                  Transaction Date
+                  Payment Date
                 </span>
                 <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Calendar size={14} style={{ color: 'var(--color-text-muted)' }} />
@@ -465,13 +486,52 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
               </div>
             </div>
 
-            {/* Settled Amount Card */}
+            {/* Itemized Products & Services Table */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                <Package size={14} style={{ color: 'var(--color-primary)' }} />
+                <span style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-text-primary)', letterSpacing: '0.04em' }}>
+                  {isBill ? 'Supplied Raw Materials & Services' : 'Purchased Products & Furniture'}
+                </span>
+              </div>
+
+              <div className="table-container" style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)' }}>
+                <table className="custom-table">
+                  <thead>
+                    <tr style={{ backgroundColor: 'var(--color-bg)' }}>
+                      <th style={{ width: '40px', fontSize: '11px' }}>#</th>
+                      <th style={{ fontSize: '11px' }}>Item Description</th>
+                      <th style={{ textAlign: 'center', width: '60px', fontSize: '11px' }}>Qty</th>
+                      <th style={{ textAlign: 'right', width: '100px', fontSize: '11px' }}>Unit Price</th>
+                      <th style={{ textAlign: 'right', width: '100px', fontSize: '11px' }}>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lineItems.map((line, idx) => (
+                      <tr key={line.id}>
+                        <td style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>{idx + 1}</td>
+                        <td style={{ fontWeight: 600, fontSize: '12px', color: 'var(--color-text-primary)' }}>
+                          {line.product}
+                        </td>
+                        <td style={{ textAlign: 'center', fontSize: '12px' }}>{line.quantity}</td>
+                        <td style={{ textAlign: 'right', fontSize: '12px' }}>₹{line.unitPrice.toFixed(2)}</td>
+                        <td style={{ textAlign: 'right', fontWeight: 700, fontSize: '12px', color: 'var(--color-text-primary)' }}>
+                          ₹{line.total.toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Settled Amount Banner */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '16px 20px',
+                padding: '14px 18px',
                 backgroundColor: 'var(--color-primary-light)',
                 borderRadius: 'var(--radius-md)',
                 border: '1px solid var(--color-primary-border)',
@@ -479,21 +539,21 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
             >
               <div>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Total Amount Settled
+                  Total Settled Amount
                 </span>
                 <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                  Direct payment voucher confirmation
+                  Payment settled in full
                 </div>
               </div>
-              <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-primary)' }}>
+              <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--color-primary)' }}>
                 ₹{amount.toFixed(2)}
               </div>
             </div>
 
             {/* Note / Memo */}
             {note && (
-              <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', padding: '0 4px' }}>
-                <span style={{ fontWeight: 600, color: 'var(--color-text-muted)' }}>Memo / Description:</span>{' '}
+              <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', padding: '0 4px' }}>
+                <span style={{ fontWeight: 600, color: 'var(--color-text-muted)' }}>Memo:</span>{' '}
                 {note}
               </div>
             )}
@@ -504,9 +564,8 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                paddingTop: '16px',
+                paddingTop: '14px',
                 borderTop: '1px solid var(--color-border)',
-                marginTop: '4px',
               }}
             >
               <button
@@ -531,57 +590,99 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
         </div>
       </div>
 
-      {/* Printable Slip Version (Visible only on print) */}
+      {/* Printable Slip Version (Optimized for Paper & PDF) */}
       <div id="printable-slip" style={{ display: 'none' }}>
-        <div style={{ borderBottom: '2px solid #111827', paddingBottom: '16px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {/* Print Slip Header */}
+        <div style={{ borderBottom: '2px solid #111827', paddingBottom: '14px', marginBottom: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <h1 style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: '#111827' }}>URBAN FURNITURE</h1>
-            <p style={{ fontSize: '12px', color: '#6b7280', margin: '4px 0 0 0' }}>Official Financial Transaction Voucher</p>
+            <h1 style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: '#111827', letterSpacing: '-0.02em' }}>URBAN FURNITURE</h1>
+            <p style={{ fontSize: '12px', color: '#4b5563', margin: '2px 0 0 0' }}>Official Financial Payment Receipt Voucher</p>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#0f766e', border: '1px solid #0f766e', padding: '3px 8px', borderRadius: '4px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: '#0f766e', border: '1.5px solid #0f766e', padding: '3px 8px', borderRadius: '4px' }}>
               SETTLED & CONFIRMED
             </span>
-            <div style={{ fontSize: '13px', fontWeight: 700, marginTop: '6px' }}>{payment.reference}</div>
+            <div style={{ fontSize: '13px', fontWeight: 700, marginTop: '6px', color: '#111827' }}>{payment.reference}</div>
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px', padding: '16px', backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '6px' }}>
+        {/* Transaction Summary Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '18px', padding: '14px 16px', backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '6px' }}>
           <div>
-            <span style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', fontWeight: 700 }}>
+            <span style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', fontWeight: 700 }}>
               {isBill ? 'Payee / Supplier:' : 'Customer / Recipient:'}
             </span>
-            <div style={{ fontSize: '14px', fontWeight: 700, marginTop: '2px' }}>{partnerName}</div>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#111827', marginTop: '2px' }}>{partnerName}</div>
           </div>
 
           <div>
-            <span style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', fontWeight: 700 }}>Document Reference:</span>
-            <div style={{ fontSize: '14px', fontWeight: 700, marginTop: '2px' }}>{payment.documentNumber} ({isBill ? 'Supply Bill' : 'Customer Invoice'})</div>
+            <span style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', fontWeight: 700 }}>Document Reference:</span>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#111827', marginTop: '2px' }}>{payment.documentNumber} ({isBill ? 'Supply Bill' : 'Customer Invoice'})</div>
           </div>
 
           <div>
-            <span style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', fontWeight: 700 }}>Payment Date:</span>
-            <div style={{ fontSize: '13px', fontWeight: 600, marginTop: '2px' }}>{date}</div>
+            <span style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', fontWeight: 700 }}>Payment Date:</span>
+            <div style={{ fontSize: '12px', fontWeight: 600, color: '#111827', marginTop: '2px' }}>{date}</div>
           </div>
 
           <div>
-            <span style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', fontWeight: 700 }}>Payment Mode:</span>
-            <div style={{ fontSize: '13px', fontWeight: 600, marginTop: '2px' }}>{paymentVia} Transfer</div>
+            <span style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', fontWeight: 700 }}>Payment Mode:</span>
+            <div style={{ fontSize: '12px', fontWeight: 600, color: '#111827', marginTop: '2px' }}>{paymentVia} Transfer</div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', border: '2px solid #0f766e', borderRadius: '6px', marginBottom: '24px', backgroundColor: '#f0fdfa' }}>
-          <span style={{ fontSize: '14px', fontWeight: 700, color: '#0f766e' }}>TOTAL SETTLED AMOUNT:</span>
-          <span style={{ fontSize: '22px', fontWeight: 800, color: '#0f766e' }}>₹{amount.toFixed(2)}</span>
+        {/* Itemized Line Items Table for Print */}
+        <div style={{ marginBottom: '18px' }}>
+          <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#374151', marginBottom: '6px', letterSpacing: '0.04em' }}>
+            {isBill ? 'Supplied Items Breakdown:' : 'Purchased Products Breakdown:'}
+          </div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#f3f4f6', borderBottom: '1px solid #d1d5db' }}>
+                <th style={{ padding: '6px 8px', textAlign: 'left', width: '30px' }}>#</th>
+                <th style={{ padding: '6px 8px', textAlign: 'left' }}>Item Description</th>
+                <th style={{ padding: '6px 8px', textAlign: 'center', width: '50px' }}>Qty</th>
+                <th style={{ padding: '6px 8px', textAlign: 'right', width: '90px' }}>Unit Price</th>
+                <th style={{ padding: '6px 8px', textAlign: 'right', width: '90px' }}>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lineItems.map((line, idx) => (
+                <tr key={line.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                  <td style={{ padding: '6px 8px', color: '#6b7280' }}>{idx + 1}</td>
+                  <td style={{ padding: '6px 8px', fontWeight: 600, color: '#111827' }}>{line.product}</td>
+                  <td style={{ padding: '6px 8px', textAlign: 'center' }}>{line.quantity}</td>
+                  <td style={{ padding: '6px 8px', textAlign: 'right' }}>₹{line.unitPrice.toFixed(2)}</td>
+                  <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 700 }}>₹{line.total.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
-        <div style={{ fontSize: '12px', color: '#4b5563', marginBottom: '40px' }}>
-          <strong>Memo:</strong> {note}
+        {/* Total Settled Amount Box */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', border: '1.5px solid #0f766e', borderRadius: '6px', marginBottom: '16px', backgroundColor: '#f0fdfa' }}>
+          <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f766e' }}>TOTAL SETTLED AMOUNT:</span>
+          <span style={{ fontSize: '20px', fontWeight: 800, color: '#0f766e' }}>₹{amount.toFixed(2)}</span>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '60px', paddingTop: '20px', borderTop: '1px solid #e5e7eb', fontSize: '12px', color: '#6b7280' }}>
-          <div>Authorized Signatory<br /><br />_________________________</div>
-          <div>Recipient Acknowledgment<br /><br />_________________________</div>
+        {/* Memo */}
+        <div style={{ fontSize: '11px', color: '#4b5563', marginBottom: '40px' }}>
+          <strong>Transaction Memo:</strong> {note}
+        </div>
+
+        {/* Signatures */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '40px', paddingTop: '16px', borderTop: '1px solid #e5e7eb', fontSize: '11px', color: '#4b5563' }}>
+          <div>
+            <strong>Authorized Signatory</strong><br />
+            Urban Furniture Accounts Desk<br /><br />
+            _________________________
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <strong>Recipient Acknowledgment</strong><br />
+            {partnerName}<br /><br />
+            _________________________
+          </div>
         </div>
       </div>
     </>
