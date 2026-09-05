@@ -1,14 +1,23 @@
 import React from 'react';
 
-export interface ButtonProps {
-  children?: React.ReactNode;
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  icon?: React.ReactNode;
 }
 
-export const Button: React.FC<ButtonProps> = () => {
+export const Button: React.FC<ButtonProps> = ({
+  children,
+  variant = 'primary',
+  icon,
+  className = '',
+  ...props
+}) => {
+  const baseClass = variant === 'primary' ? 'btn-primary' : 'btn-secondary';
   return (
-    <div className="button">
-      <h3>Button</h3>
-    </div>
+    <button className={`${baseClass} ${className}`} {...props}>
+      {icon}
+      {children}
+    </button>
   );
 };
 

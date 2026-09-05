@@ -1,15 +1,11 @@
 import React from 'react';
 
 export interface AppProvidersProps {
-  children?: React.ReactNode;
+  children: React.ReactNode;
 }
 
-export const AppProviders: React.FC<AppProvidersProps> = () => {
-  return (
-    <div className="appproviders">
-      <h3>AppProviders</h3>
-    </div>
-  );
+export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
+  return <>{children}</>;
 };
 
 export default AppProviders;

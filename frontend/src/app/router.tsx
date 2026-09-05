@@ -1,14 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
+import StaffLayout from '../layouts/StaffLayout';
+import CreateUserPage from '../features/auth/pages/CreateUserPage';
 
-export interface AppRouterProps {
-  children?: React.ReactNode;
-}
+export const AppRouter: React.FC = () => {
+  const [currentNav, setCurrentNav] = useState<string>('contacts');
 
-export const AppRouter: React.FC<AppRouterProps> = () => {
   return (
-    <div className="approuter">
-      <h3>AppRouter</h3>
-    </div>
+    <StaffLayout activeNav={currentNav} onNavigate={(id) => setCurrentNav(id)}>
+      <CreateUserPage />
+    </StaffLayout>
   );
 };
 
