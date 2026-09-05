@@ -8,6 +8,7 @@ export interface LineItemsTableProps {
   onChange: (lines: OrderLine[]) => void;
   readOnly?: boolean;
   defaultAccountType?: 'Income' | 'Expense';
+  hideAccountColumn?: boolean;
 }
 
 export const LineItemsTable: React.FC<LineItemsTableProps> = ({
@@ -15,18 +16,27 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
   onChange,
   readOnly = false,
   defaultAccountType = 'Income',
+  hideAccountColumn = false,
 }) => {
   const { products, accounts, analytics } = useAccountingStore();
 
   const handleAddLine = () => {
     const defaultProduct = products[0];
-    const targetAcc = accounts.find((a) => a.type === defaultAccountType) || accounts[0];
+    const targetAcc =
+      defaultAccountType === 'Expense'
+        ? accounts.find((a) => a.code === '5000' || a.name.toLowerCase().includes('purchase')) ||
+          accounts.find((a) => a.type === 'Expense') ||
+          accounts[0]
+        : accounts.find((a) => a.code === '4000' || a.name.toLowerCase().includes('sales')) ||
+          accounts.find((a) => a.type === 'Income') ||
+          accounts[0];
+
     const newLine: OrderLine = {
       id: `line_${Date.now()}_${Math.random()}`,
       productId: defaultProduct ? defaultProduct.id : '',
       productName: defaultProduct ? defaultProduct.name : '',
-      accountId: targetAcc.id,
-      accountName: targetAcc.name,
+      accountId: targetAcc ? targetAcc.id : '',
+      accountName: targetAcc ? targetAcc.name : '',
       analyticId: analytics[0]?.id || '',
       analyticName: analytics[0]?.name || '',
       quantity: 1,
@@ -82,25 +92,30 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
         <table className="custom-table">
           <thead>
             <tr>
-              <th style={{ minWidth: '180px' }}>Product / Service</th>
-              <th style={{ minWidth: '160px' }}>Chart of Account</th>
-              <th style={{ minWidth: '140px' }}>Analytic Tag</th>
-              <th style={{ width: '90px', textAlign: 'right' }}>Qty</th>
-              <th style={{ width: '120px', textAlign: 'right' }}>Unit Price ($)</th>
-              <th style={{ width: '130px', textAlign: 'right' }}>Line Total ($)</th>
+              <th style={{ width: '60px', textAlign: 'center' }}>Sr. No.</th>
+              <th style={{ minWidth: '180px' }}>Product</th>
+              {!hideAccountColumn && <th style={{ minWidth: '160px' }}>Chart of Account</th>}
+              <th style={{ minWidth: '140px' }}>Budget Analytics</th>
+              <th style={{ width: '80px', textAlign: 'right' }}>Qty</th>
+              <th style={{ width: '110px', textAlign: 'right' }}>Unit Price</th>
+              <th style={{ width: '120px', textAlign: 'right' }}>Total</th>
               {!readOnly && <th style={{ width: '50px' }}></th>}
             </tr>
           </thead>
           <tbody>
             {lines.length === 0 ? (
               <tr>
-                <td colSpan={7} style={{ textAlign: 'center', padding: '24px', color: 'var(--color-text-muted)' }}>
+                <td colSpan={hideAccountColumn ? 7 : 8} style={{ textAlign: 'center', padding: '24px', color: 'var(--color-text-muted)' }}>
                   No line items added yet. Click "+ Add an Item" below.
                 </td>
               </tr>
             ) : (
               lines.map((line, idx) => (
                 <tr key={line.id}>
+                  {/* Sr. No. */}
+                  <td style={{ textAlign: 'center', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
+                    {idx + 1}
+                  </td>
                   {/* Product */}
                   <td>
                     {readOnly ? (
@@ -122,24 +137,26 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
                   </td>
 
                   {/* Account */}
-                  <td>
-                    {readOnly ? (
-                      <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>{line.accountName}</span>
-                    ) : (
-                      <select
-                        className="form-input select-filter"
-                        style={{ padding: '6px 10px', fontSize: '13px' }}
-                        value={line.accountId}
-                        onChange={(e) => handleLineChange(idx, 'accountId', e.target.value)}
-                      >
-                        {accounts.map((a) => (
-                          <option key={a.id} value={a.id}>
-                            {a.code} - {a.name}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </td>
+                  {!hideAccountColumn && (
+                    <td>
+                      {readOnly ? (
+                        <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>{line.accountName}</span>
+                      ) : (
+                        <select
+                          className="form-input select-filter"
+                          style={{ padding: '6px 10px', fontSize: '13px' }}
+                          value={line.accountId}
+                          onChange={(e) => handleLineChange(idx, 'accountId', e.target.value)}
+                        >
+                          {accounts.map((a) => (
+                            <option key={a.id} value={a.id}>
+                              {a.code} - {a.name}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </td>
+                  )}
 
                   {/* Analytics */}
                   <td>
