@@ -45,7 +45,7 @@ export const AnalyticAccountsPage: React.FC<{ onNavigate: (route: string) => voi
   const filteredAnalytics = analytics.filter(
     (a) =>
       a.name.toLowerCase().includes(search.toLowerCase()) ||
-      a.code.toLowerCase().includes(search.toLowerCase()) ||
+      (a.code?.toLowerCase() || '').includes(search.toLowerCase()) ||
       a.type.toLowerCase().includes(search.toLowerCase())
   );
 
