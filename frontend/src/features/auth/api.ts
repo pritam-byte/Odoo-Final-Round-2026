@@ -117,6 +117,7 @@ export const createNewUser = (input: CreateUserInput): { success: boolean; messa
     loginId: input.loginId.trim(),
     email: input.email.trim(),
     role: input.role,
+    partnerType: input.partnerType || (input.role === 'User' ? 'Customer' : undefined),
     status: 'Active',
     partnerId: input.role === 'User' ? 'partner_' + trimmedLogin.replace(/[^a-z0-9]/g, '_') : undefined,
     createdAt: new Date().toISOString().split('T')[0],

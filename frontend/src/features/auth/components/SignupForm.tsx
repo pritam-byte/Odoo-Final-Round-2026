@@ -14,6 +14,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onNavigateToL
     loginId: '',
     email: '',
     role: 'User',
+    partnerType: 'Both',
     password: '',
     confirmPassword: '',
   });
@@ -28,7 +29,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onNavigateToL
   };
 
   const handleRoleSelect = (role: UserRole) => {
-    setFormData((prev) => ({ ...prev, role }));
+    setFormData((prev) => ({
+      ...prev,
+      role,
+      partnerType: role === 'User' ? (prev.partnerType || 'Both') : undefined,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
