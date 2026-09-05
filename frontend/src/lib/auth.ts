@@ -136,11 +136,12 @@ export const loginUser = async (
 export const registerAndLogin = async (
   input: CreateUserInput
 ): Promise<{ success: boolean; message: string; user?: UserAccount }> => {
-  // 1. Attempt live backend registration
+  // 1. Live PostgreSQL backend registration
   try {
     const backendRes = await apiRequest('/auth/register', {
       method: 'POST',
       body: JSON.stringify({
+        name: input.name.trim(),
         loginId: input.loginId.trim(),
         email: input.email.trim(),
         password: input.password || 'password123',
@@ -149,22 +150,30 @@ export const registerAndLogin = async (
     });
 
     if (backendRes.success && backendRes.data?.user) {
-      // Automatically login to get JWT token
+      // Automatically log in to receive JWT token & set session
       return await loginUser(input.loginId, input.password);
     }
-  } catch (e) {
-    console.warn('Backend registration failed/offline, registering locally...', e);
+
+    if (backendRes.error && !backendRes.isFallback) {
+      return {
+        success: false,
+        message: backendRes.error,
+      };
+    }
+  } catch (e: any) {
+    console.warn('Backend registration failed/offline:', e);
   }
 
-  // 2. Fallback to local store registration
+  // 2. Offline fallback ONLY if backend is completely down
   const res = createNewUser(input);
   if (!res.success || !res.user) {
     return res;
   }
 
   setStoredUser(res.user);
-  return { success: true, message: `Account created successfully. Welcome, ${res.user.name}!`, user: res.user };
+  return { success: true, message: `Account created successfully (Offline mode). Welcome, ${res.user.name}!`, user: res.user };
 };
+
 
 export const logoutUser = () => {
   setStoredUser(null);

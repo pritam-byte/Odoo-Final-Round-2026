@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { UserPlus, ArrowLeft, Check, AlertCircle } from 'lucide-react';
 import { UserRole, CreateUserInput } from '../schemas';
-import { createNewUser } from '../api';
+import { createNewUserApi } from '../api';
 
 export interface CreateUserPageProps {
   onSuccess?: () => void;
@@ -13,12 +13,13 @@ export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCan
     name: '',
     loginId: '',
     email: '',
-    role: 'User',
+    role: 'Accountant',
     password: '',
     confirmPassword: '',
   });
 
   const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -31,14 +32,19 @@ export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCan
     setFormData((prev) => ({ ...prev, role }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) {
       setError('Please provide full name.');
       return;
     }
 
-    const result = createNewUser(formData);
+    setLoading(true);
+    setError('');
+
+    const result = await createNewUserApi(formData);
+    setLoading(false);
+
     if (!result.success) {
       setError(result.message);
       return;
@@ -49,6 +55,7 @@ export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCan
       onSuccess?.();
     }, 1500);
   };
+
 
   return (
     <div style={{ maxWidth: '640px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -243,13 +250,13 @@ export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCan
               }}
             >
               {onCancel && (
-                <button type="button" className="btn btn-outline" onClick={onCancel}>
+                <button type="button" className="btn btn-outline" onClick={onCancel} disabled={loading}>
                   Cancel
                 </button>
               )}
-              <button type="submit" className="btn btn-primary" style={{ gap: '6px' }}>
+              <button type="submit" className="btn btn-primary" style={{ gap: '6px' }} disabled={loading}>
                 <UserPlus size={16} />
-                <span>Create User</span>
+                <span>{loading ? 'Creating in Database...' : 'Create User'}</span>
               </button>
             </div>
           </form>
@@ -260,3 +267,4 @@ export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCan
 };
 
 export default CreateUserPage;
+

@@ -20,15 +20,30 @@ export async function register(req: Request, res: Response) {
 
     const existingUser = await prisma.user.findFirst({
       where: {
-        OR: [{ loginId: parsed.loginId }, { email: parsed.email }],
+        OR: [
+          { loginId: { equals: parsed.loginId, mode: "insensitive" } },
+          { email: { equals: parsed.email, mode: "insensitive" } },
+        ],
       },
     });
 
     if (existingUser) {
-      return res.status(400).json({ error: "Login ID or Email already exists" });
+      return res.status(400).json({ error: "Login ID or Email already exists in the database" });
     }
 
     const hashedPassword = await bcrypt.hash(parsed.password, 10);
+
+    let contactId = parsed.contactId || null;
+    if (!contactId && parsed.name && parsed.role === "PORTAL_USER") {
+      const contact = await prisma.contact.create({
+        data: {
+          name: parsed.name,
+          email: parsed.email,
+          type: "BOTH",
+        },
+      });
+      contactId = contact.id;
+    }
 
     const user = await prisma.user.create({
       data: {
@@ -36,9 +51,9 @@ export async function register(req: Request, res: Response) {
         email: parsed.email,
         password: hashedPassword,
         role: parsed.role,
-        contactId: parsed.contactId || null,
+        contactId: contactId,
       },
-      select: { id: true, loginId: true, email: true, role: true, contactId: true },
+      select: { id: true, loginId: true, email: true, role: true, contactId: true, createdAt: true },
     });
 
     return res.status(201).json({ message: "User registered successfully", user });
@@ -46,6 +61,89 @@ export async function register(req: Request, res: Response) {
     return res.status(400).json({ error: error.errors?.[0]?.message || error.message });
   }
 }
+
+export async function getUsers(req: Request, res: Response) {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        loginId: true,
+        email: true,
+        role: true,
+        contactId: true,
+        createdAt: true,
+        updatedAt: true,
+        contact: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            email: true,
+            phone: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    return res.status(200).json(users);
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message || "Failed to fetch users" });
+  }
+}
+
+export async function updateUser(req: Request, res: Response) {
+  try {
+    const id = String(req.params.id);
+    const { email, role, password, name } = req.body;
+
+    const dataToUpdate: any = {};
+    if (email) dataToUpdate.email = email;
+    if (role) dataToUpdate.role = role;
+    if (password && password.length >= 6) {
+      dataToUpdate.password = await bcrypt.hash(password, 10);
+    }
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data: dataToUpdate,
+      select: {
+        id: true,
+        loginId: true,
+        email: true,
+        role: true,
+        contactId: true,
+        createdAt: true,
+        updatedAt: true,
+        contact: true,
+      },
+    });
+
+    if (name && updated.contactId) {
+      await prisma.contact.update({
+        where: { id: updated.contactId },
+        data: { name, email: email || undefined },
+      });
+    }
+
+    return res.status(200).json({ message: "User updated successfully", user: updated });
+  } catch (error: any) {
+    return res.status(400).json({ error: error.message || "Failed to update user" });
+  }
+}
+
+export async function deleteUser(req: Request, res: Response) {
+  try {
+    const id = String(req.params.id);
+    await prisma.user.delete({
+      where: { id },
+    });
+    return res.status(200).json({ message: "User deleted successfully" });
+  } catch (error: any) {
+    return res.status(400).json({ error: error.message || "Failed to delete user" });
+  }
+}
+
+
 
 export async function login(req: Request, res: Response) {
   try {

@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
-import { UserPlus, Search, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { UserPlus, Search, Check, RefreshCw } from 'lucide-react';
 import { UserAccount, UserRole } from '../schemas';
-import { getAllUsers, updateUserAccount, toggleUserStatus, triggerPasswordReset } from '../api';
+import {
+  getAllUsers,
+  fetchAllUsersApi,
+  updateUserAccountApi,
+  toggleUserStatus,
+  triggerPasswordReset,
+} from '../api';
 import { UsersTable } from '../components/UsersTable';
 import { UserEditModal } from '../components/UserEditModal';
 
@@ -11,10 +17,22 @@ export interface UserListPageProps {
 
 export const UserListPage: React.FC<UserListPageProps> = ({ onNavigateToCreate }) => {
   const [users, setUsers] = useState<UserAccount[]>(() => getAllUsers());
+  const [loading, setLoading] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [roleFilter, setRoleFilter] = useState<'ALL' | UserRole>('ALL');
   const [selectedUser, setSelectedUser] = useState<UserAccount | null>(null);
   const [toastMessage, setToastMessage] = useState<string>('');
+
+  const loadData = async () => {
+    setLoading(true);
+    const dbUsers = await fetchAllUsersApi();
+    setUsers(dbUsers);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -36,15 +54,16 @@ export const UserListPage: React.FC<UserListPageProps> = ({ onNavigateToCreate }
     }
   };
 
-  const handleSaveUser = (updatedData: { name: string; email: string; role: UserRole; status: 'Active' | 'Inactive' }) => {
+  const handleSaveUser = async (updatedData: { name: string; email: string; role: UserRole; status: 'Active' | 'Inactive' }) => {
     if (!selectedUser) return;
-    const res = updateUserAccount(selectedUser.id, updatedData);
+    const res = await updateUserAccountApi(selectedUser.id, updatedData);
     if (res.success) {
-      setUsers(getAllUsers());
+      await loadData();
       setSelectedUser(null);
       showToast(res.message);
     }
   };
+
 
   const filteredUsers = users.filter((u) => {
     const matchesRole = roleFilter === 'ALL' || u.role === roleFilter;
@@ -94,16 +113,29 @@ export const UserListPage: React.FC<UserListPageProps> = ({ onNavigateToCreate }
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={onNavigateToCreate}
-          className="btn btn-primary"
-          style={{ gap: '8px' }}
-        >
-          <UserPlus size={16} />
-          <span>+ New User</span>
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            type="button"
+            onClick={loadData}
+            className="btn btn-outline"
+            style={{ gap: '6px' }}
+            disabled={loading}
+          >
+            <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+            <span>{loading ? 'Refreshing...' : 'Refresh DB'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={onNavigateToCreate}
+            className="btn btn-primary"
+            style={{ gap: '8px' }}
+          >
+            <UserPlus size={16} />
+            <span>+ New User</span>
+          </button>
+        </div>
       </div>
+
 
       <div className="card-panel" style={{ padding: '16px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>

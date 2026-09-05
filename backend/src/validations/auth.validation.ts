@@ -1,24 +1,20 @@
 import { z } from "zod";
 
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
-
 export const registerSchema = z.object({
   loginId: z
     .string()
-    .min(6, "Login ID must be 6 to 12 characters")
-    .max(12, "Login ID must be 6 to 12 characters"),
+    .min(3, "Login ID must be 3 to 20 characters")
+    .max(20, "Login ID must be 3 to 20 characters"),
   email: z.string().email("Invalid email format"),
   password: z
     .string()
-    .regex(
-      passwordRegex,
-      "Password must have 8+ characters, at least 1 uppercase, 1 lowercase, and 1 special character"
-    ),
+    .min(6, "Password must be at least 6 characters"),
   role: z.enum(["ADMIN", "ACCOUNTANT", "PORTAL_USER"]).default("ACCOUNTANT"),
+  name: z.string().optional(),
   contactId: z.string().uuid().optional(),
 });
 
 export const loginSchema = z.object({
   loginId: z.string().min(1, "Login ID is required"),
   password: z.string().min(1, "Password is required"),
-});
+});
