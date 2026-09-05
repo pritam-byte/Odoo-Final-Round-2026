@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Clock, Bell, Layers, LogOut, Shield, Briefcase, User as UserIcon } from 'lucide-react';
+import { Search, Clock, Bell, LogOut, Shield, Briefcase, User as UserIcon } from 'lucide-react';
 
 export interface HeaderProps {
   onSearch?: (query: string) => void;
@@ -68,88 +68,78 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="top-navbar">
-      {/* Brand / Logo (Left) */}
-      <div className="navbar-left">
-        <a href="#/dashboard" className="brand-logo" title="Urban Furniture ERP">
-          <div className="brand-logo-icon">
-            <Layers size={18} strokeWidth={2.2} />
-          </div>
-          <div>
-            <span className="brand-word">Urban</span> <span className="brand-secondary">Furniture</span>
-          </div>
-        </a>
+    <header className="top-header">
+      {/* Search Bar */}
+      <div className="header-search-bar">
+        <Search size={15} strokeWidth={1.75} className="header-search-icon" />
+        <input
+          type="text"
+          className="header-search-input"
+          placeholder="Search accounts, entries, reports..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+        />
       </div>
 
-      {/* Search Bar, Live Clock, User Profile & Logout */}
-      <div className="navbar-center-right">
-        {/* Search Bar */}
-        <div className="search-bar-wrapper">
-          <div className="search-bar-icon">
-            <Search size={15} strokeWidth={1.75} />
-          </div>
-          <input
-            type="text"
-            className="search-bar-input"
-            placeholder="Search documents, accounts, orders..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-          />
-        </div>
-
+      {/* Right controls: Live Clock, Bell, User Card, Sign Out */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         {/* Live Clock */}
-        <div className="navbar-clock" title="Current Local Time (Live)">
-          <Clock size={14} strokeWidth={1.75} style={{ color: 'var(--color-primary)' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+          <Clock size={14} strokeWidth={1.75} style={{ color: 'var(--color-teal)' }} />
           <span>{currentTime || 'Loading...'}</span>
         </div>
 
-        {/* Notification Icon */}
+        {/* Bell Icon */}
         <button
           type="button"
-          className="btn-ghost"
-          style={{ padding: '6px', borderRadius: '50%', color: 'var(--color-text-secondary)' }}
-          title="Notifications"
-        >
-          <Bell size={18} strokeWidth={1.75} />
-        </button>
-
-        {/* User Card with Role and Sign Out */}
-        <div
           style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--color-text-muted)',
+            cursor: 'pointer',
+            padding: '6px',
+            borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
-            padding: '4px 8px 4px 4px',
-            backgroundColor: 'var(--color-bg)',
-            borderRadius: 'var(--radius-full)',
-            border: '1px solid var(--color-border)',
+            justifyContent: 'center',
           }}
+          title="Notifications"
         >
-          <div className="navbar-avatar" style={{ width: '30px', height: '30px', fontSize: '12px' }}>
-            {getInitials(user.name)}
+          <Bell size={17} strokeWidth={1.75} />
+        </button>
+
+        {/* User Badge */}
+        <div className="header-user-badge">
+          <div className="avatar-circle">
+            {getInitials(user.name) || 'UF'}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
               {user.name}
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               {getRoleBadge(user.role)}
             </div>
           </div>
+
           {onLogout && (
             <button
               type="button"
               onClick={onLogout}
-              className="btn btn-ghost btn-sm"
-              title="Sign Out of Session"
               style={{
-                color: 'var(--color-danger)',
-                padding: '4px 6px',
-                borderRadius: 'var(--radius-full)',
-                marginLeft: '4px',
+                background: 'none',
+                border: 'none',
+                color: 'var(--color-text-muted)',
+                cursor: 'pointer',
+                padding: '6px',
+                borderRadius: '4px',
+                marginLeft: '6px',
+                display: 'flex',
+                alignItems: 'center',
               }}
+              title="Sign Out"
             >
-              <LogOut size={14} />
+              <LogOut size={15} />
             </button>
           )}
         </div>
