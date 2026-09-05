@@ -1,9 +1,10 @@
 import React from 'react';
 import { AuthLayout } from '../../../layouts/AuthLayout';
 import { LoginForm } from '../components/LoginForm';
+import { UserAccount } from '../schemas';
 
 export interface LoginPageProps {
-  onSuccess?: (user: { name: string; email: string; role: string }) => void;
+  onSuccess?: (user: UserAccount) => void;
   onNavigateToSignup?: () => void;
 }
 

@@ -9,9 +9,10 @@ import {
   Users,
   Wallet,
   FileText,
+  UserCheck,
   Settings,
-  HelpCircle,
 } from 'lucide-react';
+import { UserRole } from '../../features/auth/schemas';
 
 export interface NavItem {
   id: string;
@@ -29,11 +30,13 @@ export interface NavGroup {
 export interface SidebarProps {
   currentPath?: string;
   onNavigate?: (path: string) => void;
+  userRole?: UserRole;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   currentPath = '/dashboard',
   onNavigate,
+  userRole = 'Admin',
 }) => {
   const navGroups: NavGroup[] = [
     {
@@ -87,7 +90,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       items: [
         {
           id: 'orders',
-          label: 'Sales Orders',
+          label: 'Sales & Orders',
           icon: <ShoppingCart size={17} strokeWidth={1.75} />,
           path: '/orders',
         },
@@ -105,6 +108,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
         },
       ],
     },
+    ...(userRole === 'Admin'
+      ? [
+          {
+            title: 'Administration',
+            items: [
+              {
+                id: 'users',
+                label: 'User Management',
+                icon: <UserCheck size={17} strokeWidth={1.75} />,
+                path: '/users',
+                badge: 'Admin',
+              },
+            ],
+          },
+        ]
+      : []),
     {
       title: 'System',
       items: [
@@ -113,12 +132,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           label: 'Settings',
           icon: <Settings size={17} strokeWidth={1.75} />,
           path: '/settings',
-        },
-        {
-          id: 'help',
-          label: 'Help & Docs',
-          icon: <HelpCircle size={17} strokeWidth={1.75} />,
-          path: '/help',
         },
       ],
     },
@@ -150,7 +163,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <span className="sidebar-item-icon">{item.icon}</span>
                   <span style={{ flex: 1 }}>{item.label}</span>
                   {item.badge && (
-                    <span className="badge-pill badge-neutral" style={{ fontSize: '11px', padding: '1px 6px' }}>
+                    <span className="badge-pill badge-overdue" style={{ fontSize: '10px', padding: '1px 6px' }}>
                       {item.badge}
                     </span>
                   )}

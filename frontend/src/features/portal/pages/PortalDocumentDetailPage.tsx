@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button } from '../../../components/ui/Button';
+import { ArrowLeft, CreditCard } from 'lucide-react';
 import { StatusBadge } from '../../../components/ui/StatusBadge';
 import { getMyScopedDocumentById, PortalDocument, DocumentLineItem } from '../api';
 import { DemoBankPaymentForm } from '../components/DemoBankPaymentForm';
@@ -11,17 +11,19 @@ export interface PortalDocumentDetailPageProps {
 
 export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> = ({
   documentId,
-  onBack
+  onBack,
 }) => {
   const [doc, setDoc] = useState<PortalDocument | null>(() => getMyScopedDocumentById(documentId));
   const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
 
   if (!doc) {
     return (
-      <div className="ds-card" style={{ textAlign: 'center', padding: '48px' }}>
-        <h3>Document Not Found or Access Denied</h3>
-        <p className="text-muted">You do not have permission to view this document or it does not exist.</p>
-        <Button variant="secondary" onClick={onBack}>&larr; Back to My List</Button>
+      <div className="card-panel" style={{ textAlign: 'center', padding: '48px' }}>
+        <h3 className="card-title">Document Not Found or Access Denied</h3>
+        <p className="card-subtitle">You do not have permission to view this document or it does not exist.</p>
+        <button type="button" className="btn btn-outline btn-sm" onClick={onBack} style={{ marginTop: '16px' }}>
+          &larr; Back to My List
+        </button>
       </div>
     );
   }
@@ -32,104 +34,139 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
   };
 
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Top Back Action & Status */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <button
+          type="button"
           onClick={onBack}
-          style={{
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            color: 'var(--color-primary-teal)',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px'
-          }}
+          className="btn btn-ghost btn-sm"
+          style={{ gap: '6px' }}
         >
-          &larr; Back to List
+          <ArrowLeft size={16} />
+          <span>Back to List</span>
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <StatusBadge status={doc.status} />
           {doc.status === 'Unpaid' && (
-            <Button variant="primary" onClick={() => setShowPaymentModal(true)}>
-              💳 Pay Outstanding ($${doc.amountDue.toFixed(2)})
-            </Button>
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={() => setShowPaymentModal(true)}
+              style={{ gap: '6px' }}
+            >
+              <CreditCard size={15} />
+              <span>Pay Outstanding ($${doc.amountDue.toFixed(2)})</span>
+            </button>
           )}
         </div>
       </div>
 
-      {/* Main Document Details Card (Read-only) */}
-      <div className="ds-card" style={{ padding: '32px' }}>
+      {/* Main Document Details Card */}
+      <div className="card-panel" style={{ padding: '32px' }}>
         {/* Header Title Block */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-gray-border)', paddingBottom: '20px', marginBottom: '24px' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            borderBottom: '1px solid var(--color-border)',
+            paddingBottom: '20px',
+          }}
+        >
           <div>
-            <span style={{ fontSize: '0.8125rem', color: 'var(--color-gray-medium)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
               {doc.type === 'bill' ? 'Vendor Bill' : 'Customer Invoice'} (Read Only)
             </span>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: '4px 0 0 0', color: 'var(--color-charcoal-dark)' }}>
+            <h1 className="page-title" style={{ fontSize: '26px', marginTop: '4px' }}>
               {doc.number}
             </h1>
           </div>
-          <div style={{ textAlign: 'right' }}>
-            <span style={{ fontSize: '0.8125rem', color: 'var(--color-gray-medium)', display: 'block' }}>Date: {doc.date}</span>
-            <span style={{ fontSize: '0.8125rem', color: 'var(--color-gray-medium)', display: 'block' }}>Due Date: {doc.dueDate}</span>
+          <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
+              <strong>Date:</strong> {doc.date}
+            </span>
+            <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
+              <strong>Due Date:</strong> {doc.dueDate}
+            </span>
           </div>
         </div>
 
-        {/* Partner Info */}
-        <div style={{ marginBottom: '28px', backgroundColor: 'var(--color-gray-bg)', padding: '16px 20px', borderRadius: 'var(--button-radius)' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--color-gray-medium)', textTransform: 'uppercase', fontWeight: 600 }}>Partner / Recipient (Self)</span>
-          <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-charcoal-dark)', marginTop: '2px' }}>
+        {/* Partner Info Box */}
+        <div
+          style={{
+            backgroundColor: 'var(--color-bg)',
+            padding: '16px 20px',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--color-border)',
+          }}
+        >
+          <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
+            Partner / Recipient (Self)
+          </span>
+          <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text-primary)', marginTop: '2px' }}>
             {doc.partnerName}
           </div>
         </div>
 
-        {/* Line Items Table (Read Only) */}
-        <h3 className="section-header">Line Items</h3>
-        <div className="ds-table-container" style={{ marginBottom: '28px' }}>
-          <table className="ds-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Product / Service</th>
-                <th style={{ textAlign: 'center' }}>Qty</th>
-                <th style={{ textAlign: 'right' }}>Unit Price</th>
-                <th style={{ textAlign: 'right' }}>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {doc.lines.map((line: DocumentLineItem, idx: number) => (
-                <tr key={line.id}>
-                  <td style={{ color: 'var(--color-gray-medium)' }}>{idx + 1}</td>
-                  <td><strong>{line.product}</strong></td>
-                  <td style={{ textAlign: 'center' }}>{line.quantity}</td>
-                  <td style={{ textAlign: 'right' }}>${line.unitPrice.toFixed(2)}</td>
-                  <td style={{ textAlign: 'right', fontWeight: 600 }}>${line.total.toFixed(2)}</td>
+        {/* Line Items Table */}
+        <div>
+          <h3 className="card-title" style={{ marginBottom: '12px' }}>Line Items</h3>
+          <div className="table-container">
+            <table className="custom-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '50px' }}>#</th>
+                  <th>Product / Service</th>
+                  <th style={{ textAlign: 'center', width: '80px' }}>Qty</th>
+                  <th style={{ textAlign: 'right', width: '130px' }}>Unit Price</th>
+                  <th style={{ textAlign: 'right', width: '130px' }}>Total</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {doc.lines.map((line: DocumentLineItem, idx: number) => (
+                  <tr key={line.id}>
+                    <td style={{ color: 'var(--color-text-muted)' }}>{idx + 1}</td>
+                    <td>
+                      <strong style={{ color: 'var(--color-text-primary)' }}>{line.product}</strong>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>{line.quantity}</td>
+                    <td style={{ textAlign: 'right' }}>${line.unitPrice.toFixed(2)}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 600 }}>${line.total.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Totals & Balance Summary */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <div style={{ width: '280px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
-              <span style={{ color: 'var(--color-gray-medium)' }}>Total Amount:</span>
-              <strong style={{ color: 'var(--color-charcoal-dark)' }}>${doc.total.toFixed(2)}</strong>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+          <div
+            style={{
+              width: '300px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+              backgroundColor: 'var(--color-bg)',
+              padding: '20px',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+              <span style={{ color: 'var(--color-text-muted)' }}>Total Amount:</span>
+              <strong style={{ color: 'var(--color-text-primary)' }}>${doc.total.toFixed(2)}</strong>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
-              <span style={{ color: 'var(--color-gray-medium)' }}>Amount Paid:</span>
-              <span style={{ color: 'var(--color-primary-teal-text)', fontWeight: 600 }}>${doc.amountPaid.toFixed(2)}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+              <span style={{ color: 'var(--color-text-muted)' }}>Amount Paid:</span>
+              <span style={{ color: 'var(--color-primary)', fontWeight: 600 }}>${doc.amountPaid.toFixed(2)}</span>
             </div>
-            <div style={{ height: '1px', backgroundColor: 'var(--color-gray-border)', margin: '4px 0' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.125rem' }}>
-              <span style={{ fontWeight: 700, color: 'var(--color-charcoal-dark)' }}>Amount Due:</span>
-              <strong style={{ color: doc.amountDue > 0 ? 'var(--color-warning-text)' : 'var(--color-primary-teal-text)' }}>
+            <div style={{ height: '1px', backgroundColor: 'var(--color-border)' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px' }}>
+              <span style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>Amount Due:</span>
+              <strong style={{ color: doc.amountDue > 0 ? 'var(--color-warning)' : 'var(--color-primary)' }}>
                 ${doc.amountDue.toFixed(2)}
               </strong>
             </div>

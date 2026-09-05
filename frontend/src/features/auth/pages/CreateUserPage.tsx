@@ -1,330 +1,256 @@
 import React, { useState } from 'react';
-import { Button } from '../../../components/ui/Button';
-import { FormField } from '../../../components/ui/FormField';
+import { UserPlus, ArrowLeft, Check, AlertCircle } from 'lucide-react';
+import { UserRole, CreateUserInput } from '../schemas';
+import { createNewUser } from '../api';
 
-export interface CreateUserData {
-  name: string;
-  loginId: string;
-  email: string;
-  role: 'user' | 'admin';
-  password: string;
-  confirmPassword: string;
+export interface CreateUserPageProps {
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-export const CreateUserPage: React.FC = () => {
-  const [formData, setFormData] = useState<CreateUserData>({
+export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCancel }) => {
+  const [formData, setFormData] = useState<CreateUserInput>({
     name: '',
     loginId: '',
     email: '',
-    role: 'user',
+    role: 'User',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
 
-  const [errors, setErrors] = useState<Partial<Record<keyof CreateUserData, string>>>({});
-  const [submitted, setSubmitted] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+  const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name as keyof CreateUserData]) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
-    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setError('');
   };
 
-  const handleRoleChange = (role: 'user' | 'admin') => {
-    setFormData(prev => ({ ...prev, role }));
+  const handleRoleSelect = (role: UserRole) => {
+    setFormData((prev) => ({ ...prev, role }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newErrors: Partial<Record<keyof CreateUserData, string>> = {};
-
-    if (!formData.name.trim()) newErrors.name = 'Full name is required';
-    if (!formData.loginId.trim()) newErrors.loginId = 'Login ID is required';
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email address is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    if (!formData.name.trim()) {
+      setError('Please provide full name.');
       return;
     }
 
-    setSubmitted(true);
-    // Backend integration will connect here later
-    console.log('Create User payload:', formData);
-  };
+    const result = createNewUser(formData);
+    if (!result.success) {
+      setError(result.message);
+      return;
+    }
 
-  const handleReset = () => {
-    setFormData({
-      name: '',
-      loginId: '',
-      email: '',
-      role: 'user',
-      password: '',
-      confirmPassword: ''
-    });
-    setErrors({});
-    setSubmitted(false);
-  };
-
-  const inputStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '10px 14px',
-    borderRadius: 'var(--button-radius)',
-    border: '1px solid var(--color-gray-border)',
-    backgroundColor: 'var(--color-white)',
-    fontSize: '0.875rem',
-    color: 'var(--color-charcoal-dark)',
-    outline: 'none',
-    boxSizing: 'border-box'
+    setIsSuccess(true);
+    setTimeout(() => {
+      onSuccess?.();
+    }, 1500);
   };
 
   return (
-    <div style={{ maxWidth: '640px', margin: '0 auto' }}>
-      {/* Page Title */}
-      <div style={{ marginBottom: '24px' }}>
-        <h1 className="page-title" style={{ margin: '0 0 6px 0' }}>Create User</h1>
-        <p className="text-muted" style={{ margin: 0 }}>
-          Fill in the details below to add a new user to the organization.
-        </p>
-      </div>
+    <div style={{ maxWidth: '640px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {onCancel && (
+        <button
+          type="button"
+          onClick={onCancel}
+          className="btn btn-ghost btn-sm"
+          style={{ alignSelf: 'flex-start', gap: '6px' }}
+        >
+          <ArrowLeft size={16} />
+          <span>Back to Users List</span>
+        </button>
+      )}
 
-      {/* Main Creation Card */}
-      <div className="ds-card" style={{ padding: '36px 40px' }}>
-        {/* App Logo Header inside Card */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          paddingBottom: '24px',
-          marginBottom: '28px',
-          borderBottom: '1px solid var(--color-gray-border)'
-        }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '8px 22px',
-            backgroundColor: 'var(--color-gray-bg)',
-            borderRadius: 'var(--button-radius)',
-            border: '1px solid var(--color-gray-border)'
-          }}>
-            <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-brand-purple)' }}>Odoo</span>
-            <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-charcoal-dark)' }}>ERP</span>
+      <div className="card-panel" style={{ padding: '36px' }}>
+        <div className="card-header" style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '18px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h1 className="card-title" style={{ fontSize: '20px' }}>
+                Create New User
+              </h1>
+              <span className="badge-pill badge-overdue" style={{ fontSize: '11px', padding: '2px 8px' }}>
+                Admin Action
+              </span>
+            </div>
+            <p className="card-subtitle">
+              Provision a new account on behalf of a team member or client.
+            </p>
           </div>
-          <span style={{ fontSize: '0.8125rem', color: 'var(--color-gray-medium)', marginTop: '8px' }}>
-            User Account Setup
-          </span>
         </div>
 
-        {submitted ? (
-          <div style={{
-            textAlign: 'center',
-            padding: '32px 16px',
-            backgroundColor: 'var(--color-primary-teal-light)',
-            borderRadius: 'var(--card-radius)',
-            border: '1px solid var(--color-primary-teal)'
-          }}>
-            <div style={{
-              width: '44px',
-              height: '44px',
-              borderRadius: '50%',
-              backgroundColor: 'var(--color-primary-teal)',
-              color: 'var(--color-white)',
+        {error && (
+          <div
+            style={{
+              padding: '12px 16px',
+              backgroundColor: 'var(--color-danger-bg)',
+              color: 'var(--color-danger-text)',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '13px',
+              fontWeight: 500,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 16px',
-              fontSize: '1.25rem'
-            }}>
-              ✓
+              gap: '8px',
+              marginTop: '16px'
+            }}
+          >
+            <AlertCircle size={16} />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {isSuccess ? (
+          <div
+            style={{
+              padding: '32px',
+              textAlign: 'center',
+              backgroundColor: 'var(--color-primary-light)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--color-primary-border)',
+              marginTop: '16px'
+            }}
+          >
+            <div
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--color-primary)',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px',
+              }}
+            >
+              <Check size={24} />
             </div>
-            <h3 style={{ margin: '0 0 8px 0', color: 'var(--color-primary-teal-text)' }}>User Created Successfully!</h3>
-            <p style={{ margin: '0 0 20px 0', fontSize: '0.875rem', color: 'var(--color-primary-teal-text)' }}>
-              User <strong>{formData.name}</strong> ({formData.loginId}) has been registered with <strong>{formData.role === 'admin' ? 'Administrator' : 'User'}</strong> role.
+            <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-primary)', margin: '0 0 6px 0' }}>
+              User Created Successfully!
+            </h3>
+            <p style={{ fontSize: '14px', color: 'var(--color-primary-hover)', margin: 0 }}>
+              User <strong>{formData.name}</strong> ({formData.loginId}) has been registered with <strong>{formData.role}</strong> role.
             </p>
-            <Button variant="primary" onClick={handleReset}>
-              Create Another User
-            </Button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} noValidate>
-            {/* Name */}
-            <FormField label="Name" required error={errors.name}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
+            <div className="form-group">
+              <label className="form-label">Full Name</label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="Enter full name"
-                style={{
-                  ...inputStyle,
-                  borderColor: errors.name ? 'var(--color-danger-red)' : 'var(--color-gray-border)'
-                }}
+                placeholder="e.g. Alice Smith"
+                className="form-input"
+                required
               />
-            </FormField>
+            </div>
 
-            {/* Login id */}
-            <FormField label="Login id" required error={errors.loginId}>
+            <div className="form-group">
+              <label className="form-label">Login ID (6–12 characters)</label>
               <input
                 type="text"
                 name="loginId"
                 value={formData.loginId}
                 onChange={handleChange}
-                placeholder="Enter login username"
-                style={{
-                  ...inputStyle,
-                  borderColor: errors.loginId ? 'var(--color-danger-red)' : 'var(--color-gray-border)'
-                }}
+                placeholder="e.g. asmith_ops"
+                className="form-input"
+                minLength={6}
+                maxLength={12}
+                required
               />
-            </FormField>
+              <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                Unique system username between 6 and 12 alphanumeric characters.
+              </span>
+            </div>
 
-            {/* E-mail id */}
-            <FormField label="E-mail id" required error={errors.email}>
+            <div className="form-group">
+              <label className="form-label">Email Address</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="Enter email address"
-                style={{
-                  ...inputStyle,
-                  borderColor: errors.email ? 'var(--color-danger-red)' : 'var(--color-gray-border)'
-                }}
+                placeholder="e.g. alice.smith@company.com"
+                className="form-input"
+                required
               />
-            </FormField>
+            </div>
 
-            {/* Role */}
-            <FormField label="Role" required>
-              <div style={{
+            <div className="form-group">
+              <label className="form-label">Role & Access Permissions</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                {(['User', 'Accountant', 'Admin'] as const).map((r) => {
+                  const isSelected = formData.role === r;
+                  return (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => handleRoleSelect(r)}
+                      className={`btn btn-sm ${isSelected ? 'btn-primary' : 'btn-outline'}`}
+                      style={{ justifyContent: 'center' }}
+                    >
+                      <span>{r}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <div className="form-group">
+                <label className="form-label">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className="form-input"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Re-Enter Password</label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className="form-input"
+                  required
+                />
+              </div>
+            </div>
+            <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '-8px' }}>
+              Must be at least 8 characters with uppercase, lowercase, and a special character (!@#$%^&*).
+            </span>
+
+            <div
+              style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '24px',
-                marginTop: '4px',
-                marginBottom: '4px'
-              }}>
-                {/* User Option */}
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  fontSize: '0.925rem',
-                  fontWeight: 500,
-                  color: 'var(--color-charcoal-dark)'
-                }}>
-                  <input
-                    type="radio"
-                    name="role"
-                    value="user"
-                    checked={formData.role === 'user'}
-                    onChange={() => handleRoleChange('user')}
-                    style={{
-                      width: '18px',
-                      height: '18px',
-                      accentColor: 'var(--color-primary-teal)',
-                      cursor: 'pointer'
-                    }}
-                  />
-                  <span>User</span>
-                </label>
-
-                {/* Administrator Option */}
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  fontSize: '0.925rem',
-                  fontWeight: 500,
-                  color: 'var(--color-charcoal-dark)'
-                }}>
-                  <input
-                    type="radio"
-                    name="role"
-                    value="admin"
-                    checked={formData.role === 'admin'}
-                    onChange={() => handleRoleChange('admin')}
-                    style={{
-                      width: '18px',
-                      height: '18px',
-                      accentColor: 'var(--color-primary-teal)',
-                      cursor: 'pointer'
-                    }}
-                  />
-                  <span>Administrator</span>
-                </label>
-              </div>
-            </FormField>
-
-            {/* Password */}
-            <FormField label="Password" required error={errors.password}>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                style={{
-                  ...inputStyle,
-                  borderColor: errors.password ? 'var(--color-danger-red)' : 'var(--color-gray-border)'
-                }}
-              />
-            </FormField>
-
-            {/* Re-Enter Password */}
-            <FormField label="Re-Enter Password" required error={errors.confirmPassword}>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="••••••••"
-                style={{
-                  ...inputStyle,
-                  borderColor: errors.confirmPassword ? 'var(--color-danger-red)' : 'var(--color-gray-border)'
-                }}
-              />
-            </FormField>
-
-            {/* Action Buttons: Create and Cancel */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-start',
-              gap: '12px',
-              marginTop: '28px',
-              paddingTop: '20px',
-              borderTop: '1px solid var(--color-gray-border)'
-            }}>
-              <Button
-                type="submit"
-                variant="primary"
-                icon={(
-                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
-                )}
-              >
-                Create
-              </Button>
-              <Button type="button" variant="secondary" onClick={handleReset}>
-                Cancel
-              </Button>
+                justifyContent: 'flex-end',
+                gap: '10px',
+                marginTop: '12px',
+                paddingTop: '16px',
+                borderTop: '1px solid var(--color-border)'
+              }}
+            >
+              {onCancel && (
+                <button type="button" className="btn btn-outline" onClick={onCancel}>
+                  Cancel
+                </button>
+              )}
+              <button type="submit" className="btn btn-primary" style={{ gap: '6px' }}>
+                <UserPlus size={16} />
+                <span>Create User</span>
+              </button>
             </div>
           </form>
         )}

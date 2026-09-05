@@ -1,5 +1,12 @@
 import React from 'react';
-import { Button } from '../../../components/ui/Button';
+import {
+  DollarSign,
+  CheckCircle,
+  FileText,
+  Receipt,
+  ArrowRight,
+  CreditCard,
+} from 'lucide-react';
 import { StatusBadge } from '../../../components/ui/StatusBadge';
 import { getMyScopedDocuments } from '../api';
 import { CURRENT_USER } from '../../../lib/auth';
@@ -10,122 +17,133 @@ export interface PortalDashboardPageProps {
 
 export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavigate }) => {
   const documents = getMyScopedDocuments();
-  const unpaidDocs = documents.filter(d => d.status === 'Unpaid');
-  const paidDocs = documents.filter(d => d.status === 'Paid');
+  const unpaidDocs = documents.filter((d) => d.status === 'Unpaid');
+  const paidDocs = documents.filter((d) => d.status === 'Paid');
 
   const totalDue = unpaidDocs.reduce((acc, d) => acc + d.amountDue, 0);
   const totalPaid = paidDocs.reduce((acc, d) => acc + d.amountPaid, 0);
 
-  const invoicesCount = documents.filter(d => d.type === 'invoice').length;
-  const billsCount = documents.filter(d => d.type === 'bill').length;
+  const invoicesCount = documents.filter((d) => d.type === 'invoice').length;
+  const billsCount = documents.filter((d) => d.type === 'bill').length;
 
   return (
-    <div>
-      {/* Welcome Banner */}
-      <div className="ds-card" style={{
-        background: 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)',
-        borderLeft: '4px solid var(--color-primary-teal)',
-        padding: '24px 28px',
-        marginBottom: '24px'
-      }}>
-        <h1 className="page-title" style={{ margin: '0 0 6px 0', fontSize: '1.4rem' }}>
-          Welcome, {CURRENT_USER.name} 👋
-        </h1>
-        <p className="text-muted" style={{ margin: 0, fontSize: '0.9rem' }}>
-          Here is your personal settlement portal overview. View your invoices, vendor bills, and directly pay outstanding dues.
-        </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* Welcome Banner Card */}
+      <div
+        className="card-panel"
+        style={{
+          background: 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)',
+          borderLeft: '4px solid var(--color-primary)',
+          padding: '24px 28px',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <h1 className="page-title" style={{ fontSize: '22px' }}>
+            Welcome, {CURRENT_USER.name} 👋
+          </h1>
+          <p className="page-subtitle" style={{ fontSize: '14px' }}>
+            Here is your personal settlement portal overview. View your invoices, vendor bills, and directly pay outstanding dues.
+          </p>
+        </div>
       </div>
 
       {/* Metric Cards Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-        gap: '20px',
-        marginBottom: '28px'
-      }}>
+      <div className="stat-grid">
         {/* Total Outstanding Dues */}
-        <div className="ds-card" style={{ padding: '20px', margin: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-gray-medium)', textTransform: 'uppercase' }}>
-              Total Outstanding Dues
-            </span>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: totalDue > 0 ? 'var(--color-warning-amber)' : 'var(--color-primary-teal)' }} />
+        <div className="stat-card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span className="stat-label">TOTAL OUTSTANDING DUES</span>
+            <div className="stat-icon-badge amber">
+              <DollarSign size={20} strokeWidth={2} />
+            </div>
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700, color: totalDue > 0 ? 'var(--color-warning-text)' : 'var(--color-primary-teal-text)' }}>
+          <div className="stat-number" style={{ color: totalDue > 0 ? 'var(--color-warning)' : 'var(--color-primary)' }}>
             ${totalDue.toFixed(2)}
           </div>
-          <span style={{ fontSize: '0.75rem', color: 'var(--color-gray-medium)', marginTop: '4px', display: 'block' }}>
+          <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
             {unpaidDocs.length} pending document{unpaidDocs.length === 1 ? '' : 's'}
-          </span>
+          </div>
         </div>
 
         {/* Total Settled */}
-        <div className="ds-card" style={{ padding: '20px', margin: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-gray-medium)', textTransform: 'uppercase' }}>
-              Total Settled
-            </span>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--color-primary-teal)' }} />
+        <div className="stat-card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span className="stat-label">TOTAL SETTLED</span>
+            <div className="stat-icon-badge teal">
+              <CheckCircle size={20} strokeWidth={2} />
+            </div>
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-charcoal-dark)' }}>
+          <div className="stat-number">
             ${totalPaid.toFixed(2)}
           </div>
-          <span style={{ fontSize: '0.75rem', color: 'var(--color-gray-medium)', marginTop: '4px', display: 'block' }}>
+          <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
             {paidDocs.length} paid in full
-          </span>
+          </div>
         </div>
 
         {/* My Invoices Count */}
-        <div className="ds-card" style={{ padding: '20px', margin: 0 }}>
-          <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-gray-medium)', textTransform: 'uppercase', display: 'block', marginBottom: '10px' }}>
-            My Invoices
-          </span>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-charcoal-dark)' }}>
+        <div className="stat-card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span className="stat-label">MY INVOICES</span>
+            <div className="stat-icon-badge purple">
+              <FileText size={20} strokeWidth={2} />
+            </div>
+          </div>
+          <div className="stat-number">
             {invoicesCount}
           </div>
-          <Button
-            variant="secondary"
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
             onClick={() => onNavigate('invoices')}
-            style={{ marginTop: '8px', padding: '4px 10px', fontSize: '0.75rem', width: '100%', justifyContent: 'center' }}
+            style={{ marginTop: '4px', width: '100%' }}
           >
-            Open Invoices &rarr;
-          </Button>
+            <span>Open Invoices</span>
+            <ArrowRight size={14} />
+          </button>
         </div>
 
         {/* My Bills Count */}
-        <div className="ds-card" style={{ padding: '20px', margin: 0 }}>
-          <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-gray-medium)', textTransform: 'uppercase', display: 'block', marginBottom: '10px' }}>
-            My Bills
-          </span>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-charcoal-dark)' }}>
+        <div className="stat-card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span className="stat-label">MY BILLS</span>
+            <div className="stat-icon-badge teal">
+              <Receipt size={20} strokeWidth={2} />
+            </div>
+          </div>
+          <div className="stat-number">
             {billsCount}
           </div>
-          <Button
-            variant="secondary"
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
             onClick={() => onNavigate('bills')}
-            style={{ marginTop: '8px', padding: '4px 10px', fontSize: '0.75rem', width: '100%', justifyContent: 'center' }}
+            style={{ marginTop: '4px', width: '100%' }}
           >
-            Open Bills &rarr;
-          </Button>
+            <span>Open Bills</span>
+            <ArrowRight size={14} />
+          </button>
         </div>
       </div>
 
-      {/* Actionable Unpaid / Recent Invoices Section */}
-      <div className="ds-card" style={{ padding: '24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+      {/* Recent Dues & Transactions Panel */}
+      <div className="card-panel">
+        <div className="card-header">
           <div>
-            <h3 className="section-header" style={{ margin: '0 0 4px 0' }}>Recent Dues & Transactions</h3>
-            <span style={{ fontSize: '0.8125rem', color: 'var(--color-gray-medium)' }}>
-              Click any invoice or bill to inspect line items or trigger settlement.
-            </span>
+            <h3 className="card-title">Recent Dues & Transactions</h3>
+            <p className="card-subtitle">Click any invoice or bill to inspect line items or trigger settlement.</p>
           </div>
-          <Button variant="secondary" onClick={() => onNavigate('invoices')}>
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            onClick={() => onNavigate('invoices')}
+          >
             View All Records
-          </Button>
+          </button>
         </div>
 
-        <div className="ds-table-container">
-          <table className="ds-table">
+        <div className="table-container">
+          <table className="custom-table">
             <thead>
               <tr>
                 <th>Date</th>
@@ -139,32 +157,50 @@ export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavi
             </thead>
             <tbody>
               {documents.map((doc) => (
-                <tr key={doc.id} style={{ cursor: 'pointer' }} onClick={() => onNavigate('detail', doc.id)}>
-                  <td>{doc.date}</td>
-                  <td><strong>{doc.number}</strong></td>
+                <tr
+                  key={doc.id}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => onNavigate('detail', doc.id)}
+                >
+                  <td style={{ fontWeight: 500 }}>{doc.date}</td>
                   <td>
-                    <span style={{ textTransform: 'capitalize', fontSize: '0.8125rem', color: 'var(--color-gray-medium)' }}>
+                    <strong style={{ color: 'var(--color-text-primary)' }}>{doc.number}</strong>
+                  </td>
+                  <td>
+                    <span style={{ textTransform: 'capitalize', color: 'var(--color-text-secondary)', fontSize: '13px' }}>
                       {doc.type}
                     </span>
                   </td>
-                  <td>${doc.total.toFixed(2)}</td>
-                  <td style={{ fontWeight: doc.amountDue > 0 ? 600 : 400, color: doc.amountDue > 0 ? 'var(--color-warning-text)' : 'var(--color-gray-medium)' }}>
+                  <td style={{ fontWeight: 600 }}>${doc.total.toFixed(2)}</td>
+                  <td
+                    style={{
+                      fontWeight: 700,
+                      color: doc.amountDue > 0 ? 'var(--color-warning-text)' : 'var(--color-text-muted)',
+                    }}
+                  >
                     ${doc.amountDue.toFixed(2)}
                   </td>
                   <td>
                     <StatusBadge status={doc.status} />
                   </td>
                   <td style={{ textAlign: 'right' }}>
-                    <Button
-                      variant={doc.status === 'Unpaid' ? 'primary' : 'secondary'}
-                      style={{ padding: '4px 10px', fontSize: '0.75rem' }}
+                    <button
+                      type="button"
+                      className={`btn btn-sm ${doc.status === 'Unpaid' ? 'btn-primary' : 'btn-outline'}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         onNavigate('detail', doc.id);
                       }}
                     >
-                      {doc.status === 'Unpaid' ? 'Pay Now' : 'View Details'}
-                    </Button>
+                      {doc.status === 'Unpaid' ? (
+                        <>
+                          <CreditCard size={13} />
+                          <span>Pay Now</span>
+                        </>
+                      ) : (
+                        <span>View Details</span>
+                      )}
+                    </button>
                   </td>
                 </tr>
               ))}

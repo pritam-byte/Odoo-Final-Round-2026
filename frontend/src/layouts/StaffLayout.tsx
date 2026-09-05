@@ -1,6 +1,7 @@
 import React from 'react';
 import { Header } from '../components/ui/Header';
 import { Sidebar } from '../components/ui/Sidebar';
+import { UserRole } from '../features/auth/schemas';
 
 export interface StaffLayoutProps {
   children?: React.ReactNode;
@@ -11,6 +12,7 @@ export interface StaffLayoutProps {
     email: string;
     role?: string;
   };
+  userRole?: UserRole;
   onLogout?: () => void;
 }
 
@@ -19,26 +21,22 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({
   currentPath = '/dashboard',
   onNavigate,
   user,
+  userRole = 'Admin',
   onLogout,
 }) => {
   return (
     <div className="app-container">
-      {/* Fixed Top Navbar */}
       <Header user={user} onLogout={onLogout} />
 
-      {/* Body: Left Sidebar + Main Content */}
       <div className="layout-body">
-        {/* Fixed Left Sidebar */}
-        <Sidebar currentPath={currentPath} onNavigate={onNavigate} />
+        <Sidebar currentPath={currentPath} onNavigate={onNavigate} userRole={userRole} />
 
-        {/* Main Content Area */}
         <main className="main-content">
           {children}
 
-          {/* Page Footer (Centered, small light-gray text, two lines) */}
           <footer className="page-footer">
             <p>Odoo Enterprise Resource Planning • Connected Intelligent Workspace</p>
-            <p>© 2026 Odoo Flow Inc. All rights reserved. System Operational.</p>
+            <p>© {new Date().getFullYear()} Odoo Flow Inc. All rights reserved. System Operational.</p>
           </footer>
         </main>
       </div>
