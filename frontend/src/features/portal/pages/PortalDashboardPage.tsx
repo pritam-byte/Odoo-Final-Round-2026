@@ -9,13 +9,16 @@ import {
 } from 'lucide-react';
 import { StatusBadge } from '../../../components/ui/StatusBadge';
 import { getMyScopedDocuments } from '../api';
-import { CURRENT_USER } from '../../../lib/auth';
+import { getStoredUser } from '../../../lib/auth';
 
 export interface PortalDashboardPageProps {
   onNavigate: (view: string, docId?: string) => void;
 }
 
 export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavigate }) => {
+  const currentUser = getStoredUser();
+  const userName = currentUser?.name || 'Customer';
+
   const documents = getMyScopedDocuments();
   const unpaidDocs = documents.filter((d) => d.status === 'Unpaid');
   const paidDocs = documents.filter((d) => d.status === 'Paid');
@@ -38,7 +41,7 @@ export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavi
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <h1 className="page-title" style={{ fontSize: '22px' }}>
-            Welcome, {CURRENT_USER.name} 👋
+            Welcome, {userName} 👋
           </h1>
           <p className="page-subtitle" style={{ fontSize: '14px' }}>
             Here is your personal settlement portal overview. View your invoices, vendor bills, and directly pay outstanding dues.
