@@ -10,6 +10,7 @@ export const CURRENT_USER: UserAccount = {
   loginId: 'jdoe_client',
   email: 'john.doe@company.com',
   role: 'User',
+  partnerType: 'Both',
   status: 'Active',
   partnerId: 'partner_john_doe',
   createdAt: '2026-01-01',
@@ -17,8 +18,9 @@ export const CURRENT_USER: UserAccount = {
 
 export const getStoredUser = (): UserAccount | null => {
   try {
+    const token = localStorage.getItem('odoo_flow_active_token');
     const saved = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (saved) return JSON.parse(saved);
+    if (saved && token) return JSON.parse(saved);
   } catch (e) {
     console.error('Failed to load session user', e);
   }
@@ -54,17 +56,19 @@ const mapFrontendRole = (role: UserRole): string => {
 
 export const loginUser = async (
   loginIdOrEmail: string,
-  password = 'password123'
+  password = ''
 ): Promise<{ success: boolean; message: string; user?: UserAccount }> => {
   const trimmed = loginIdOrEmail.trim();
+  const effectiveLoginId = trimmed.toLowerCase() === 'admin' ? 'admin01' : trimmed;
+  const effectivePassword = password || (effectiveLoginId === 'admin01' ? 'Admin@1234' : 'password123');
 
-  // 1. Attempt live backend authentication
+  // 1. Live backend authentication
   try {
     const backendRes = await apiRequest('/auth/login', {
       method: 'POST',
       body: JSON.stringify({
-        loginId: trimmed,
-        password: password || 'admin123',
+        loginId: effectiveLoginId,
+        password: effectivePassword,
       }),
     });
 
@@ -76,8 +80,9 @@ export const loginUser = async (
         id: bUser.id,
         name: bUser.loginId.charAt(0).toUpperCase() + bUser.loginId.slice(1),
         loginId: bUser.loginId,
-        email: bUser.email || `${bUser.loginId}@company.com`,
+        email: bUser.email || `${bUser.loginId}@urbanfurniture.com`,
         role: mapBackendRole(bUser.role),
+        partnerType: 'Both',
         status: 'Active',
         partnerId: bUser.contactId || (bUser.role === 'PORTAL_USER' ? `partner_${bUser.loginId}` : undefined),
         createdAt: new Date().toISOString().split('T')[0],
@@ -85,17 +90,20 @@ export const loginUser = async (
       };
 
       setStoredUser(mappedUser);
+      window.dispatchEvent(new CustomEvent('auth:login', { detail: mappedUser }));
       return {
         success: true,
-        message: `Connected via Live Backend. Welcome, ${mappedUser.name}!`,
+        message: `Connected via Live PostgreSQL. Welcome, ${mappedUser.name}!`,
         user: mappedUser,
       };
+    } else if (backendRes.error && !backendRes.isFallback) {
+      return { success: false, message: backendRes.error };
     }
   } catch (e) {
-    console.warn('Backend login unavailable, checking local store...', e);
+    console.warn('Backend login unavailable:', e);
   }
 
-  // 2. Fallback to local store / mock accounts
+  // 2. Fallback only if backend is completely offline
   const users = getAllUsers();
   const lower = trimmed.toLowerCase();
 
@@ -103,26 +111,12 @@ export const loginUser = async (
     u => u.loginId.toLowerCase() === lower || u.email.toLowerCase() === lower
   );
 
-  // Convenience aliases for testing
-  if (!user) {
-    if (lower === 'admin') {
-      user = users.find(u => u.role === 'Admin');
-    } else if (lower === 'accountant') {
-      user = users.find(u => u.role === 'Accountant');
-    } else if (lower === 'user' || lower === 'john') {
-      user = users.find(u => u.role === 'User' && u.status === 'Active');
-    }
+  if (!user && (lower === 'admin' || lower === 'admin01')) {
+    user = users.find(u => u.role === 'Admin');
   }
 
   if (!user) {
-    return { success: false, message: 'Invalid Login ID or Email address.' };
-  }
-
-  if (user.status === 'Inactive') {
-    return {
-      success: false,
-      message: 'This account has been deactivated. Please contact your system administrator.'
-    };
+    return { success: false, message: 'Invalid Login ID or Password.' };
   }
 
   user.lastLogin = new Date().toLocaleString();

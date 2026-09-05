@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, IndianRupee, Image as ImageIcon, Check, ArrowLeft } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Plus, IndianRupee, Image as ImageIcon, Check, ArrowLeft, Upload, Trash2 } from 'lucide-react';
 import { useAccountingStore, Product, ProductType } from '../../accounting/store';
 import { Button } from '../../../components/ui/Button';
 import { ViewToggle } from '../../../components/ui/ViewToggle';
@@ -15,6 +15,7 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form State
   const [name, setName] = useState('');
@@ -24,6 +25,19 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
   const [cost, setCost] = useState<number>(50);
   const [imageUrl, setImageUrl] = useState('');
   const [error, setError] = useState('');
+
+  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setImageUrl(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const openCreateModal = () => {
     setEditingProduct(null);
@@ -313,35 +327,124 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
             />
           </div>
 
-          {/* Image Upload Preview */}
+          {/* Product Image Upload (No URL entry required) */}
           <div className="form-group">
-            <label className="form-label">Product Image URL</label>
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <FormField
-                style={{ flex: 1 }}
-                placeholder="https://images.unsplash.com/..."
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                leadingIcon={<ImageIcon size={15} />}
-              />
+            <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>Product Image</span>
+              {imageUrl && (
+                <button
+                  type="button"
+                  style={{
+                    fontSize: '12px',
+                    color: 'var(--color-danger)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                  onClick={() => setImageUrl('')}
+                >
+                  <Trash2 size={12} /> Remove
+                </button>
+              )}
+            </label>
+
+            {/* Hidden File Input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleImageFileUpload}
+            />
+
+            <div
+              style={{
+                display: 'flex',
+                gap: '16px',
+                alignItems: 'center',
+                padding: '12px 14px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--color-bg)',
+                border: '1px dashed var(--color-border)',
+              }}
+            >
               <div
                 style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: '6px',
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: 'var(--radius-sm)',
                   border: '1px solid var(--color-border)',
-                  backgroundColor: 'var(--color-bg)',
+                  backgroundColor: '#ffffff',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   overflow: 'hidden',
+                  flexShrink: 0,
                 }}
               >
                 {imageUrl ? (
-                  <img src={imageUrl} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={imageUrl} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
-                  <ImageIcon size={16} style={{ color: 'var(--color-text-muted)' }} />
+                  <ImageIcon size={26} style={{ color: 'var(--color-text-muted)' }} />
                 )}
+              </div>
+
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    leftIcon={<Upload size={14} />}
+                  >
+                    {imageUrl ? 'Change Image File' : 'Upload Image File'}
+                  </Button>
+                </div>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                  Select an image file from your device or choose a quick preset below.
+                </span>
+              </div>
+            </div>
+
+            {/* Quick Presets for Furniture & Stock */}
+            <div style={{ marginTop: '10px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '6px' }}>
+                Quick Furniture & Stock Presets:
+              </div>
+              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+                {[
+                  { name: 'Refrigerator', url: 'https://images.unsplash.com/photo-1584992236310-6edddc08acff?w=120&auto=format&fit=crop&q=60' },
+                  { name: 'Chair', url: 'https://images.unsplash.com/photo-1580481077197-9e663a8e7e1c?w=120&auto=format&fit=crop&q=60' },
+                  { name: 'Sofa', url: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=120&auto=format&fit=crop&q=60' },
+                  { name: 'Table', url: 'https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?w=120&auto=format&fit=crop&q=60' },
+                  { name: 'Bed', url: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=120&auto=format&fit=crop&q=60' },
+                  { name: 'Service', url: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=120&auto=format&fit=crop&q=60' },
+                ].map((preset) => (
+                  <button
+                    key={preset.name}
+                    type="button"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '4px 8px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: imageUrl === preset.url ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
+                      backgroundColor: imageUrl === preset.url ? 'var(--color-primary-light, #e6f4ea)' : '#ffffff',
+                      cursor: 'pointer',
+                      fontSize: '11px',
+                      fontWeight: 500,
+                    }}
+                    onClick={() => setImageUrl(preset.url)}
+                  >
+                    <img src={preset.url} alt={preset.name} style={{ width: '18px', height: '18px', borderRadius: '3px', objectFit: 'cover' }} />
+                    <span>{preset.name}</span>
+                  </button>
+                ))}
               </div>
             </div>
           </div>

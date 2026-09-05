@@ -1,12 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Printer, Scale, Download } from 'lucide-react';
 import { useAccountingStore } from '../../accounting/store';
 import { Button } from '../../../components/ui/Button';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
+import { fetchBalanceSheetApi, BalanceSheetReportData } from '../api';
 
 export const BalanceSheetPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { accounts, invoices, bills } = useAccountingStore();
   const [selectedYear, setSelectedYear] = useState<string>('2026');
+  const [liveSheet, setLiveSheet] = useState<BalanceSheetReportData | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadSheet = async () => {
+      const asOf = `${selectedYear}-12-31`;
+      const res = await fetchBalanceSheetApi(asOf);
+      if (isMounted && res.success && res.data) {
+        setLiveSheet(res.data);
+      }
+    };
+    loadSheet();
+    return () => { isMounted = false; };
+  }, [selectedYear]);
 
   // Compute Current Receivables (Debtors)
   const totalDebtors = invoices
@@ -23,16 +38,16 @@ export const BalanceSheetPage: React.FC<{ onNavigate: (route: string) => void }>
   const cashBalance = accounts.find((a) => a.type === 'Cash')?.balance || 25000;
 
   // Assets
-  const totalAssets = bankBalance + cashBalance + totalDebtors;
+  const totalAssets = liveSheet ? liveSheet.assets.total : bankBalance + cashBalance + totalDebtors;
 
   // Equity & Capital
-  const capitalBalance = accounts.find((a) => a.type === 'Capital')?.balance || 400000;
+  const capitalBalance = liveSheet ? liveSheet.capital.total : (accounts.find((a) => a.type === 'Capital')?.balance || 400000);
 
   // Net Current Year Earnings (balancing figure so Assets == Liabilities + Equity)
-  const netRetainedEarnings = totalAssets - totalCreditors - capitalBalance;
+  const netRetainedEarnings = liveSheet ? 0 : totalAssets - totalCreditors - capitalBalance;
 
   // Total Liabilities & Equity
-  const totalLiabilitiesEquity = totalCreditors + capitalBalance + netRetainedEarnings;
+  const totalLiabilitiesEquity = liveSheet ? liveSheet.totalLiabilitiesAndCapital : (totalCreditors + capitalBalance + netRetainedEarnings);
 
   const isBalanced = Math.abs(totalAssets - totalLiabilitiesEquity) < 0.01;
 

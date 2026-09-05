@@ -1,30 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Printer, TrendingUp, TrendingDown, IndianRupee, Download } from 'lucide-react';
 import { useAccountingStore } from '../../accounting/store';
 import { Button } from '../../../components/ui/Button';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
+import { fetchProfitLossApi, ProfitLossReportData } from '../api';
 
 export const ProfitLossReportPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { invoices, bills, accounts } = useAccountingStore();
   const [selectedYear, setSelectedYear] = useState<string>('2026');
+  const [liveReport, setLiveReport] = useState<ProfitLossReportData | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadReport = async () => {
+      const start = `${selectedYear}-01-01`;
+      const end = `${selectedYear}-12-31`;
+      const res = await fetchProfitLossApi(start, end);
+      if (isMounted && res.success && res.data) {
+        setLiveReport(res.data);
+      }
+    };
+    loadReport();
+    return () => { isMounted = false; };
+  }, [selectedYear]);
 
   // Compute Revenue / Sales Income
-  const salesIncome = invoices
-    .filter((inv) => inv.status !== 'Draft' && inv.status !== 'Cancelled' && inv.date.startsWith(selectedYear))
-    .reduce((s, inv) => s + inv.total, 0);
+  const salesIncome = liveReport
+    ? liveReport.income.total
+    : invoices
+        .filter((inv) => inv.status !== 'Draft' && inv.status !== 'Cancelled' && inv.date.startsWith(selectedYear))
+        .reduce((s, inv) => s + inv.total, 0);
 
   // Compute Purchase Costs
-  const purchaseExpenses = bills
-    .filter((b) => b.status !== 'Draft' && b.status !== 'Cancelled' && b.date.startsWith(selectedYear))
-    .reduce((s, b) => s + b.total, 0);
+  const purchaseExpenses = liveReport
+    ? liveReport.expenses.total
+    : bills
+        .filter((b) => b.status !== 'Draft' && b.status !== 'Cancelled' && b.date.startsWith(selectedYear))
+        .reduce((s, b) => s + b.total, 0);
 
   // Operational Expenses from ledger accounts
-  const otherExpenses = accounts
-    .filter((a) => a.type === 'Expense' && a.code !== '5000')
-    .reduce((s, a) => s + a.balance, 0);
+  const otherExpenses = liveReport
+    ? 0
+    : accounts
+        .filter((a) => a.type === 'Expense' && a.code !== '5000')
+        .reduce((s, a) => s + a.balance, 0);
 
   const totalExpenses = purchaseExpenses + otherExpenses;
-  const netIncome = salesIncome - totalExpenses;
+  const netIncome = liveReport ? liveReport.netProfit : salesIncome - totalExpenses;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

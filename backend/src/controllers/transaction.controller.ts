@@ -92,3 +92,58 @@ export async function makePayment(req: Request, res: Response) {
     return res.status(400).json({ error: err.errors?.[0]?.message || err.message });
   }
 }
+
+// --- List Handlers ---
+export async function getPurchaseOrders(_req: Request, res: Response) {
+  try {
+    const pos = await TransactionService.listPurchaseOrders();
+    return res.json(pos);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+export async function getVendorBills(_req: Request, res: Response) {
+  try {
+    const bills = await TransactionService.listVendorBills();
+    return res.json(bills);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+export async function getSalesOrders(_req: Request, res: Response) {
+  try {
+    const sos = await TransactionService.listSalesOrders();
+    return res.json(sos);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+export async function getCustomerInvoices(_req: Request, res: Response) {
+  try {
+    const invoices = await TransactionService.listCustomerInvoices();
+    return res.json(invoices);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+export async function getPayments(_req: Request, res: Response) {
+  try {
+    const payments = await TransactionService.listPayments();
+    return res.json(payments);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+export async function getJournalEntries(_req: Request, res: Response) {
+  try {
+    const entries = await TransactionService.listJournalEntries();
+    return res.json(entries);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+}

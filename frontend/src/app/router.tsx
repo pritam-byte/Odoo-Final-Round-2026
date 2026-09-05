@@ -28,6 +28,8 @@ import { VendorBillsPage } from '../features/orders/pages/VendorBillsPage';
 import { ProfitLossReportPage } from '../features/reports/pages/ProfitLossReportPage';
 import { BalanceSheetPage } from '../features/reports/pages/BalanceSheetPage';
 import { BudgetReportPage } from '../features/reports/pages/BudgetReportPage';
+import { PaymentHistoryPage } from '../features/payments/pages/PaymentHistoryPage';
+import { SettingsPage } from '../features/settings/pages/SettingsPage';
 
 export const AppRouter: React.FC = () => {
   // Session User
@@ -50,8 +52,27 @@ export const AppRouter: React.FC = () => {
         setCurrentPath(hash);
       }
     };
+
+    const handleUnauthorized = () => {
+      setCurrentUser(null);
+      setAuthView('login');
+    };
+
+    const handleLoginEvent = (e: any) => {
+      if (e.detail) {
+        setCurrentUser(e.detail);
+      }
+    };
+
     window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    window.addEventListener('auth:login', handleLoginEvent);
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+      window.removeEventListener('auth:login', handleLoginEvent);
+    };
   }, []);
 
   const navigate = (path: string) => {
@@ -168,6 +189,7 @@ export const AppRouter: React.FC = () => {
       case '/contacts':
         return <ContactsPage onNavigate={navigate} />;
       case '/products':
+      case '/stock':
         return <ProductsPage onNavigate={navigate} />;
       case '/accounts':
         return <AccountsPage onNavigate={navigate} />;
@@ -191,6 +213,8 @@ export const AppRouter: React.FC = () => {
       case '/purchase/bills':
       case '/bills':
         return <VendorBillsPage onNavigate={navigate} />;
+      case '/payments':
+        return <PaymentHistoryPage onNavigate={navigate} />;
       case '/reports/pnl':
         return <ProfitLossReportPage onNavigate={navigate} />;
       case '/reports/balance-sheet':
@@ -198,6 +222,8 @@ export const AppRouter: React.FC = () => {
       case '/reports/budget':
       case '/reports':
         return <BudgetReportPage onNavigate={navigate} />;
+      case '/settings':
+        return <SettingsPage onNavigate={navigate} />;
       case '/dashboard':
       case '/':
       default:

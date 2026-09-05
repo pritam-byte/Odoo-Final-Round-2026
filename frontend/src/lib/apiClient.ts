@@ -60,6 +60,11 @@ export async function apiRequest<T = any>(
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
+      if (response.status === 401) {
+        setAuthToken(null);
+        localStorage.removeItem('odoo_flow_active_user');
+        window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+      }
       return {
         success: false,
         error: data.error || data.message || `Request failed with status ${response.status}`,
@@ -79,5 +84,40 @@ export async function apiRequest<T = any>(
       isFallback: true,
       error: err.name === 'AbortError' ? 'Backend connection timed out. Using local storage.' : 'Backend server unreachable. Using local storage.',
     };
+  }
+}
+export async function apiGet<T = any>(endpoint: string, params?: Record<string, string | number | undefined>): Promise<ApiResponse<T>> {
+  let url = endpoint;
+  if (params) {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== '') {
+        searchParams.append(key, String(val));
+      }
+    });
+    const qs = searchParams.toString();
+    if (qs) {
+      url += (url.includes('?') ? '&' : '?') + qs;
+    }
+  }
+  return apiRequest<T>(url, { method: 'GET' });
+}
+
+export async function apiPost<T = any>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
+  return apiRequest<T>(endpoint, {
+    method: 'POST',
+    body: body ? JSON.stringify(body) : undefined,
+  });
+}
+
+export async function checkBackendHealth(): Promise<{ isOnline: boolean; message: string }> {
+  try {
+    const res = await apiRequest('/health');
+    return {
+      isOnline: res.success,
+      message: res.success ? 'Backend API Connected (Port 5000)' : 'Backend API Offline (Using Offline Storage)',
+    };
+  } catch (e) {
+    return { isOnline: false, message: 'Backend API Offline' };
   }
 }

@@ -272,6 +272,37 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
           <LogIn size={16} />
           <span>{loading ? 'Signing In...' : 'Sign In'}</span>
         </button>
+
+        {/* Quick Demo Credentials */}
+        <div style={{ marginTop: '12px', padding: '12px', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--color-bg-subtle, rgba(0,0,0,0.03))', border: '1px dashed var(--color-border, #e2e8f0)', fontSize: '12px' }}>
+          <div style={{ fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '8px' }}>
+            Database Administrator Credentials:
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setIdentifier('admin01');
+              setPassword('Admin@1234');
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: '100%',
+              padding: '6px 10px',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--color-primary-subtle, #cbd5e1)',
+              backgroundColor: 'var(--color-card, #fff)',
+              cursor: 'pointer',
+              fontSize: '12px',
+              color: 'var(--color-primary)',
+              fontWeight: 500,
+            }}
+          >
+            <span>👤 <strong>admin01</strong> / Admin@1234</span>
+            <span style={{ fontSize: '11px', textDecoration: 'underline' }}>Auto-Fill</span>
+          </button>
+        </div>
       </form>
 
       {onNavigateToSignup && (
