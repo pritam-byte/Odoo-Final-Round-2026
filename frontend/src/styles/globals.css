@@ -147,44 +147,28 @@ input, select, textarea {
 }
 
 /* ==========================================================================
-   BRAND LOGO (Two-Tone: Muted Purple + Dark Charcoal)
+   BRAND LOGO (Urban Furniture Official Image & Styling)
    ========================================================================== */
+.brand-logo-wrapper {
+  display: inline-flex;
+  align-items: center;
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
+}
+
+.brand-logo-wrapper:hover {
+  opacity: 0.92;
+  transform: scale(1.02);
+}
+
 .brand-logo {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-weight: 700;
-  font-size: 19px;
-  letter-spacing: -0.02em;
   user-select: none;
   text-decoration: none;
 }
 
 .brand-logo:hover {
   text-decoration: none;
-}
-
-.brand-logo-icon {
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  background: var(--brand-purple);
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.brand-word {
-  color: var(--brand-purple);
-  font-weight: 700;
-}
-
-.brand-secondary {
-  color: var(--brand-charcoal);
-  font-weight: 600;
 }
 
 /* ==========================================================================

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Layers,
   Search,
   Bell,
   LayoutDashboard,
@@ -14,6 +13,7 @@ import {
 import { UserAccount } from '../features/auth/schemas';
 import { getStoredUser, CURRENT_USER } from '../lib/auth';
 import { getMyScopedDocuments, getMyPayments, PortalDocument, PortalPayment } from '../features/portal/api';
+import { BrandLogo } from '../components/ui/BrandLogo';
 
 export interface PortalLayoutProps {
   children?: React.ReactNode;
@@ -276,14 +276,11 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
       <header className="top-navbar">
         {/* Brand Left */}
         <div className="navbar-left">
-          <div className="brand-logo" style={{ cursor: 'pointer' }} onClick={() => onNavigate?.('dashboard')}>
-            <div className="brand-logo-icon">
-              <Layers size={18} strokeWidth={2.2} />
-            </div>
-            <div>
-              <span className="brand-word">Urban</span> <span className="brand-secondary">Furniture</span>
-            </div>
-          </div>
+          <BrandLogo
+            height={38}
+            onClick={() => onNavigate?.('dashboard')}
+            className="brand-logo"
+          />
         </div>
 
         {/* Right Section: Search, Notification Bell, User Profile, Logout */}

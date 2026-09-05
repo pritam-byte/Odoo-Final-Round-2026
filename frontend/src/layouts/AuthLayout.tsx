@@ -1,4 +1,5 @@
-import { Layers, ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
+import { BrandLogo } from '../components/ui/BrandLogo';
 
 export interface AuthLayoutProps {
   children?: React.ReactNode;
@@ -9,13 +10,8 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
     <div className="auth-wrapper">
       {/* Auth Navbar */}
       <header className="auth-header">
-        <a href="#/login" className="brand-logo">
-          <div className="brand-logo-icon">
-            <Layers size={18} strokeWidth={2.2} />
-          </div>
-          <div>
-            <span className="brand-word">Urban</span> <span className="brand-secondary">Furniture</span>
-          </div>
+        <a href="#/login" className="brand-logo" style={{ textDecoration: 'none' }}>
+          <BrandLogo height={44} />
         </a>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>

@@ -3,7 +3,6 @@ import {
   Search,
   Clock,
   Bell,
-  Layers,
   LogOut,
   Shield,
   Briefcase,
@@ -22,6 +21,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { useAccountingStore } from '../../features/accounting/store';
+import { BrandLogo } from './BrandLogo';
 
 export interface HeaderProps {
   onSearch?: (query: string) => void;
@@ -354,22 +354,11 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="top-navbar">
       {/* Brand / Logo (Left) */}
       <div className="navbar-left">
-        <a
-          href="#/dashboard"
-          onClick={(e) => {
-            e.preventDefault();
-            handleNavigatePath('/dashboard');
-          }}
+        <BrandLogo
+          height={38}
+          onClick={() => handleNavigatePath('/dashboard')}
           className="brand-logo"
-          title="Urban Furniture ERP"
-        >
-          <div className="brand-logo-icon">
-            <Layers size={18} strokeWidth={2.2} />
-          </div>
-          <div>
-            <span className="brand-word">Urban</span> <span className="brand-secondary">Furniture</span>
-          </div>
-        </a>
+        />
       </div>
 
       {/* Search Bar, Live Clock, Notifications, User Profile & Logout */}
