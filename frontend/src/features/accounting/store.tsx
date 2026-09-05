@@ -135,13 +135,15 @@ export interface CustomerInvoice {
 
 export interface PurchaseOrder {
   id: string;
-  orderNumber: string; // PO/2026/0001
+  orderNumber: string; // PO0001
   partnerId: string;
   partnerName: string;
   date: string;
   lines: OrderLine[];
   total: number;
-  status: TransactionStatus;
+  status: 'Draft' | 'Confirmed' | 'Cancelled';
+  billId?: string;
+  billNumber?: string;
 }
 
 export interface VendorBill {
@@ -156,6 +158,10 @@ export interface VendorBill {
   total: number;
   amountPaid: number;
   amountDue: number;
+  paidViaCash?: number;
+  paidViaBank?: number;
+  purchaseOrderId?: string;
+  poNumber?: string;
   status: TransactionStatus;
   journalEntryId?: string;
 }
@@ -1530,10 +1536,15 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
             }
           });
 
+          const paidBank = (b.paidViaBank || 0) + (paymentVia === 'Bank' ? amount : 0);
+          const paidCash = (b.paidViaCash || 0) + (paymentVia === 'Cash' ? amount : 0);
+
           return {
             ...b,
             amountPaid: newPaid,
             amountDue: newDue,
+            paidViaBank: paidBank,
+            paidViaCash: paidCash,
             status: newStatus,
           };
         }

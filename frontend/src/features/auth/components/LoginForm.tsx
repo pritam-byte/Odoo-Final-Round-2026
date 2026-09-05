@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { LogIn, AlertCircle, KeyRound, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { LogIn, AlertCircle, KeyRound, CheckCircle2, ArrowLeft, Lock } from 'lucide-react';
 import { loginUser } from '../../../lib/auth';
+import { apiRequest } from '../../../lib/apiClient';
 import { UserAccount } from '../schemas';
 
 export interface LoginFormProps {
@@ -19,6 +20,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
   const [forgotIdentifier, setForgotIdentifier] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotSuccess, setForgotSuccess] = useState('');
   const [forgotError, setForgotError] = useState('');
 
@@ -46,7 +48,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
     }
   };
 
-  const handleResetPassword = (e: React.FormEvent) => {
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setForgotError('');
     setForgotSuccess('');
@@ -64,27 +66,49 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
       return;
     }
 
-    setForgotSuccess('Password has been updated successfully! You can now sign in.');
-    setTimeout(() => {
-      setShowForgotPassword(false);
-      setForgotSuccess('');
-      setForgotError('');
-      setIdentifier(forgotIdentifier);
-    }, 1500);
+    setForgotLoading(true);
+    try {
+      const res = await apiRequest<{ message: string }>('/auth/reset-password', {
+        method: 'POST',
+        body: JSON.stringify({
+          identifier: forgotIdentifier.trim(),
+          newPassword,
+        }),
+      });
+
+      if (res.success) {
+        setForgotSuccess('Password updated successfully in PostgreSQL database! You can now sign in.');
+        setTimeout(() => {
+          setIdentifier(forgotIdentifier.trim());
+          setPassword(newPassword);
+          setShowForgotPassword(false);
+          setForgotSuccess('');
+          setForgotError('');
+          setNewPassword('');
+          setConfirmNewPassword('');
+        }, 1500);
+      } else {
+        setForgotError(res.error || 'Failed to update password. Please verify your Login ID or Email.');
+      }
+    } catch (err: any) {
+      setForgotError(err.message || 'Error connecting to auth server.');
+    } finally {
+      setForgotLoading(false);
+    }
   };
 
   if (showForgotPassword) {
     return (
       <div className="card-panel" style={{ width: '100%', maxWidth: '440px', padding: '36px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <div style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: 'var(--color-primary-subtle)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px auto' }}>
-            <KeyRound size={22} />
+          <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'var(--color-primary-subtle)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px auto' }}>
+            <KeyRound size={24} />
           </div>
           <h2 className="card-title" style={{ fontSize: '22px', marginBottom: '6px' }}>
             Reset Password
           </h2>
           <p className="card-subtitle">
-            Enter your Login ID or Email to update your security credentials
+            Update your account password in the PostgreSQL database
           </p>
         </div>
 
@@ -111,10 +135,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
         {forgotSuccess && (
           <div
             style={{
-              padding: '10px 14px',
-              backgroundColor: 'var(--color-success-bg)',
-              color: 'var(--color-success-text)',
-              borderRadius: 'var(--radius-sm)',
+              padding: '12px 14px',
+              backgroundColor: 'rgba(16, 185, 129, 0.08)',
+              color: 'var(--color-text, #1e293b)',
+              borderRadius: 'var(--radius-md, 8px)',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
               fontSize: '13px',
               fontWeight: 500,
               display: 'flex',
@@ -123,21 +148,22 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
               marginBottom: '18px',
             }}
           >
-            <CheckCircle2 size={16} />
-            <span>{forgotSuccess}</span>
+            <CheckCircle2 size={18} color="#059669" />
+            <span style={{ color: '#059669' }}>{forgotSuccess}</span>
           </div>
         )}
 
         <form onSubmit={handleResetPassword} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div className="form-group">
-            <label className="form-label">Login ID or Email</label>
+            <label className="form-label">Login ID or Registered Email</label>
             <input
               type="text"
-              placeholder="e.g. ratanjana7600@gmail.com"
+              placeholder="e.g. admin01 or your-email@company.com"
               value={forgotIdentifier}
               onChange={(e) => setForgotIdentifier(e.target.value)}
               className="form-input"
               required
+              autoFocus
             />
           </div>
 
@@ -145,7 +171,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
             <label className="form-label">New Password</label>
             <input
               type="password"
-              placeholder="Enter new password"
+              placeholder="Enter new password (min. 6 characters)"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               className="form-input"
@@ -168,9 +194,17 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
           <button
             type="submit"
             className="btn btn-primary btn-block"
-            style={{ padding: '10px', marginTop: '6px' }}
+            disabled={forgotLoading}
+            style={{ padding: '10px', marginTop: '6px', gap: '8px' }}
           >
-            <span>Update Password</span>
+            {forgotLoading ? (
+              <span>Updating Database...</span>
+            ) : (
+              <>
+                <Lock size={15} />
+                <span>Save New Password to Database</span>
+              </>
+            )}
           </button>
 
           <button

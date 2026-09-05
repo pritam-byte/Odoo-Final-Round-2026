@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Check, ArrowLeft, FileText, CheckCircle2 } from 'lucide-react';
+import { Plus, Check, ArrowLeft, FileText, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useAccountingStore, PurchaseOrder, OrderLine } from '../../accounting/store';
 import { Button } from '../../../components/ui/Button';
 import { StatusBadge } from '../../../components/ui/StatusBadge';
@@ -11,7 +11,7 @@ import { Many2OneSelect } from '../../../components/ui/Many2OneSelect';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
 
 export const PurchaseOrdersPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
-  const { purchaseOrders, contacts, products, accounts, analytics, addPurchaseOrder, confirmPurchaseOrder, addBill } =
+  const { purchaseOrders, contacts, products, accounts, analytics, budgets, addPurchaseOrder, confirmPurchaseOrder, addBill } =
     useAccountingStore();
   const [activeTab, setActiveTab] = useState<'All' | 'Confirmed' | 'Draft'>('All');
   const [search, setSearch] = useState('');
@@ -24,20 +24,36 @@ export const PurchaseOrdersPage: React.FC<{ onNavigate: (route: string) => void 
   const [lines, setLines] = useState<OrderLine[]>([]);
   const [error, setError] = useState('');
 
+  const checkBudgetExceeded = (targetLines: OrderLine[]) => {
+    for (const line of targetLines) {
+      if (line.analyticId) {
+        const budget = budgets.find((b) => b.analyticId === line.analyticId && b.state === 'Confirmed');
+        if (budget && line.total > budget.committedAmount) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
   const openCreateModal = () => {
     setViewingOrder(null);
     setPartnerId(contacts[0]?.id || '');
     setDate(new Date().toISOString().split('T')[0]);
 
     const defaultProd = products[0];
-    const defaultAcc = accounts.find((a) => a.type === 'Expense') || accounts[0];
+    const purchaseAcc =
+      accounts.find((a) => a.code === '5000' || a.name.toLowerCase().includes('purchase')) ||
+      accounts.find((a) => a.type === 'Expense') ||
+      accounts[0];
+
     setLines([
       {
         id: `l_${Date.now()}`,
         productId: defaultProd?.id || '',
         productName: defaultProd?.name || '',
-        accountId: defaultAcc?.id || '',
-        accountName: defaultAcc?.name || '',
+        accountId: purchaseAcc?.id || '',
+        accountName: purchaseAcc?.name || 'Purchase A/c',
         analyticId: analytics[0]?.id || '',
         analyticName: analytics[0]?.name || '',
         quantity: 1,
@@ -60,7 +76,7 @@ export const PurchaseOrdersPage: React.FC<{ onNavigate: (route: string) => void 
 
     addPurchaseOrder({
       partnerId: partner?.id || 'c1',
-      partnerName: partner?.name || 'Supplier',
+      partnerName: partner?.name || 'Vendor',
       date,
       lines,
       total,
@@ -73,6 +89,8 @@ export const PurchaseOrdersPage: React.FC<{ onNavigate: (route: string) => void 
   const handleCreateBillFromOrder = (order: PurchaseOrder) => {
     addBill({
       reference: order.orderNumber,
+      purchaseOrderId: order.id,
+      poNumber: order.orderNumber,
       partnerId: order.partnerId,
       partnerName: order.partnerName,
       date: new Date().toISOString().split('T')[0],
@@ -96,14 +114,14 @@ export const PurchaseOrdersPage: React.FC<{ onNavigate: (route: string) => void 
   const columns: Column<PurchaseOrder>[] = [
     {
       key: 'orderNumber',
-      header: 'PO Number',
+      header: 'PO No.',
       width: '140px',
       render: (po) => <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}>{po.orderNumber}</span>,
     },
     {
       key: 'partnerName',
-      header: 'Vendor / Supplier',
-      render: (po) => <span style={{ fontWeight: 500 }}>{po.partnerName}</span>,
+      header: 'Vendor Name',
+      render: (po) => <span style={{ fontWeight: 600 }}>{po.partnerName}</span>,
     },
     {
       key: 'date',
@@ -112,7 +130,7 @@ export const PurchaseOrdersPage: React.FC<{ onNavigate: (route: string) => void 
     },
     {
       key: 'total',
-      header: 'Total Value ($)',
+      header: 'Total Value',
       align: 'right',
       render: (po) => (
         <span style={{ fontWeight: 700 }}>₹{po.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
@@ -189,7 +207,7 @@ export const PurchaseOrdersPage: React.FC<{ onNavigate: (route: string) => void 
           isOpen={true}
           onClose={() => setViewingOrder(null)}
           title={`Purchase Order: ${viewingOrder.orderNumber}`}
-          maxWidth="700px"
+          maxWidth="750px"
           footer={
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -207,24 +225,47 @@ export const PurchaseOrdersPage: React.FC<{ onNavigate: (route: string) => void 
                   </Button>
                 )}
                 <Button
-                  variant="outline"
+                  variant="primary"
                   size="sm"
                   onClick={() => handleCreateBillFromOrder(viewingOrder)}
                   leftIcon={<FileText size={14} />}
                 >
-                  Create Vendor Bill
+                  Create Bill
                 </Button>
               </div>
               <Button variant="outline" size="sm" onClick={() => setViewingOrder(null)}>
-                Close
+                Back
               </Button>
             </div>
           }
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', padding: '12px', backgroundColor: 'var(--color-bg)', borderRadius: '6px' }}>
+            {/* Non-blocking Warning if Budget Exceeded */}
+            {checkBudgetExceeded(viewingOrder.lines) && (
+              <div
+                style={{
+                  backgroundColor: '#fffbeb',
+                  border: '1px solid #fde68a',
+                  color: '#92400e',
+                  padding: '12px 16px',
+                  borderRadius: 'var(--radius-md)',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '10px',
+                  fontSize: '13px',
+                }}
+              >
+                <AlertTriangle size={18} style={{ color: '#d97706', flexShrink: 0, marginTop: '2px' }} />
+                <div>
+                  <strong style={{ display: 'block', marginBottom: '2px' }}>Non-Blocking Warning on PO: Exceeds Approved Budget</strong>
+                  The entered amount is higher than the remaining budget amount for this budget line. Consider adjusting the value or revise the budget.
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', padding: '14px', backgroundColor: 'var(--color-bg)', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
               <div>
-                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', display: 'block' }}>Vendor:</span>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', display: 'block' }}>Vendor Name:</span>
                 <span style={{ fontWeight: 600 }}>{viewingOrder.partnerName}</span>
               </div>
               <div>
@@ -237,7 +278,13 @@ export const PurchaseOrdersPage: React.FC<{ onNavigate: (route: string) => void 
               </div>
             </div>
 
-            <LineItemsTable lines={viewingOrder.lines} onChange={() => {}} readOnly defaultAccountType="Expense" />
+            <LineItemsTable lines={viewingOrder.lines} onChange={() => {}} readOnly defaultAccountType="Expense" hideAccountColumn={true} />
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '10px 0' }}>
+              <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-primary)' }}>
+                Total: ₹{viewingOrder.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              </div>
+            </div>
           </div>
         </Modal>
       )}
@@ -246,20 +293,22 @@ export const PurchaseOrdersPage: React.FC<{ onNavigate: (route: string) => void 
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Create New Purchase Order"
+        title="New Purchase Order"
         maxWidth="750px"
         footer={
-          <>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
             <Button variant="outline" onClick={() => setIsModalOpen(false)} leftIcon={<ArrowLeft size={15} />}>
               Back
             </Button>
-            <Button variant="outline" onClick={() => handleSaveOrder('Draft')}>
-              Save as Draft
-            </Button>
-            <Button variant="primary" onClick={() => handleSaveOrder('Confirmed')} leftIcon={<Check size={15} strokeWidth={2.2} />}>
-              Confirm PO
-            </Button>
-          </>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <Button variant="outline" onClick={() => handleSaveOrder('Draft')}>
+                Save Draft
+              </Button>
+              <Button variant="primary" onClick={() => handleSaveOrder('Confirmed')} leftIcon={<Check size={15} strokeWidth={2.2} />}>
+                Confirm PO
+              </Button>
+            </div>
+          </div>
         }
       >
         <form style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -269,9 +318,30 @@ export const PurchaseOrdersPage: React.FC<{ onNavigate: (route: string) => void 
             </div>
           )}
 
+          {checkBudgetExceeded(lines) && (
+            <div
+              style={{
+                backgroundColor: '#fffbeb',
+                border: '1px solid #fde68a',
+                color: '#92400e',
+                padding: '10px 14px',
+                borderRadius: 'var(--radius-sm)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '13px',
+              }}
+            >
+              <AlertTriangle size={16} style={{ color: '#d97706', flexShrink: 0 }} />
+              <span>
+                <strong>Non-Blocking Warning: Exceeds Approved Budget.</strong> The entered amount exceeds the remaining budget line allocation.
+              </span>
+            </div>
+          )}
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <Many2OneSelect
-              label="Vendor (Contact)"
+              label="Vendor Name (Many-to-One)"
               options={contacts.map((c) => ({ id: c.id, name: c.name, subtitle: c.email }))}
               value={partnerId}
               onChange={(id) => setPartnerId(id)}
@@ -288,7 +358,7 @@ export const PurchaseOrdersPage: React.FC<{ onNavigate: (route: string) => void 
             />
           </div>
 
-          <LineItemsTable lines={lines} onChange={setLines} defaultAccountType="Expense" />
+          <LineItemsTable lines={lines} onChange={setLines} defaultAccountType="Expense" hideAccountColumn={true} />
         </form>
       </Modal>
     </div>

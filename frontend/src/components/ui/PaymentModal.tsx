@@ -11,21 +11,23 @@ export interface PaymentModalProps {
   partnerName: string;
   sourceDocNumber: string;
   maxAmount: number;
-  onConfirmPayment: (amount: number, paymentVia: 'Bank' | 'Cash', date: string) => void;
+  onConfirmPayment: (amount: number, paymentVia: 'Bank' | 'Cash', date: string, note?: string) => void;
 }
 
 export const PaymentModal: React.FC<PaymentModalProps> = ({
   isOpen,
   onClose,
-  type,
+  type: initialType,
   partnerName,
   sourceDocNumber,
   maxAmount,
   onConfirmPayment,
 }) => {
+  const [paymentType, setPaymentType] = useState<'Send' | 'Receive'>(initialType);
   const [amount, setAmount] = useState<number>(maxAmount);
   const [paymentVia, setPaymentVia] = useState<'Bank' | 'Cash'>('Bank');
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [note, setNote] = useState<string>(`Payment for ${sourceDocNumber}`);
   const [error, setError] = useState<string>('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -39,7 +41,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
       return;
     }
 
-    onConfirmPayment(amount, paymentVia, date);
+    onConfirmPayment(amount, paymentVia, date, note);
     onClose();
   };
 
@@ -47,14 +49,23 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Register ${type === 'Receive' ? 'Customer Payment' : 'Vendor Payment'} (${sourceDocNumber})`}
+      title={
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingRight: '24px' }}>
+          <span>Bill Payment ({sourceDocNumber})</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '12px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
+              Draft → Confirmed
+            </span>
+          </div>
+        </div>
+      }
       footer={
         <>
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
           <Button variant="primary" onClick={handleSubmit} leftIcon={<Wallet size={16} strokeWidth={2} />}>
-            Confirm Payment
+            Confirm
           </Button>
         </>
       }
@@ -75,17 +86,34 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <div className="form-group">
-            <label className="form-label">Payment Type</label>
-            <div
-              className="form-input"
-              style={{ backgroundColor: 'var(--color-bg)', fontWeight: 600, color: 'var(--color-text-secondary)' }}
-            >
-              {type === 'Receive' ? 'Receive Money (Inbound)' : 'Send Money (Outbound)'}
-            </div>
+        {/* Payment Type Selection */}
+        <div className="form-group">
+          <label className="form-label">Payment Type</label>
+          <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginTop: '4px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: 500 }}>
+              <input
+                type="radio"
+                name="paymentType"
+                value="Send"
+                checked={paymentType === 'Send'}
+                onChange={() => setPaymentType('Send')}
+              />
+              <span>Send (Paid to Vendor)</span>
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: 500 }}>
+              <input
+                type="radio"
+                name="paymentType"
+                value="Receive"
+                checked={paymentType === 'Receive'}
+                onChange={() => setPaymentType('Receive')}
+              />
+              <span>Receive (From Customer)</span>
+            </label>
           </div>
+        </div>
 
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div className="form-group">
             <label className="form-label">Partner (Autofilled)</label>
             <div
@@ -95,12 +123,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               {partnerName}
             </div>
           </div>
-        </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div className="form-group">
             <label className="form-label" htmlFor="pay-via">
-              Payment Method / Journal
+              Payment Via
             </label>
             <select
               id="pay-via"
@@ -108,10 +134,23 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               value={paymentVia}
               onChange={(e) => setPaymentVia(e.target.value as 'Bank' | 'Cash')}
             >
-              <option value="Bank">Bank Account (Electronic Wire / Cheque)</option>
-              <option value="Cash">Petty Cash Register</option>
+              <option value="Bank">Bank (Default)</option>
+              <option value="Cash">Cash</option>
             </select>
           </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <FormField
+            label="Amount (₹)"
+            type="number"
+            step="0.01"
+            value={amount}
+            onChange={(e) => setAmount(Number(e.target.value))}
+            leadingIcon={<IndianRupee size={15} strokeWidth={1.75} />}
+            helperText={`Autofill Amount Due from Invoice/Bill: ₹${maxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+            required
+          />
 
           <FormField
             label="Payment Date"
@@ -124,14 +163,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         </div>
 
         <FormField
-          label="Payment Amount ($)"
-          type="number"
-          step="0.01"
-          value={amount}
-          onChange={(e) => setAmount(Number(e.target.value))}
-          leadingIcon={<IndianRupee size={15} strokeWidth={1.75} />}
-          helperText={`Outstanding Balance: ₹${maxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
-          required
+          label="Note (Alphanumeric)"
+          type="text"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="e.g. Payment for BILL/2026/0001"
         />
       </form>
     </Modal>

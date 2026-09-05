@@ -34,6 +34,9 @@ export interface PortalPayment {
   date: string;
   paymentMethod: 'Bank' | 'Cash';
   reference: string;
+  partnerName?: string;
+  note?: string;
+  status?: 'Draft' | 'Confirm' | 'Cancelled';
 }
 
 export interface UserProfile {

@@ -84,3 +84,37 @@ export async function login(req: Request, res: Response) {
     return res.status(400).json({ error: error.errors?.[0]?.message || error.message });
   }
 }
+
+export async function resetPassword(req: Request, res: Response) {
+  try {
+    const { identifier, newPassword } = req.body;
+    if (!identifier || !newPassword) {
+      return res.status(400).json({ error: "Login ID or Email and new password are required" });
+    }
+
+    if (typeof newPassword !== 'string' || newPassword.length < 6) {
+      return res.status(400).json({ error: "New password must be at least 6 characters long" });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [{ loginId: identifier }, { email: identifier }],
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "No account found matching this Login ID or Email" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword },
+    });
+
+    return res.status(200).json({ message: "Password updated successfully in database" });
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message || "Failed to reset password" });
+  }
+}
