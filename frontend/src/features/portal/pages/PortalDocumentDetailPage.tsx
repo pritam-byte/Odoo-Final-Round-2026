@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ArrowLeft, CreditCard } from 'lucide-react';
+import { ArrowLeft, CreditCard, Receipt, Clock, FileText } from 'lucide-react';
 import { StatusBadge } from '../../../components/ui/StatusBadge';
-import { getMyScopedDocumentById, PortalDocument, DocumentLineItem } from '../api';
+import { getMyScopedDocumentById, getMyPayments, PortalDocument, DocumentLineItem, PortalPayment } from '../api';
 import { DemoBankPaymentForm } from '../components/DemoBankPaymentForm';
+import { PaymentReceiptModal } from '../components/PaymentReceiptModal';
 
 export interface PortalDocumentDetailPageProps {
   documentId: string;
@@ -15,6 +16,7 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
 }) => {
   const [doc, setDoc] = useState<PortalDocument | null>(() => getMyScopedDocumentById(documentId));
   const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
+  const [selectedVoucher, setSelectedVoucher] = useState<PortalPayment | null>(null);
 
   if (!doc) {
     return (
@@ -37,10 +39,35 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
     setShowPaymentModal(false);
   };
 
+  const handleOpenVoucher = () => {
+    const allPayments = getMyPayments();
+    const matched = allPayments.find(
+      (p) => p.documentId === doc.id || p.documentNumber === doc.number
+    );
+    if (matched) {
+      setSelectedVoucher(matched);
+    } else {
+      // Fallback synthetic voucher for paid document
+      setSelectedVoucher({
+        id: `pay_${doc.id}`,
+        documentId: doc.id,
+        documentNumber: doc.number,
+        documentType: doc.type,
+        amount: doc.amountPaid || doc.total,
+        date: doc.date,
+        paymentMethod: 'Bank',
+        reference: `PAY/2026/${doc.id.replace(/[^0-9]/g, '') || '9012'}`,
+        partnerName: doc.partnerName || 'Supplier',
+        note: `Disbursement settlement voucher for ${doc.number}`,
+        status: 'Confirm',
+      });
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Top Back Action & Status */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
         <button
           type="button"
           onClick={onBack}
@@ -48,12 +75,14 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
           style={{ gap: '6px' }}
         >
           <ArrowLeft size={16} />
-          <span>Back to List</span>
+          <span>Back to {isBill ? 'Supply Bills' : 'Invoices'}</span>
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <StatusBadge status={doc.status} />
-          {doc.status === 'Unpaid' && (
+
+          {/* Customer Action: Pay Invoice */}
+          {!isBill && doc.status === 'Unpaid' && (
             <button
               type="button"
               className="btn btn-primary btn-sm"
@@ -61,9 +90,38 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
               style={{ gap: '6px' }}
             >
               <CreditCard size={15} />
-              <span>
-                {isBill ? 'Record Settlement' : 'Pay Outstanding'} (₹{doc.amountDue.toFixed(2)})
-              </span>
+              <span>Pay Outstanding (₹{doc.amountDue.toFixed(2)})</span>
+            </button>
+          )}
+
+          {/* Vendor Tracking: If Unpaid -> Awaiting Disbursement Badge */}
+          {isBill && doc.status === 'Unpaid' && (
+            <div
+              className="badge-pill badge-pending"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                fontSize: '12px',
+                fontWeight: 600,
+              }}
+            >
+              <Clock size={13} />
+              <span>Awaiting Company Disbursement</span>
+            </div>
+          )}
+
+          {/* View Payment Voucher / Receipt if Paid */}
+          {doc.status === 'Paid' && (
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={handleOpenVoucher}
+              style={{ gap: '6px' }}
+            >
+              <Receipt size={14} />
+              <span>{isBill ? 'View Payment Voucher' : 'View Payment Receipt'}</span>
             </button>
           )}
         </div>
@@ -89,9 +147,20 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
                 fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
               }}
             >
-              {isBill ? 'Vendor Supply Bill' : 'Customer Sales Invoice'} (Read Only)
+              {isBill ? (
+                <>
+                  <Receipt size={13} /> Vendor Supply Bill (Read Only)
+                </>
+              ) : (
+                <>
+                  <FileText size={13} /> Customer Sales Invoice (Read Only)
+                </>
+              )}
             </span>
             <h1 className="page-title" style={{ fontSize: '26px', marginTop: '4px' }}>
               {doc.number}
@@ -126,7 +195,7 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
               letterSpacing: '0.04em',
             }}
           >
-            {isBill ? 'Vendor / Supplier (Self)' : 'Customer / Recipient (Self)'}
+            {isBill ? 'Supplier / Payee (Self)' : 'Customer / Billed To (Self)'}
           </span>
           <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text-primary)', marginTop: '2px' }}>
             {doc.partnerName}
@@ -136,14 +205,14 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
         {/* Line Items Table */}
         <div>
           <h3 className="card-title" style={{ marginBottom: '12px' }}>
-            {isBill ? 'Supplied Raw Materials & Services' : 'Purchased Furniture & Products'}
+            {isBill ? 'Supplied Raw Materials & Procurement Items' : 'Purchased Furniture & Products'}
           </h3>
           <div className="table-container">
             <table className="custom-table">
               <thead>
                 <tr>
                   <th style={{ width: '50px' }}>#</th>
-                  <th>{isBill ? 'Raw Material / Item Description' : 'Product / Furniture Item'}</th>
+                  <th>{isBill ? 'Raw Material Description' : 'Product / Furniture Item'}</th>
                   <th style={{ textAlign: 'center', width: '80px' }}>Qty</th>
                   <th style={{ textAlign: 'right', width: '130px' }}>Unit Price</th>
                   <th style={{ textAlign: 'right', width: '130px' }}>Total</th>
@@ -170,7 +239,7 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
           <div
             style={{
-              width: '320px',
+              width: '340px',
               display: 'flex',
               flexDirection: 'column',
               gap: '10px',
@@ -185,13 +254,15 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
               <strong style={{ color: 'var(--color-text-primary)' }}>₹{doc.total.toFixed(2)}</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-              <span style={{ color: 'var(--color-text-muted)' }}>Amount Paid:</span>
+              <span style={{ color: 'var(--color-text-muted)' }}>
+                {isBill ? 'Amount Disbursed:' : 'Amount Paid:'}
+              </span>
               <span style={{ color: 'var(--color-primary)', fontWeight: 600 }}>₹{doc.amountPaid.toFixed(2)}</span>
             </div>
             <div style={{ height: '1px', backgroundColor: 'var(--color-border)' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px' }}>
               <span style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>
-                {isBill ? 'Balance Due:' : 'Amount Due:'}
+                {isBill ? 'Pending Company Payout:' : 'Amount Due:'}
               </span>
               <strong style={{ color: doc.amountDue > 0 ? 'var(--color-warning)' : 'var(--color-primary)' }}>
                 ₹{doc.amountDue.toFixed(2)}
@@ -201,12 +272,20 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
         </div>
       </div>
 
-      {/* Payment Modal Component */}
+      {/* Payment Modal Component (Customer checkout flow) */}
       {showPaymentModal && (
         <DemoBankPaymentForm
           document={doc}
           onClose={() => setShowPaymentModal(false)}
           onSuccess={handlePaymentSuccess}
+        />
+      )}
+
+      {/* Payment Receipt / Voucher Modal */}
+      {selectedVoucher && (
+        <PaymentReceiptModal
+          payment={selectedVoucher}
+          onClose={() => setSelectedVoucher(null)}
         />
       )}
     </div>
