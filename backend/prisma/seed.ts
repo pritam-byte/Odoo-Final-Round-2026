@@ -168,6 +168,50 @@ async function main() {
       pincode: "380015",
       image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&auto=format&fit=crop&q=80",
     },
+    {
+      name: "Apex Workspaces & Hub",
+      type: ContactType.CUSTOMER,
+      email: "operations@apexworkspaces.com",
+      phone: "+91 98111 22334",
+      address: "DLF Cyberpark, Sector 20",
+      city: "Gurugram",
+      state: "Haryana",
+      pincode: "122002",
+      image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80",
+    },
+    {
+      name: "Regal Woods & Furnishings",
+      type: ContactType.VENDOR,
+      email: "supply@regalwoods.in",
+      phone: "+91 94455 66778",
+      address: "Industrial Suburb, Peenya",
+      city: "Bengaluru",
+      state: "Karnataka",
+      pincode: "560058",
+      image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&auto=format&fit=crop&q=80",
+    },
+    {
+      name: "Pinnacle Architecture & Design",
+      type: ContactType.BOTH,
+      email: "studio@pinnacledesign.co.in",
+      phone: "+91 99220 33445",
+      address: "Senapati Bapat Road, Quad 4",
+      city: "Pune",
+      state: "Maharashtra",
+      pincode: "411016",
+      image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&auto=format&fit=crop&q=80",
+    },
+    {
+      name: "Urban Loft Designs",
+      type: ContactType.CUSTOMER,
+      email: "projects@urbanloft.org",
+      phone: "+91 98490 11223",
+      address: "Hitech City, Mindspace Phase 3",
+      city: "Hyderabad",
+      state: "Telangana",
+      pincode: "500081",
+      image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+    },
   ];
 
   const contactsMap: Record<string, any> = {};
@@ -323,8 +367,47 @@ async function main() {
       type: ProductType.COMBO,
       image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&auto=format&fit=crop&q=80",
     },
+    {
+      name: "Nordic Minimalist Dining Table",
+      category: "Living Furniture",
+      salesPrice: 32000,
+      cost: 20000,
+      type: ProductType.GOODS,
+      image: "https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?w=400&auto=format&fit=crop&q=80",
+    },
+    {
+      name: "Acoustic Wall Panel Set",
+      category: "Office Furniture",
+      salesPrice: 8500,
+      cost: 4200,
+      type: ProductType.GOODS,
+      image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&auto=format&fit=crop&q=80",
+    },
+    {
+      name: "Velvet Recliner Lounge Chair",
+      category: "Living Furniture",
+      salesPrice: 24000,
+      cost: 15000,
+      type: ProductType.GOODS,
+      image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&auto=format&fit=crop&q=80",
+    },
+    {
+      name: "Custom Wood Carving & Finish",
+      category: "Professional Services",
+      salesPrice: 9500,
+      cost: 3000,
+      type: ProductType.SERVICE,
+      image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&auto=format&fit=crop&q=80",
+    },
+    {
+      name: "Industrial Steel Shelf Rack",
+      category: "Storage & Shelves",
+      salesPrice: 14000,
+      cost: 8500,
+      type: ProductType.GOODS,
+      image: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=400&auto=format&fit=crop&q=80",
+    },
   ];
-
 
   const productsMap: Record<string, any> = {};
   for (const p of productsData) {
@@ -351,7 +434,6 @@ async function main() {
     productsMap[p.name] = record;
   }
 
-
   // =========================================================================
   // 6. ANALYTIC ACCOUNTS
   // =========================================================================
@@ -360,10 +442,12 @@ async function main() {
     { name: "Enterprise Corporate Sales", type: AnalyticType.INCOME },
     { name: "Residential & Living Room Sales", type: AnalyticType.INCOME },
     { name: "Interior Consultation Revenue", type: AnalyticType.INCOME },
+    { name: "Hospitality & Restaurant Projects", type: AnalyticType.INCOME },
     { name: "Raw Material Sourcing & Procurement", type: AnalyticType.EXPENSE },
     { name: "Factory Manufacturing & Logistics", type: AnalyticType.EXPENSE },
     { name: "Marketing & Brand Advertising", type: AnalyticType.EXPENSE },
     { name: "Office Facilities & Administration", type: AnalyticType.EXPENSE },
+    { name: "Packaging & Delivery Fleet", type: AnalyticType.EXPENSE },
   ];
 
   const analyticsMap: Record<string, any> = {};
@@ -913,6 +997,208 @@ async function main() {
             },
           ],
         },
+      },
+    });
+  }
+
+  // PO-00006: Regal Woods & Furnishings -> Confirmed Bill (₹67,500 due)
+  const po6Exists = await prisma.purchaseOrder.findUnique({ where: { poNo: "P00006" } });
+  if (!po6Exists) {
+    const po6 = await prisma.purchaseOrder.create({
+      data: {
+        poNo: "P00006",
+        vendorId: contactsMap["Regal Woods & Furnishings"].id,
+        poDate: new Date("2026-08-28"),
+        paymentTerms: "Net 30 Days",
+        status: OrderStatus.CONFIRMED,
+        totalAmount: new Prisma.Decimal(67500),
+        lines: {
+          create: [
+            {
+              productId: productsMap["Raw Timber Plank Lot (Grade A)"].id,
+              analyticId: analyticsMap["Raw Material Sourcing & Procurement"].id,
+              qty: 15,
+              unitPrice: new Prisma.Decimal(4500),
+              subtotal: new Prisma.Decimal(67500),
+            },
+          ],
+        },
+      },
+    });
+
+    const jeBill6 = await prisma.journalEntry.create({
+      data: {
+        entryNo: "JE/2026/0021",
+        journalId: journalsMap["Purchase"].id,
+        reference: "Bill/2026/0006",
+        status: JournalEntryStatus.POSTED,
+        totalDebit: new Prisma.Decimal(67500),
+        totalCredit: new Prisma.Decimal(67500),
+        items: {
+          create: [
+            {
+              accountId: accountsMap["Purchase Expense"].id,
+              partnerId: contactsMap["Regal Woods & Furnishings"].id,
+              debit: new Prisma.Decimal(67500),
+              credit: new Prisma.Decimal(0),
+            },
+            {
+              accountId: accountsMap["Creditors"].id,
+              partnerId: contactsMap["Regal Woods & Furnishings"].id,
+              debit: new Prisma.Decimal(0),
+              credit: new Prisma.Decimal(67500),
+            },
+          ],
+        },
+      },
+    });
+
+    await prisma.vendorBill.create({
+      data: {
+        billNo: "Bill/2026/0006",
+        billReference: "RWF-RAW-104",
+        vendorId: contactsMap["Regal Woods & Furnishings"].id,
+        purchaseOrderId: po6.id,
+        billDate: new Date("2026-08-29"),
+        dueDate: new Date("2026-09-29"),
+        totalAmount: new Prisma.Decimal(67500),
+        amountDue: new Prisma.Decimal(67500),
+        status: InvoiceBillStatus.CONFIRMED,
+        paymentState: PaymentState.NOT_PAID,
+        journalEntryId: jeBill6.id,
+        lines: {
+          create: [
+            {
+              productId: productsMap["Raw Timber Plank Lot (Grade A)"].id,
+              accountId: accountsMap["Purchase Expense"].id,
+              analyticId: analyticsMap["Raw Material Sourcing & Procurement"].id,
+              qty: 15,
+              unitPrice: new Prisma.Decimal(4500),
+              subtotal: new Prisma.Decimal(67500),
+            },
+          ],
+        },
+      },
+    });
+  }
+
+  // PO-00007: Hardware Hub Ltd -> Confirmed Bill -> Paid via Bank (₹85,000)
+  const po7Exists = await prisma.purchaseOrder.findUnique({ where: { poNo: "P00007" } });
+  if (!po7Exists) {
+    const po7 = await prisma.purchaseOrder.create({
+      data: {
+        poNo: "P00007",
+        vendorId: contactsMap["Hardware Hub Ltd"].id,
+        poDate: new Date("2026-08-30"),
+        paymentTerms: "Immediate Payment",
+        status: OrderStatus.CONFIRMED,
+        totalAmount: new Prisma.Decimal(85000),
+        lines: {
+          create: [
+            {
+              productId: productsMap["Industrial Steel Shelf Rack"].id,
+              analyticId: analyticsMap["Factory Manufacturing & Logistics"].id,
+              qty: 10,
+              unitPrice: new Prisma.Decimal(8500),
+              subtotal: new Prisma.Decimal(85000),
+            },
+          ],
+        },
+      },
+    });
+
+    const jeBill7 = await prisma.journalEntry.create({
+      data: {
+        entryNo: "JE/2026/0022",
+        journalId: journalsMap["Purchase"].id,
+        reference: "Bill/2026/0007",
+        status: JournalEntryStatus.POSTED,
+        totalDebit: new Prisma.Decimal(85000),
+        totalCredit: new Prisma.Decimal(85000),
+        items: {
+          create: [
+            {
+              accountId: accountsMap["Purchase Expense"].id,
+              partnerId: contactsMap["Hardware Hub Ltd"].id,
+              debit: new Prisma.Decimal(85000),
+              credit: new Prisma.Decimal(0),
+            },
+            {
+              accountId: accountsMap["Creditors"].id,
+              partnerId: contactsMap["Hardware Hub Ltd"].id,
+              debit: new Prisma.Decimal(0),
+              credit: new Prisma.Decimal(85000),
+            },
+          ],
+        },
+      },
+    });
+
+    const bill7 = await prisma.vendorBill.create({
+      data: {
+        billNo: "Bill/2026/0007",
+        billReference: "HH-STEEL-99",
+        vendorId: contactsMap["Hardware Hub Ltd"].id,
+        purchaseOrderId: po7.id,
+        billDate: new Date("2026-08-31"),
+        dueDate: new Date("2026-09-30"),
+        totalAmount: new Prisma.Decimal(85000),
+        amountDue: new Prisma.Decimal(0),
+        status: InvoiceBillStatus.CONFIRMED,
+        paymentState: PaymentState.PAID,
+        journalEntryId: jeBill7.id,
+        lines: {
+          create: [
+            {
+              productId: productsMap["Industrial Steel Shelf Rack"].id,
+              accountId: accountsMap["Purchase Expense"].id,
+              analyticId: analyticsMap["Factory Manufacturing & Logistics"].id,
+              qty: 10,
+              unitPrice: new Prisma.Decimal(8500),
+              subtotal: new Prisma.Decimal(85000),
+            },
+          ],
+        },
+      },
+    });
+
+    const jePay7Bill = await prisma.journalEntry.create({
+      data: {
+        entryNo: "JE/2026/0023",
+        journalId: journalsMap["Bank"].id,
+        reference: "PAY/HH/0002",
+        status: JournalEntryStatus.POSTED,
+        totalDebit: new Prisma.Decimal(85000),
+        totalCredit: new Prisma.Decimal(85000),
+        items: {
+          create: [
+            {
+              accountId: accountsMap["Creditors"].id,
+              partnerId: contactsMap["Hardware Hub Ltd"].id,
+              debit: new Prisma.Decimal(85000),
+              credit: new Prisma.Decimal(0),
+            },
+            {
+              accountId: accountsMap["Bank"].id,
+              partnerId: contactsMap["Hardware Hub Ltd"].id,
+              debit: new Prisma.Decimal(0),
+              credit: new Prisma.Decimal(85000),
+            },
+          ],
+        },
+      },
+    });
+
+    await prisma.payment.create({
+      data: {
+        paymentType: PaymentType.SEND,
+        partnerId: contactsMap["Hardware Hub Ltd"].id,
+        amount: new Prisma.Decimal(85000),
+        date: new Date("2026-09-01"),
+        paymentVia: PaymentMethod.BANK,
+        note: "Direct bank wire for Bill/2026/0007",
+        vendorBillId: bill7.id,
+        journalEntryId: jePay7Bill.id,
       },
     });
   }
@@ -1606,6 +1892,351 @@ async function main() {
     });
   }
 
+  // SO-00008: Customer Apex Workspaces & Hub -> Confirmed Invoice -> Partially Paid (₹200,000 paid / ₹49,000 due)
+  const so8Exists = await prisma.salesOrder.findUnique({ where: { soNo: "S00008" } });
+  if (!so8Exists) {
+    const so8 = await prisma.salesOrder.create({
+      data: {
+        soNo: "S00008",
+        customerId: contactsMap["Apex Workspaces & Hub"].id,
+        soDate: new Date("2026-08-25"),
+        status: OrderStatus.CONFIRMED,
+        totalAmount: new Prisma.Decimal(249000),
+        lines: {
+          create: [
+            {
+              productId: productsMap["Executive Solid Oak Desk"].id,
+              qty: 4,
+              unitPrice: new Prisma.Decimal(28000),
+              subtotal: new Prisma.Decimal(112000),
+            },
+            {
+              productId: productsMap["Ergonomic High-Back Mesh Chair"].id,
+              qty: 8,
+              unitPrice: new Prisma.Decimal(15000),
+              subtotal: new Prisma.Decimal(120000),
+            },
+            {
+              productId: productsMap["Acoustic Wall Panel Set"].id,
+              qty: 2,
+              unitPrice: new Prisma.Decimal(8500),
+              subtotal: new Prisma.Decimal(17000),
+            },
+          ],
+        },
+      },
+    });
+
+    const jeInv8 = await prisma.journalEntry.create({
+      data: {
+        entryNo: "JE/2026/0024",
+        journalId: journalsMap["Sales"].id,
+        reference: "INV/2026/0008",
+        status: JournalEntryStatus.POSTED,
+        totalDebit: new Prisma.Decimal(249000),
+        totalCredit: new Prisma.Decimal(249000),
+        items: {
+          create: [
+            {
+              accountId: accountsMap["Debtors"].id,
+              partnerId: contactsMap["Apex Workspaces & Hub"].id,
+              debit: new Prisma.Decimal(249000),
+              credit: new Prisma.Decimal(0),
+            },
+            {
+              accountId: accountsMap["Sales Income"].id,
+              partnerId: contactsMap["Apex Workspaces & Hub"].id,
+              debit: new Prisma.Decimal(0),
+              credit: new Prisma.Decimal(249000),
+            },
+          ],
+        },
+      },
+    });
+
+    const inv8 = await prisma.customerInvoice.create({
+      data: {
+        invoiceNo: "INV/2026/0008",
+        reference: "APEX-EXP-2026",
+        customerId: contactsMap["Apex Workspaces & Hub"].id,
+        salesOrderId: so8.id,
+        invoiceDate: new Date("2026-08-26"),
+        dueDate: new Date("2026-09-26"),
+        totalAmount: new Prisma.Decimal(249000),
+        amountDue: new Prisma.Decimal(49000),
+        status: InvoiceBillStatus.CONFIRMED,
+        paymentState: PaymentState.PARTIAL,
+        journalEntryId: jeInv8.id,
+        lines: {
+          create: [
+            {
+              productId: productsMap["Executive Solid Oak Desk"].id,
+              accountId: accountsMap["Sales Income"].id,
+              analyticId: analyticsMap["Hospitality & Restaurant Projects"].id,
+              qty: 4,
+              unitPrice: new Prisma.Decimal(28000),
+              subtotal: new Prisma.Decimal(112000),
+            },
+            {
+              productId: productsMap["Ergonomic High-Back Mesh Chair"].id,
+              accountId: accountsMap["Sales Income"].id,
+              analyticId: analyticsMap["Hospitality & Restaurant Projects"].id,
+              qty: 8,
+              unitPrice: new Prisma.Decimal(15000),
+              subtotal: new Prisma.Decimal(120000),
+            },
+            {
+              productId: productsMap["Acoustic Wall Panel Set"].id,
+              accountId: accountsMap["Sales Income"].id,
+              analyticId: analyticsMap["Hospitality & Restaurant Projects"].id,
+              qty: 2,
+              unitPrice: new Prisma.Decimal(8500),
+              subtotal: new Prisma.Decimal(17000),
+            },
+          ],
+        },
+      },
+    });
+
+    const jePay8 = await prisma.journalEntry.create({
+      data: {
+        entryNo: "JE/2026/0025",
+        journalId: journalsMap["Bank"].id,
+        reference: "PAY/APEX/0001",
+        status: JournalEntryStatus.POSTED,
+        totalDebit: new Prisma.Decimal(200000),
+        totalCredit: new Prisma.Decimal(200000),
+        items: {
+          create: [
+            {
+              accountId: accountsMap["Bank"].id,
+              partnerId: contactsMap["Apex Workspaces & Hub"].id,
+              debit: new Prisma.Decimal(200000),
+              credit: new Prisma.Decimal(0),
+            },
+            {
+              accountId: accountsMap["Debtors"].id,
+              partnerId: contactsMap["Apex Workspaces & Hub"].id,
+              debit: new Prisma.Decimal(0),
+              credit: new Prisma.Decimal(200000),
+            },
+          ],
+        },
+      },
+    });
+
+    await prisma.payment.create({
+      data: {
+        paymentType: PaymentType.RECEIVE,
+        partnerId: contactsMap["Apex Workspaces & Hub"].id,
+        amount: new Prisma.Decimal(200000),
+        date: new Date("2026-08-30"),
+        paymentVia: PaymentMethod.BANK,
+        note: "Advance payment of ₹2,00,000 for INV/2026/0008",
+        customerInvoiceId: inv8.id,
+        journalEntryId: jePay8.id,
+      },
+    });
+  }
+
+  // SO-00009: Customer Urban Loft Designs -> Confirmed Invoice -> Fully Paid (₹112,000)
+  const so9Exists = await prisma.salesOrder.findUnique({ where: { soNo: "S00009" } });
+  if (!so9Exists) {
+    const so9 = await prisma.salesOrder.create({
+      data: {
+        soNo: "S00009",
+        customerId: contactsMap["Urban Loft Designs"].id,
+        soDate: new Date("2026-08-27"),
+        status: OrderStatus.CONFIRMED,
+        totalAmount: new Prisma.Decimal(112000),
+        lines: {
+          create: [
+            {
+              productId: productsMap["Nordic Minimalist Dining Table"].id,
+              qty: 2,
+              unitPrice: new Prisma.Decimal(32000),
+              subtotal: new Prisma.Decimal(64000),
+            },
+            {
+              productId: productsMap["Velvet Recliner Lounge Chair"].id,
+              qty: 2,
+              unitPrice: new Prisma.Decimal(24000),
+              subtotal: new Prisma.Decimal(48000),
+            },
+          ],
+        },
+      },
+    });
+
+    const jeInv9 = await prisma.journalEntry.create({
+      data: {
+        entryNo: "JE/2026/0026",
+        journalId: journalsMap["Sales"].id,
+        reference: "INV/2026/0009",
+        status: JournalEntryStatus.POSTED,
+        totalDebit: new Prisma.Decimal(112000),
+        totalCredit: new Prisma.Decimal(112000),
+        items: {
+          create: [
+            {
+              accountId: accountsMap["Debtors"].id,
+              partnerId: contactsMap["Urban Loft Designs"].id,
+              debit: new Prisma.Decimal(112000),
+              credit: new Prisma.Decimal(0),
+            },
+            {
+              accountId: accountsMap["Sales Income"].id,
+              partnerId: contactsMap["Urban Loft Designs"].id,
+              debit: new Prisma.Decimal(0),
+              credit: new Prisma.Decimal(112000),
+            },
+          ],
+        },
+      },
+    });
+
+    const inv9 = await prisma.customerInvoice.create({
+      data: {
+        invoiceNo: "INV/2026/0009",
+        reference: "ULD-RES-011",
+        customerId: contactsMap["Urban Loft Designs"].id,
+        salesOrderId: so9.id,
+        invoiceDate: new Date("2026-08-28"),
+        dueDate: new Date("2026-09-28"),
+        totalAmount: new Prisma.Decimal(112000),
+        amountDue: new Prisma.Decimal(0),
+        status: InvoiceBillStatus.CONFIRMED,
+        paymentState: PaymentState.PAID,
+        journalEntryId: jeInv9.id,
+        lines: {
+          create: [
+            {
+              productId: productsMap["Nordic Minimalist Dining Table"].id,
+              accountId: accountsMap["Sales Income"].id,
+              analyticId: analyticsMap["Residential & Living Room Sales"].id,
+              qty: 2,
+              unitPrice: new Prisma.Decimal(32000),
+              subtotal: new Prisma.Decimal(64000),
+            },
+            {
+              productId: productsMap["Velvet Recliner Lounge Chair"].id,
+              accountId: accountsMap["Sales Income"].id,
+              analyticId: analyticsMap["Residential & Living Room Sales"].id,
+              qty: 2,
+              unitPrice: new Prisma.Decimal(24000),
+              subtotal: new Prisma.Decimal(48000),
+            },
+          ],
+        },
+      },
+    });
+
+    const jePay9 = await prisma.journalEntry.create({
+      data: {
+        entryNo: "JE/2026/0027",
+        journalId: journalsMap["Bank"].id,
+        reference: "PAY/ULD/0001",
+        status: JournalEntryStatus.POSTED,
+        totalDebit: new Prisma.Decimal(112000),
+        totalCredit: new Prisma.Decimal(112000),
+        items: {
+          create: [
+            {
+              accountId: accountsMap["Bank"].id,
+              partnerId: contactsMap["Urban Loft Designs"].id,
+              debit: new Prisma.Decimal(112000),
+              credit: new Prisma.Decimal(0),
+            },
+            {
+              accountId: accountsMap["Debtors"].id,
+              partnerId: contactsMap["Urban Loft Designs"].id,
+              debit: new Prisma.Decimal(0),
+              credit: new Prisma.Decimal(112000),
+            },
+          ],
+        },
+      },
+    });
+
+    await prisma.payment.create({
+      data: {
+        paymentType: PaymentType.RECEIVE,
+        partnerId: contactsMap["Urban Loft Designs"].id,
+        amount: new Prisma.Decimal(112000),
+        date: new Date("2026-08-31"),
+        paymentVia: PaymentMethod.BANK,
+        note: "Full wire payment for INV/2026/0009",
+        customerInvoiceId: inv9.id,
+        journalEntryId: jePay9.id,
+      },
+    });
+  }
+
+  // SO-00010: Customer Pinnacle Architecture & Design -> Draft Invoice (₹21,500)
+  const so10Exists = await prisma.salesOrder.findUnique({ where: { soNo: "S00010" } });
+  if (!so10Exists) {
+    const so10 = await prisma.salesOrder.create({
+      data: {
+        soNo: "S00010",
+        customerId: contactsMap["Pinnacle Architecture & Design"].id,
+        soDate: new Date("2026-09-01"),
+        status: OrderStatus.DRAFT,
+        totalAmount: new Prisma.Decimal(21500),
+        lines: {
+          create: [
+            {
+              productId: productsMap["Interior Architecture Consultation"].id,
+              qty: 1,
+              unitPrice: new Prisma.Decimal(12000),
+              subtotal: new Prisma.Decimal(12000),
+            },
+            {
+              productId: productsMap["Custom Wood Carving & Finish"].id,
+              qty: 1,
+              unitPrice: new Prisma.Decimal(9500),
+              subtotal: new Prisma.Decimal(9500),
+            },
+          ],
+        },
+      },
+    });
+
+    await prisma.customerInvoice.create({
+      data: {
+        invoiceNo: "INV/2026/0010",
+        reference: "PINNACLE-CONSULT-01",
+        customerId: contactsMap["Pinnacle Architecture & Design"].id,
+        salesOrderId: so10.id,
+        invoiceDate: new Date("2026-09-02"),
+        dueDate: new Date("2026-10-02"),
+        totalAmount: new Prisma.Decimal(21500),
+        amountDue: new Prisma.Decimal(21500),
+        status: InvoiceBillStatus.DRAFT,
+        paymentState: PaymentState.NOT_PAID,
+        lines: {
+          create: [
+            {
+              productId: productsMap["Interior Architecture Consultation"].id,
+              accountId: accountsMap["Sales Income"].id,
+              analyticId: analyticsMap["Interior Consultation Revenue"].id,
+              qty: 1,
+              unitPrice: new Prisma.Decimal(12000),
+              subtotal: new Prisma.Decimal(12000),
+            },
+            {
+              productId: productsMap["Custom Wood Carving & Finish"].id,
+              accountId: accountsMap["Sales Income"].id,
+              analyticId: analyticsMap["Interior Consultation Revenue"].id,
+              qty: 1,
+              unitPrice: new Prisma.Decimal(9500),
+              subtotal: new Prisma.Decimal(9500),
+            },
+          ],
+        },
+      },
+    });
+  }
+
   // =========================================================================
   // 10. BUDGETS
   // =========================================================================
@@ -1650,6 +2281,26 @@ async function main() {
       responsibleId: contactsMap["Deco Addict Studio"].id,
       committedAmount: new Prisma.Decimal(80000),
       status: BudgetStatus.DRAFT,
+    },
+    {
+      name: "Q3 Hospitality Furnishing Target",
+      startDate: new Date("2026-07-01"),
+      endDate: new Date("2026-09-30"),
+      analyticId: analyticsMap["Hospitality & Restaurant Projects"].id,
+      type: AnalyticType.INCOME,
+      responsibleId: contactsMap["Apex Workspaces & Hub"].id,
+      committedAmount: new Prisma.Decimal(400000),
+      status: BudgetStatus.CONFIRMED,
+    },
+    {
+      name: "Packaging & Logistics Fleet Budget",
+      startDate: new Date("2026-08-01"),
+      endDate: new Date("2026-10-31"),
+      analyticId: analyticsMap["Packaging & Delivery Fleet"].id,
+      type: AnalyticType.EXPENSE,
+      responsibleId: contactsMap["Regal Woods & Furnishings"].id,
+      committedAmount: new Prisma.Decimal(120000),
+      status: BudgetStatus.CONFIRMED,
     },
   ];
 
