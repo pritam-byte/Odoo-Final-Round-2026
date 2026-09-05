@@ -36,6 +36,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
 
     if (res.success && res.user) {
       onSuccess?.(res.user);
+    } else if (res.notFound) {
+      setError('User not found in database. Redirecting you to Sign Up...');
+      setTimeout(() => {
+        onNavigateToSignup?.();
+      }, 900);
     } else {
       setError(res.message);
     }

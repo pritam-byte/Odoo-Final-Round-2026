@@ -42,11 +42,20 @@ export async function login(req: Request, res: Response) {
   try {
     const { loginId, password } = loginSchema.parse(req.body);
 
-    const user = await prisma.user.findUnique({
-      where: { loginId },
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [{ loginId }, { email: loginId }],
+      },
     });
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found in database. Redirecting to Sign Up...",
+        notFound: true,
+      });
+    }
+
+    if (!(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 

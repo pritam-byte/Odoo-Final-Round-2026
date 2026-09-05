@@ -57,7 +57,7 @@ const mapFrontendRole = (role: UserRole): string => {
 export const loginUser = async (
   loginIdOrEmail: string,
   password = ''
-): Promise<{ success: boolean; message: string; user?: UserAccount }> => {
+): Promise<{ success: boolean; message: string; user?: UserAccount; notFound?: boolean }> => {
   const trimmed = loginIdOrEmail.trim();
   const effectiveLoginId = trimmed.toLowerCase() === 'admin' ? 'admin01' : trimmed;
   const effectivePassword = password || (effectiveLoginId === 'admin01' ? 'Admin@1234' : 'password123');
@@ -97,7 +97,12 @@ export const loginUser = async (
         user: mappedUser,
       };
     } else if (backendRes.error && !backendRes.isFallback) {
-      return { success: false, message: backendRes.error };
+      const isNotFound = Boolean(backendRes.data?.notFound || backendRes.error.toLowerCase().includes('not found'));
+      return {
+        success: false,
+        notFound: isNotFound,
+        message: backendRes.error,
+      };
     }
   } catch (e) {
     console.warn('Backend login unavailable:', e);
@@ -116,7 +121,11 @@ export const loginUser = async (
   }
 
   if (!user) {
-    return { success: false, message: 'Invalid Login ID or Password.' };
+    return {
+      success: false,
+      notFound: true,
+      message: 'Account not found in system. Redirecting to Sign Up...',
+    };
   }
 
   user.lastLogin = new Date().toLocaleString();
