@@ -130,7 +130,18 @@ a:hover {
   text-decoration: underline;
 }
 
-button, input, select, textarea {
+button {
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  color: inherit;
+  padding: 0;
+  margin: 0;
+}
+
+input, select, textarea {
   font-family: inherit;
   font-size: inherit;
 }
@@ -327,6 +338,10 @@ button, input, select, textarea {
   text-decoration: none;
   cursor: pointer;
   transition: all var(--transition-fast);
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
 }
 
 .sidebar-item:hover {
@@ -347,6 +362,81 @@ button, input, select, textarea {
   justify-content: center;
   color: inherit;
   flex-shrink: 0;
+}
+
+/* ==========================================================================
+   DROPDOWNS & FLYOUT MENUS
+   ========================================================================== */
+.dropdown-menu {
+  position: absolute;
+  background-color: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  padding: 6px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dropdown-header {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  padding: 8px 10px 4px 10px;
+  user-select: none;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background-color: var(--color-border);
+  margin: 4px 6px;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  user-select: none;
+}
+
+.dropdown-item:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-primary);
+}
+
+.dropdown-item.active {
+  background-color: var(--color-surface-active);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.dropdown-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  transition: color var(--transition-fast);
+}
+
+.dropdown-item:hover .dropdown-item-icon {
+  color: var(--color-primary);
 }
 
 /* Main Content Area */

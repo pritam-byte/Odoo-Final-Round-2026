@@ -99,17 +99,13 @@ export const Many2OneSelect: React.FC<Many2OneSelectProps> = ({
             onClick={() => setIsOpen(false)}
           />
           <div
-            className="card-panel"
+            className="dropdown-menu"
             style={{
-              position: 'absolute',
               top: 'calc(100% + 4px)',
               left: 0,
               right: 0,
               maxHeight: '260px',
               padding: '6px',
-              boxShadow: 'var(--shadow-dropdown)',
-              zIndex: 60,
-              gap: '4px',
             }}
           >
             {/* Search filter input */}
@@ -130,7 +126,7 @@ export const Many2OneSelect: React.FC<Many2OneSelectProps> = ({
                   <button
                     key={opt.id}
                     type="button"
-                    className="sidebar-item"
+                    className="dropdown-item"
                     style={{
                       justifyContent: 'space-between',
                       padding: '6px 10px',
@@ -159,7 +155,7 @@ export const Many2OneSelect: React.FC<Many2OneSelectProps> = ({
               <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '4px', marginTop: '2px' }}>
                 <button
                   type="button"
-                  className="sidebar-item"
+                  className="dropdown-item"
                   style={{ color: 'var(--color-primary)', fontWeight: 600, padding: '6px 10px' }}
                   onClick={() => {
                     setNewItemName(search);
