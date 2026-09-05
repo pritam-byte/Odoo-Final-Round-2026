@@ -109,6 +109,7 @@ export const AppRouter: React.FC = () => {
         onSwitchToAdmin={() => {
           const adminUser: UserAccount = {
             id: 'admin_temp',
+            loginId: 'admin',
             name: 'Pritam Admin',
             email: 'admin@odoo-flow.com',
             role: 'Admin',
@@ -139,9 +140,9 @@ export const AppRouter: React.FC = () => {
         onLogout={handleLogout}
       >
         {isCreatingUser ? (
-          <CreateUserPage onBack={() => setIsCreatingUser(false)} onUserCreated={() => setIsCreatingUser(false)} />
+          <CreateUserPage onCancel={() => setIsCreatingUser(false)} onSuccess={() => setIsCreatingUser(false)} />
         ) : (
-          <UserListPage onCreateUser={() => setIsCreatingUser(true)} />
+          <UserListPage onNavigateToCreate={() => setIsCreatingUser(true)} />
         )}
       </StaffLayout>
     );
@@ -223,6 +224,7 @@ export const AppRouter: React.FC = () => {
           onClick={() => {
             const portalUser: UserAccount = {
               id: 'user_temp',
+              loginId: 'alice_client',
               name: 'Alice Client',
               email: 'client@portal.com',
               role: 'User',
