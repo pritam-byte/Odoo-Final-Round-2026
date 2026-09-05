@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, DollarSign, Image as ImageIcon, Check, ArrowLeft } from 'lucide-react';
+import { Plus, IndianRupee, Image as ImageIcon, Check, ArrowLeft } from 'lucide-react';
 import { useAccountingStore, Product, ProductType } from '../../accounting/store';
 import { Button } from '../../../components/ui/Button';
 import { ViewToggle } from '../../../components/ui/ViewToggle';
@@ -128,13 +128,13 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
       key: 'salesPrice',
       header: 'Sales Price',
       align: 'right',
-      render: (p) => <span style={{ fontWeight: 600 }}>${p.salesPrice.toLocaleString()}</span>,
+      render: (p) => <span style={{ fontWeight: 600 }}>₹{p.salesPrice.toLocaleString()}</span>,
     },
     {
       key: 'cost',
       header: 'Cost Price',
       align: 'right',
-      render: (p) => <span style={{ color: 'var(--color-text-muted)' }}>${p.cost.toLocaleString()}</span>,
+      render: (p) => <span style={{ color: 'var(--color-text-muted)' }}>₹{p.cost.toLocaleString()}</span>,
     },
   ];
 
@@ -213,11 +213,10 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
                   </div>
                   <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{p.categoryName} • {p.type}</span>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '4px' }}>
-                    <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-primary)' }}>
-                      ${p.salesPrice.toLocaleString()}
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-primary)' }}>₹{p.salesPrice.toLocaleString()}
                     </span>
                     <span style={{ fontSize: '12px', color: 'var(--color-text-light)' }}>
-                      Cost: ${p.cost.toLocaleString()}
+                      Cost: ₹{p.cost.toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -300,7 +299,7 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
               step="0.01"
               value={salesPrice}
               onChange={(e) => setSalesPrice(Number(e.target.value))}
-              leadingIcon={<DollarSign size={15} />}
+              leadingIcon={<IndianRupee size={15} />}
               required
             />
             <FormField
@@ -309,7 +308,7 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
               step="0.01"
               value={cost}
               onChange={(e) => setCost(Number(e.target.value))}
-              leadingIcon={<DollarSign size={15} />}
+              leadingIcon={<IndianRupee size={15} />}
               required
             />
           </div>

@@ -30,7 +30,7 @@ export const BudgetProgressWidget: React.FC<BudgetProgressWidgetProps> = ({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px' }}>
         <span style={{ color: 'var(--color-text-muted)' }}>
-          Committed: <strong style={{ color: 'var(--color-text-primary)' }}>${committed.toLocaleString()}</strong>
+          Committed: <strong style={{ color: 'var(--color-text-primary)' }}>₹{committed.toLocaleString()}</strong>
         </span>
         <span
           style={{
@@ -41,7 +41,7 @@ export const BudgetProgressWidget: React.FC<BudgetProgressWidgetProps> = ({
           onClick={onClickAchieved}
           title={onClickAchieved ? 'Click to inspect matched transactions' : undefined}
         >
-          Achieved: <strong style={{ color: barColor }}>${achieved.toLocaleString()}</strong> ({percent}%)
+          Achieved: <strong style={{ color: barColor }}>₹{achieved.toLocaleString()}</strong> ({percent}%)
         </span>
       </div>
 
@@ -67,7 +67,7 @@ export const BudgetProgressWidget: React.FC<BudgetProgressWidgetProps> = ({
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--color-text-light)' }}>
-        <span>To Achieve: ${remaining.toLocaleString()}</span>
+        <span>To Achieve: ₹{remaining.toLocaleString()}</span>
         <span>Target: 100%</span>
       </div>
     </div>

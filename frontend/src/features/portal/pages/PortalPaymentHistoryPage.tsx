@@ -47,8 +47,7 @@ export const PortalPaymentHistoryPage: React.FC = () => {
                         {p.paymentMethod}
                       </span>
                     </td>
-                    <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--color-primary)' }}>
-                      ${p.amount.toFixed(2)}
+                    <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--color-primary)' }}>₹{p.amount.toFixed(2)}
                     </td>
                   </tr>
                 ))

@@ -954,7 +954,7 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
     if (Math.abs(totalDr - totalCr) > 0.01) {
       return {
         success: false,
-        message: `Debit and Credit totals must balance! (Debit: $${totalDr.toFixed(2)}, Credit: $${totalCr.toFixed(2)})`,
+        message: `Debit and Credit totals must balance! (Debit: ₹${totalDr.toFixed(2)}, Credit: ₹${totalCr.toFixed(2)})`,
       };
     }
 

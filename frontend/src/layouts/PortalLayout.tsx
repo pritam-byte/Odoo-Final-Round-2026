@@ -178,12 +178,6 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
         {/* Main Content Area */}
         <main className="main-content">
           {children}
-
-          {/* Page Footer */}
-          <footer className="page-footer">
-            <p>Urban Furniture Enterprise • Partner Self-Service Settlement Portal</p>
-            <p>© {new Date().getFullYear()} Urban Furniture Inc. All transactions securely recorded.</p>
-          </footer>
         </main>
       </div>
     </div>

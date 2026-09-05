@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  DollarSign,
+  IndianRupee,
   CheckCircle,
   FileText,
   Receipt,
@@ -9,13 +9,16 @@ import {
 } from 'lucide-react';
 import { StatusBadge } from '../../../components/ui/StatusBadge';
 import { getMyScopedDocuments } from '../api';
-import { CURRENT_USER } from '../../../lib/auth';
+import { getStoredUser } from '../../../lib/auth';
 
 export interface PortalDashboardPageProps {
   onNavigate: (view: string, docId?: string) => void;
 }
 
 export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavigate }) => {
+  const currentUser = getStoredUser();
+  const userName = currentUser?.name || 'Customer';
+
   const documents = getMyScopedDocuments();
   const unpaidDocs = documents.filter((d) => d.status === 'Unpaid');
   const paidDocs = documents.filter((d) => d.status === 'Paid');
@@ -38,7 +41,7 @@ export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavi
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <h1 className="page-title" style={{ fontSize: '22px' }}>
-            Welcome, {CURRENT_USER.name} 👋
+            Welcome, {userName} 👋
           </h1>
           <p className="page-subtitle" style={{ fontSize: '14px' }}>
             Here is your personal settlement portal overview. View your invoices, vendor bills, and directly pay outstanding dues.
@@ -53,11 +56,10 @@ export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavi
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span className="stat-label">TOTAL OUTSTANDING DUES</span>
             <div className="stat-icon-badge amber">
-              <DollarSign size={20} strokeWidth={2} />
+              <IndianRupee size={20} strokeWidth={2} />
             </div>
           </div>
-          <div className="stat-number" style={{ color: totalDue > 0 ? 'var(--color-warning)' : 'var(--color-primary)' }}>
-            ${totalDue.toFixed(2)}
+          <div className="stat-number" style={{ color: totalDue > 0 ? 'var(--color-warning)' : 'var(--color-primary)' }}>₹{totalDue.toFixed(2)}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
             {unpaidDocs.length} pending document{unpaidDocs.length === 1 ? '' : 's'}
@@ -72,8 +74,7 @@ export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavi
               <CheckCircle size={20} strokeWidth={2} />
             </div>
           </div>
-          <div className="stat-number">
-            ${totalPaid.toFixed(2)}
+          <div className="stat-number">₹{totalPaid.toFixed(2)}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
             {paidDocs.length} paid in full
@@ -170,14 +171,13 @@ export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavi
                       {doc.type}
                     </span>
                   </td>
-                  <td style={{ fontWeight: 600 }}>${doc.total.toFixed(2)}</td>
+                  <td style={{ fontWeight: 600 }}>₹{doc.total.toFixed(2)}</td>
                   <td
                     style={{
                       fontWeight: 700,
                       color: doc.amountDue > 0 ? 'var(--color-warning-text)' : 'var(--color-text-muted)',
                     }}
-                  >
-                    ${doc.amountDue.toFixed(2)}
+                  >₹{doc.amountDue.toFixed(2)}
                   </td>
                   <td>
                     <StatusBadge status={doc.status} />

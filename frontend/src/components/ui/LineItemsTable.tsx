@@ -183,7 +183,7 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
                   {/* Unit Price */}
                   <td style={{ textAlign: 'right' }}>
                     {readOnly ? (
-                      <span>${line.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      <span>₹{line.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                     ) : (
                       <input
                         type="number"
@@ -198,8 +198,7 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
                   </td>
 
                   {/* Total */}
-                  <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--color-text-primary)' }}>
-                    ${line.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--color-text-primary)' }}>₹{line.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </td>
 
                   {/* Delete Action */}
@@ -252,8 +251,7 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
           <span style={{ fontSize: '13px', color: 'var(--color-text-muted)', fontWeight: 600 }}>
             UNTURNED GRAND TOTAL:
           </span>
-          <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-primary)' }}>
-            ${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-primary)' }}>₹{grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
           </span>
         </div>
       </div>

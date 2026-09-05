@@ -57,7 +57,7 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
               style={{ gap: '6px' }}
             >
               <CreditCard size={15} />
-              <span>Pay Outstanding ($${doc.amountDue.toFixed(2)})</span>
+              <span>Pay Outstanding (₹${doc.amountDue.toFixed(2)})</span>
             </button>
           )}
         </div>
@@ -132,8 +132,8 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
                       <strong style={{ color: 'var(--color-text-primary)' }}>{line.product}</strong>
                     </td>
                     <td style={{ textAlign: 'center' }}>{line.quantity}</td>
-                    <td style={{ textAlign: 'right' }}>${line.unitPrice.toFixed(2)}</td>
-                    <td style={{ textAlign: 'right', fontWeight: 600 }}>${line.total.toFixed(2)}</td>
+                    <td style={{ textAlign: 'right' }}>₹{line.unitPrice.toFixed(2)}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 600 }}>₹{line.total.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -157,17 +157,16 @@ export const PortalDocumentDetailPage: React.FC<PortalDocumentDetailPageProps> =
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
               <span style={{ color: 'var(--color-text-muted)' }}>Total Amount:</span>
-              <strong style={{ color: 'var(--color-text-primary)' }}>${doc.total.toFixed(2)}</strong>
+              <strong style={{ color: 'var(--color-text-primary)' }}>₹{doc.total.toFixed(2)}</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
               <span style={{ color: 'var(--color-text-muted)' }}>Amount Paid:</span>
-              <span style={{ color: 'var(--color-primary)', fontWeight: 600 }}>${doc.amountPaid.toFixed(2)}</span>
+              <span style={{ color: 'var(--color-primary)', fontWeight: 600 }}>₹{doc.amountPaid.toFixed(2)}</span>
             </div>
             <div style={{ height: '1px', backgroundColor: 'var(--color-border)' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px' }}>
               <span style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>Amount Due:</span>
-              <strong style={{ color: doc.amountDue > 0 ? 'var(--color-warning)' : 'var(--color-primary)' }}>
-                ${doc.amountDue.toFixed(2)}
+              <strong style={{ color: doc.amountDue > 0 ? 'var(--color-warning)' : 'var(--color-primary)' }}>₹{doc.amountDue.toFixed(2)}
               </strong>
             </div>
           </div>
