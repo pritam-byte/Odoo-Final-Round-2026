@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { Search, CreditCard } from 'lucide-react';
+import { Search, CreditCard, Receipt, FileText } from 'lucide-react';
 import { StatusBadge } from '../../../components/ui/StatusBadge';
+import { CustomSelect } from '../../../components/ui/CustomSelect';
+import { CustomDatePicker } from '../../../components/ui/CustomDatePicker';
 import { getMyScopedDocuments } from '../api';
 import { DocumentType, UserDocumentStatus } from '../schemas';
+import { getStoredUser } from '../../../lib/auth';
 
 export interface PortalDocumentListPageProps {
   documentType?: DocumentType;
@@ -13,8 +16,12 @@ export const PortalDocumentListPage: React.FC<PortalDocumentListPageProps> = ({
   documentType,
   onNavigate,
 }) => {
+  const currentUser = getStoredUser();
+  const pType = currentUser?.partnerType || 'Both';
+
   const [statusFilter, setStatusFilter] = useState<'ALL' | UserDocumentStatus>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [dateFilter, setDateFilter] = useState<string>('');
 
   const allDocs = getMyScopedDocuments(documentType);
 
@@ -22,53 +29,74 @@ export const PortalDocumentListPage: React.FC<PortalDocumentListPageProps> = ({
     const matchesStatus = statusFilter === 'ALL' || doc.status === statusFilter;
     const matchesSearch =
       doc.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.date.includes(searchQuery);
-    return matchesStatus && matchesSearch;
+      doc.date.includes(searchQuery) ||
+      (doc.partnerName && doc.partnerName.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesDate = !dateFilter || doc.date === dateFilter;
+    return matchesStatus && matchesSearch && matchesDate;
   });
 
-  const pageHeading =
-    documentType === 'bill'
-      ? 'My Bills'
-      : documentType === 'invoice'
-      ? 'My Invoices'
-      : 'My Invoices & Bills';
-  const pageSub =
-    documentType === 'bill'
-      ? 'Browse and settle your vendor bills.'
-      : 'Browse and settle your customer invoices.';
+  const isBill = documentType === 'bill' || (pType === 'Vendor' && !documentType);
+  const pageHeading = isBill
+    ? 'My Supply Bills'
+    : documentType === 'invoice'
+    ? 'My Invoices'
+    : 'My Invoices & Bills';
+
+  const pageSub = isBill
+    ? 'Track raw material supplies, procurement bills, and settlement status.'
+    : 'Browse and settle your customer furniture invoices.';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header */}
       <div className="content-header">
         <div>
-          <h1 className="page-title">{pageHeading}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {isBill ? (
+              <Receipt size={22} style={{ color: 'var(--color-primary)' }} />
+            ) : (
+              <FileText size={22} style={{ color: 'var(--color-primary)' }} />
+            )}
+            <h1 className="page-title">{pageHeading}</h1>
+          </div>
           <p className="page-subtitle">{pageSub}</p>
         </div>
       </div>
 
       {/* Filter and Tab Bar Card */}
       <div className="card-panel" style={{ padding: '16px 20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
-          {/* Status Tabs: All / Unpaid / Paid */}
-          <div style={{ display: 'flex', gap: '6px', backgroundColor: 'var(--color-bg)', padding: '4px', borderRadius: 'var(--radius-sm)' }}>
-            {(['ALL', 'Unpaid', 'Paid'] as const).map((tab) => {
-              const isSelected = statusFilter === tab;
-              return (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setStatusFilter(tab)}
-                  className={`btn btn-sm ${isSelected ? 'btn-outline' : 'btn-ghost'}`}
-                  style={{
-                    boxShadow: isSelected ? 'var(--shadow-subtle)' : 'none',
-                    fontWeight: isSelected ? 700 : 500,
-                  }}
-                >
-                  {tab === 'ALL' ? 'All Records' : tab}
-                </button>
-              );
-            })}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '14px',
+          }}
+        >
+          {/* Status Tabs and Custom Select */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <CustomSelect<'ALL' | UserDocumentStatus>
+              value={statusFilter}
+              onChange={(val) => setStatusFilter(val)}
+              options={[
+                { value: 'ALL', label: 'All Statuses' },
+                { value: 'Unpaid', label: 'Unpaid / Pending' },
+                { value: 'Paid', label: 'Paid in Full' },
+              ]}
+              size="sm"
+              width="160px"
+            />
+
+            {/* Custom Date Picker Filter */}
+            <CustomDatePicker
+              value={dateFilter}
+              onChange={(d) => setDateFilter(d)}
+              placeholder="Filter by date..."
+              allowClear={true}
+              size="sm"
+              width="170px"
+            />
           </div>
 
           {/* Search bar */}
@@ -79,10 +107,10 @@ export const PortalDocumentListPage: React.FC<PortalDocumentListPageProps> = ({
             <input
               type="text"
               className="search-bar-input"
-              placeholder="Search by number or date..."
+              placeholder={isBill ? 'Search by bill # or supplier...' : 'Search by invoice #...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ width: '260px' }}
+              style={{ width: '250px' }}
             />
           </div>
         </div>
@@ -95,10 +123,10 @@ export const PortalDocumentListPage: React.FC<PortalDocumentListPageProps> = ({
             <thead>
               <tr>
                 <th>Date</th>
-                <th>Number</th>
-                <th>Partner (Self)</th>
+                <th>{isBill ? 'Bill Number' : 'Invoice Number'}</th>
+                <th>{isBill ? 'Supplier (Self)' : 'Customer / Recipient'}</th>
                 <th>Total Amount</th>
-                <th>Amount Due</th>
+                <th>{isBill ? 'Balance Due' : 'Amount Due'}</th>
                 <th>Status</th>
                 <th style={{ textAlign: 'right' }}>Action</th>
               </tr>
@@ -107,7 +135,7 @@ export const PortalDocumentListPage: React.FC<PortalDocumentListPageProps> = ({
               {filteredDocs.length === 0 ? (
                 <tr>
                   <td colSpan={7} style={{ textAlign: 'center', padding: '36px', color: 'var(--color-text-muted)' }}>
-                    No documents found matching the selected filter.
+                    No documents found matching the active filter criteria.
                   </td>
                 </tr>
               ) : (
@@ -128,7 +156,8 @@ export const PortalDocumentListPage: React.FC<PortalDocumentListPageProps> = ({
                         fontWeight: 700,
                         color: doc.amountDue > 0 ? 'var(--color-warning-text)' : 'var(--color-text-muted)',
                       }}
-                    >₹{doc.amountDue.toFixed(2)}
+                    >
+                      ₹{doc.amountDue.toFixed(2)}
                     </td>
                     <td>
                       <StatusBadge status={doc.status} />
@@ -145,7 +174,7 @@ export const PortalDocumentListPage: React.FC<PortalDocumentListPageProps> = ({
                         {doc.status === 'Unpaid' ? (
                           <>
                             <CreditCard size={13} />
-                            <span>Pay Dues</span>
+                            <span>{doc.type === 'bill' ? 'Settle Dues' : 'Pay Dues'}</span>
                           </>
                         ) : (
                           <span>View Details</span>
