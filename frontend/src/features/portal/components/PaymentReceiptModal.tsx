@@ -8,6 +8,12 @@ import {
   Share2,
   Check,
   Receipt,
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  Building2,
+  Banknote,
 } from 'lucide-react';
 import { PortalPayment } from '../schemas';
 import { updatePortalPaymentStatus } from '../api';
@@ -27,6 +33,9 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
     payment.status || 'Confirm'
   );
   const [showSettingsDropdown, setShowSettingsDropdown] = useState<boolean>(false);
+  const [showPaymentViaDropdown, setShowPaymentViaDropdown] = useState<boolean>(false);
+  const [showCalendarPicker, setShowCalendarPicker] = useState<boolean>(false);
+
   const [paymentType, setPaymentType] = useState<'Send' | 'Receive'>(
     payment.documentType === 'bill' ? 'Send' : 'Receive'
   );
@@ -40,16 +49,32 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
     payment.note || `${payment.reference} - Payment for ${payment.documentNumber}`
   );
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [copiedLink, setCopiedLink] = useState<boolean>(false);
+
+  // Calendar View State
+  const initialDateObj = payment.date ? new Date(payment.date) : new Date();
+  const [calendarViewYear, setCalendarViewYear] = useState<number>(
+    isNaN(initialDateObj.getFullYear()) ? new Date().getFullYear() : initialDateObj.getFullYear()
+  );
+  const [calendarViewMonth, setCalendarViewMonth] = useState<number>(
+    isNaN(initialDateObj.getMonth()) ? new Date().getMonth() : initialDateObj.getMonth()
+  );
 
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const printableReceiptRef = useRef<HTMLDivElement>(null);
+  const paymentViaRef = useRef<HTMLDivElement>(null);
+  const calendarPickerRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
         setShowSettingsDropdown(false);
+      }
+      if (paymentViaRef.current && !paymentViaRef.current.contains(target)) {
+        setShowPaymentViaDropdown(false);
+      }
+      if (calendarPickerRef.current && !calendarPickerRef.current.contains(target)) {
+        setShowCalendarPicker(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -111,34 +136,110 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
   const handleCopyShareLink = () => {
     const shareUrl = `${window.location.origin}/portal/payments?ref=${payment.reference}`;
     navigator.clipboard.writeText(shareUrl).then(() => {
-      setCopiedLink(true);
       showToast('Sharable receipt link copied to clipboard!');
-      setTimeout(() => setCopiedLink(false), 2000);
     });
+  };
+
+  // Calendar Helpers
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+
+  const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+  const firstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
+
+  const handlePrevMonth = () => {
+    if (calendarViewMonth === 0) {
+      setCalendarViewMonth(11);
+      setCalendarViewYear((prev) => prev - 1);
+    } else {
+      setCalendarViewMonth((prev) => prev - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (calendarViewMonth === 11) {
+      setCalendarViewMonth(0);
+      setCalendarViewYear((prev) => prev + 1);
+    } else {
+      setCalendarViewMonth((prev) => prev + 1);
+    }
+  };
+
+  const handleSelectDate = (day: number) => {
+    const m = String(calendarViewMonth + 1).padStart(2, '0');
+    const d = String(day).padStart(2, '0');
+    setDate(`${calendarViewYear}-${m}-${d}`);
+    setShowCalendarPicker(false);
+  };
+
+  const handleSetToday = () => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    setDate(`${y}-${m}-${d}`);
+    setCalendarViewYear(y);
+    setCalendarViewMonth(now.getMonth());
+    setShowCalendarPicker(false);
+  };
+
+  // Format date display (e.g. 05-09-2026)
+  const formattedDisplayDate = () => {
+    if (!date) return 'Select date';
+    const parts = date.split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return date;
   };
 
   return (
     <>
-      {/* Global CSS for Print View */}
+      {/* Global CSS for Print Slip View & Screen Scroll Elimination */}
       <style>{`
+        /* Screen Styles */
+        .modal-body-container {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+        .modal-body-container::-webkit-scrollbar {
+          display: none;
+        }
+
+        /* Printable Payment Slip Layout */
+        @media screen {
+          #printable-slip {
+            display: none !important;
+          }
+        }
+
         @media print {
+          @page {
+            size: A4 portrait;
+            margin: 15mm;
+          }
           body * {
             visibility: hidden !important;
           }
-          #printable-payment-modal, #printable-payment-modal * {
+          #printable-slip, #printable-slip * {
             visibility: visible !important;
           }
-          #printable-payment-modal {
+          #printable-slip {
+            display: block !important;
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
             width: 100% !important;
             max-width: 100% !important;
-            box-shadow: none !important;
-            border: 1px solid #e5e7eb !important;
-            padding: 30px !important;
             background: #ffffff !important;
-            color: #1f2937 !important;
+            color: #111827 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+            font-family: 'Inter', -apple-system, sans-serif !important;
           }
           .no-print {
             display: none !important;
@@ -148,7 +249,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
 
       {/* Backdrop */}
       <div
-        className="no-print-backdrop"
+        className="no-print-backdrop no-print"
         style={{
           position: 'fixed',
           top: 0,
@@ -167,10 +268,8 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
           if (e.target === e.currentTarget) onClose();
         }}
       >
-        {/* Modal Window in Main Theme */}
+        {/* Screen Modal Window */}
         <div
-          id="printable-payment-modal"
-          ref={printableReceiptRef}
           className="card-panel"
           style={{
             width: '100%',
@@ -181,11 +280,9 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
             border: '1px solid var(--color-border, #e5e7eb)',
             boxShadow: 'var(--shadow-lg, 0 20px 25px -5px rgba(0, 0, 0, 0.1))',
             padding: 0,
-            overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
             position: 'relative',
-            maxHeight: '92vh',
           }}
         >
           {/* Toast Notification inside Modal */}
@@ -193,7 +290,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
             <div
               style={{
                 position: 'absolute',
-                top: '72px',
+                top: '68px',
                 right: '24px',
                 backgroundColor: 'var(--color-primary, #0f766e)',
                 color: '#ffffff',
@@ -204,7 +301,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                zIndex: 100,
+                zIndex: 200,
                 boxShadow: '0 4px 12px rgba(15, 118, 110, 0.3)',
               }}
             >
@@ -213,9 +310,8 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
             </div>
           )}
 
-          {/* Top Control Bar Matching Wireframe in Main Light Theme */}
+          {/* Top Control Bar with Only Setting Cog & Actions */}
           <div
-            className="no-print"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -252,11 +348,11 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                 Cancel
               </button>
 
-              {/* Cog Settings Button with Dropdown */}
+              {/* Cog Settings Button with Modern Dropdown */}
               <div style={{ position: 'relative' }} ref={dropdownRef}>
                 <button
                   type="button"
-                  title="Receipt Options"
+                  title="Receipt Settings & Actions"
                   onClick={() => setShowSettingsDropdown(!showSettingsDropdown)}
                   className="btn btn-outline btn-sm"
                   style={{
@@ -268,12 +364,13 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                     padding: 0,
                     borderRadius: 'var(--radius-sm, 6px)',
                     backgroundColor: showSettingsDropdown ? 'var(--color-surface-active, #f3f4f6)' : '#ffffff',
+                    border: '1px solid var(--color-border, #e5e7eb)',
                   }}
                 >
                   <Settings size={16} color="var(--color-text-secondary, #4b5563)" />
                 </button>
 
-                {/* Dropdown Menu in Main Theme */}
+                {/* Modern Dropdown Menu */}
                 {showSettingsDropdown && (
                   <div
                     className="dropdown-menu"
@@ -281,7 +378,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                       position: 'absolute',
                       top: '40px',
                       left: 0,
-                      width: '210px',
+                      width: '220px',
                       backgroundColor: '#ffffff',
                       border: '1px solid var(--color-border, #e5e7eb)',
                       borderRadius: 'var(--radius-md, 8px)',
@@ -291,7 +388,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                     }}
                   >
                     <div className="dropdown-header">
-                      Receipt Options
+                      Receipt Actions
                     </div>
                     <button
                       type="button"
@@ -301,7 +398,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                       <Printer size={15} color="var(--color-primary, #0f766e)" />
                       <div>
                         <strong>1. Print</strong>
-                        <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)' }}>Print or PDF download</span>
+                        <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)' }}>Print payment slip</span>
                       </div>
                     </button>
                     <button
@@ -335,7 +432,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
               </div>
             </div>
 
-            {/* Right Status Workflow Stage Chevrons in Main Odoo Style */}
+            {/* Right Status Workflow Stage Chevrons */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div
                 style={{
@@ -420,7 +517,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
           {/* Form Header Title */}
           <div
             style={{
-              padding: '24px 32px 14px 32px',
+              padding: '22px 32px 14px 32px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -469,15 +566,15 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
             </div>
           </div>
 
-          {/* Main Form Fields Grid Matching Wireframe in Main Theme */}
+          {/* Main Form Fields Grid - No scroll view, clean layout */}
           <div
+            className="modal-body-container"
             style={{
-              padding: '24px 32px 28px 32px',
+              padding: '24px 32px 32px 32px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '24px',
+              gap: '22px',
               backgroundColor: 'var(--color-surface, #ffffff)',
-              overflowY: 'auto',
             }}
           >
             {/* Grid 2 Columns */}
@@ -538,31 +635,198 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                 </div>
               </div>
 
-              {/* Row 1 Right: Date */}
-              <div className="form-group">
+              {/* Row 1 Right: Customized Modern Calendar Date Picker */}
+              <div className="form-group" style={{ position: 'relative' }} ref={calendarPickerRef}>
                 <label className="form-label" style={{ fontWeight: 600, color: 'var(--color-text-secondary)' }}>
                   Date
                 </label>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="form-input"
+                <div
+                  onClick={() => setShowCalendarPicker(!showCalendarPicker)}
                   style={{
-                    borderTop: 'none',
-                    borderLeft: 'none',
-                    borderRight: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
                     borderBottom: '2px solid var(--color-border)',
-                    borderRadius: 0,
-                    backgroundColor: 'transparent',
                     padding: '6px 0',
-                    fontSize: '14px',
-                    fontWeight: 500,
+                    cursor: 'pointer',
+                    userSelect: 'none',
                   }}
-                />
+                >
+                  <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--color-text-primary)' }}>
+                    {formattedDisplayDate()}
+                  </span>
+                  <CalendarIcon size={16} color="var(--color-text-secondary)" />
+                </div>
                 <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
                   (Default Today's Date)
                 </span>
+
+                {/* Customized Calendar Popover */}
+                {showCalendarPicker && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '64px',
+                      right: 0,
+                      width: '280px',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid var(--color-border, #e5e7eb)',
+                      borderRadius: 'var(--radius-md, 8px)',
+                      boxShadow: 'var(--shadow-dropdown)',
+                      zIndex: 300,
+                      padding: '14px',
+                    }}
+                  >
+                    {/* Month Navigator Header */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: '12px',
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={handlePrevMonth}
+                        className="btn-ghost"
+                        style={{ padding: '4px', borderRadius: '4px' }}
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+                      <strong style={{ fontSize: '13px', color: 'var(--color-text-primary)' }}>
+                        {monthNames[calendarViewMonth]} {calendarViewYear}
+                      </strong>
+                      <button
+                        type="button"
+                        onClick={handleNextMonth}
+                        className="btn-ghost"
+                        style={{ padding: '4px', borderRadius: '4px' }}
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+
+                    {/* Day of Week Labels */}
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(7, 1fr)',
+                        textAlign: 'center',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        color: 'var(--color-text-muted)',
+                        marginBottom: '6px',
+                      }}
+                    >
+                      <span>Su</span>
+                      <span>Mo</span>
+                      <span>Tu</span>
+                      <span>We</span>
+                      <span>Th</span>
+                      <span>Fr</span>
+                      <span>Sa</span>
+                    </div>
+
+                    {/* Day Cells */}
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(7, 1fr)',
+                        gap: '2px',
+                        textAlign: 'center',
+                      }}
+                    >
+                      {/* Empty padding days */}
+                      {Array.from({ length: firstDayOfMonth(calendarViewYear, calendarViewMonth) }).map((_, i) => (
+                        <div key={`empty-${i}`} style={{ height: '28px' }} />
+                      ))}
+
+                      {/* Month Days */}
+                      {Array.from({ length: daysInMonth(calendarViewYear, calendarViewMonth) }).map((_, i) => {
+                        const d = i + 1;
+                        const isSelected =
+                          date ===
+                          `${calendarViewYear}-${String(calendarViewMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                        return (
+                          <button
+                            key={`day-${d}`}
+                            type="button"
+                            onClick={() => handleSelectDate(d)}
+                            style={{
+                              width: '28px',
+                              height: '28px',
+                              margin: 'auto',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              borderRadius: '50%',
+                              border: 'none',
+                              fontSize: '12px',
+                              fontWeight: isSelected ? 700 : 500,
+                              cursor: 'pointer',
+                              backgroundColor: isSelected ? 'var(--color-primary, #0f766e)' : 'transparent',
+                              color: isSelected ? '#ffffff' : 'var(--color-text-primary)',
+                              transition: 'all 0.15s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isSelected) e.currentTarget.style.backgroundColor = 'var(--color-surface-hover, #f9fafb)';
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent';
+                            }}
+                          >
+                            {d}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Calendar Footer Shortcuts */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginTop: '12px',
+                        paddingTop: '8px',
+                        borderTop: '1px solid var(--color-border-light, #f3f4f6)',
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDate('');
+                          setShowCalendarPicker(false);
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--color-text-muted)',
+                          fontSize: '11px',
+                          cursor: 'pointer',
+                          fontWeight: 500,
+                        }}
+                      >
+                        Clear
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSetToday}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--color-primary, #0f766e)',
+                          fontSize: '11px',
+                          cursor: 'pointer',
+                          fontWeight: 700,
+                        }}
+                      >
+                        Today
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Row 2 Left: Partner */}
@@ -594,34 +858,112 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                 </span>
               </div>
 
-              {/* Row 2 Right: Payment Via */}
-              <div className="form-group">
+              {/* Row 2 Right: Modern Customized Dropdown for Payment Via */}
+              <div className="form-group" style={{ position: 'relative' }} ref={paymentViaRef}>
                 <label className="form-label" style={{ fontWeight: 600, color: 'var(--color-text-secondary)' }}>
                   Payment Via
                 </label>
-                <select
-                  value={paymentVia}
-                  onChange={(e) => setPaymentVia(e.target.value as 'Bank' | 'Cash')}
-                  className="form-input"
+                <div
+                  onClick={() => setShowPaymentViaDropdown(!showPaymentViaDropdown)}
                   style={{
-                    borderTop: 'none',
-                    borderLeft: 'none',
-                    borderRight: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
                     borderBottom: '2px solid var(--color-border)',
-                    borderRadius: 0,
-                    backgroundColor: 'transparent',
                     padding: '6px 0',
-                    fontSize: '14px',
-                    fontWeight: 500,
                     cursor: 'pointer',
+                    userSelect: 'none',
                   }}
                 >
-                  <option value="Bank">Bank (Default)</option>
-                  <option value="Cash">Cash</option>
-                </select>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {paymentVia === 'Bank' ? (
+                      <Building2 size={16} color="var(--color-primary, #0f766e)" />
+                    ) : (
+                      <Banknote size={16} color="var(--brand-purple, #7a4b70)" />
+                    )}
+                    <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--color-text-primary)' }}>
+                      {paymentVia === 'Bank' ? 'Bank (Default)' : 'Cash'}
+                    </span>
+                  </div>
+                  <ChevronDown
+                    size={15}
+                    color="var(--color-text-secondary)"
+                    style={{
+                      transform: showPaymentViaDropdown ? 'rotate(180deg)' : 'none',
+                      transition: 'transform 0.15s ease',
+                    }}
+                  />
+                </div>
                 <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
                   Default set to Bank can be selected to Cash
                 </span>
+
+                {/* Modern Dropdown Options Card */}
+                {showPaymentViaDropdown && (
+                  <div
+                    className="dropdown-menu"
+                    style={{
+                      position: 'absolute',
+                      top: '64px',
+                      left: 0,
+                      right: 0,
+                      backgroundColor: '#ffffff',
+                      border: '1px solid var(--color-border, #e5e7eb)',
+                      borderRadius: 'var(--radius-md, 8px)',
+                      boxShadow: 'var(--shadow-dropdown)',
+                      zIndex: 300,
+                      padding: '4px',
+                    }}
+                  >
+                    <button
+                      type="button"
+                      className={`dropdown-item ${paymentVia === 'Bank' ? 'active' : ''}`}
+                      onClick={() => {
+                        setPaymentVia('Bank');
+                        setShowPaymentViaDropdown(false);
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '9px 12px',
+                        borderRadius: '6px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Building2 size={16} color="var(--color-primary, #0f766e)" />
+                        <span style={{ fontSize: '13px', fontWeight: paymentVia === 'Bank' ? 600 : 500 }}>
+                          Bank (Default)
+                        </span>
+                      </div>
+                      {paymentVia === 'Bank' && <Check size={15} color="var(--color-primary, #0f766e)" />}
+                    </button>
+
+                    <button
+                      type="button"
+                      className={`dropdown-item ${paymentVia === 'Cash' ? 'active' : ''}`}
+                      onClick={() => {
+                        setPaymentVia('Cash');
+                        setShowPaymentViaDropdown(false);
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '9px 12px',
+                        borderRadius: '6px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Banknote size={16} color="var(--brand-purple, #7a4b70)" />
+                        <span style={{ fontSize: '13px', fontWeight: paymentVia === 'Cash' ? 600 : 500 }}>
+                          Cash
+                        </span>
+                      </div>
+                      {paymentVia === 'Cash' && <Check size={15} color="var(--color-primary, #0f766e)" />}
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Row 3 Left: Amount */}
@@ -662,7 +1004,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
             </div>
 
             {/* Row 4: Note / Memo */}
-            <div className="form-group" style={{ marginTop: '4px' }}>
+            <div className="form-group" style={{ marginTop: '2px' }}>
               <label className="form-label" style={{ fontWeight: 600, color: 'var(--color-text-secondary)' }}>
                 Note
               </label>
@@ -685,60 +1027,194 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
               />
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Footer Bar with Printable & Shareable Quick Actions in Main Theme */}
+      {/* =========================================================================
+          DEDICATED PRINTABLE PAYMENT SLIP VOUCHER (Clean A4 Paper Slip Layout)
+          ========================================================================= */}
+      <div id="printable-slip">
+        {/* Company & Receipt Header */}
+        <div
+          style={{
+            borderBottom: '2px solid #0f766e',
+            paddingBottom: '16px',
+            marginBottom: '20px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+          }}
+        >
+          <div>
+            <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#0f766e', margin: 0, letterSpacing: '-0.02em' }}>
+              URBAN FURNITURE
+            </h1>
+            <p style={{ fontSize: '12px', color: '#4b5563', margin: '4px 0 0 0' }}>
+              Premium Living & Office Infrastructure Solutions
+            </p>
+            <p style={{ fontSize: '11px', color: '#6b7280', margin: '2px 0 0 0' }}>
+              GSTIN: 29AABCU1234F1Z8 | Contact: support@urbanfurniture.com | +91 98765 43210
+            </p>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div
+              style={{
+                display: 'inline-block',
+                backgroundColor: '#f0fdfa',
+                border: '1px solid #ccfbf1',
+                color: '#0f766e',
+                fontSize: '12px',
+                fontWeight: 700,
+                padding: '4px 12px',
+                borderRadius: '4px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                marginBottom: '6px',
+              }}
+            >
+              Official Payment Voucher
+            </div>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>
+              {payment.reference}
+            </div>
+            <div style={{ fontSize: '12px', color: '#6b7280' }}>
+              Issued on: {formattedDisplayDate()}
+            </div>
+          </div>
+        </div>
+
+        {/* Voucher Metadata Summary Grid */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '16px',
+            backgroundColor: '#f9fafb',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            padding: '16px 20px',
+            marginBottom: '24px',
+          }}
+        >
+          <div>
+            <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', fontWeight: 600 }}>
+              {paymentType === 'Send' ? 'Paid To (Vendor / Recipient)' : 'Received From (Customer)'}
+            </div>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: '#111827', marginTop: '2px' }}>
+              {partnerName}
+            </div>
+            <div style={{ fontSize: '12px', color: '#4b5563', marginTop: '2px' }}>
+              Document Ref: <strong>{payment.documentNumber}</strong> ({payment.documentType.toUpperCase()})
+            </div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', fontWeight: 600 }}>
+              Payment Method & Status
+            </div>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: '#111827', marginTop: '2px' }}>
+              {paymentVia === 'Bank' ? 'Bank Wire Transfer' : 'Cash at Counter'}
+            </div>
+            <div style={{ fontSize: '12px', color: '#0f766e', fontWeight: 700, marginTop: '2px' }}>
+              Status: {currentStatus.toUpperCase()}
+            </div>
+          </div>
+        </div>
+
+        {/* Itemized Table of Voucher Slip */}
+        <table
+          style={{
+            width: '100%',
+            borderCollapse: 'collapse',
+            marginBottom: '24px',
+          }}
+        >
+          <thead>
+            <tr style={{ backgroundColor: '#f3f4f6', borderBottom: '2px solid #e5e7eb' }}>
+              <th style={{ textAlign: 'left', padding: '10px 14px', fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase' }}>
+                Description / Memo
+              </th>
+              <th style={{ textAlign: 'center', padding: '10px 14px', fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', width: '140px' }}>
+                Mode
+              </th>
+              <th style={{ textAlign: 'center', padding: '10px 14px', fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', width: '130px' }}>
+                Type
+              </th>
+              <th style={{ textAlign: 'right', padding: '10px 14px', fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', width: '150px' }}>
+                Amount Settled
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
+              <td style={{ padding: '14px', fontSize: '13px', color: '#111827' }}>
+                <strong>{payment.documentNumber} Settlement</strong>
+                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>{note}</div>
+              </td>
+              <td style={{ padding: '14px', textAlign: 'center', fontSize: '13px', color: '#374151' }}>
+                {paymentVia}
+              </td>
+              <td style={{ padding: '14px', textAlign: 'center', fontSize: '13px', color: '#374151' }}>
+                {paymentType === 'Send' ? 'Payment Out' : 'Payment In'}
+              </td>
+              <td style={{ padding: '14px', textAlign: 'right', fontSize: '15px', fontWeight: 700, color: '#0f766e' }}>
+                ₹{amount.toFixed(2)}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        {/* Total Amount Box */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '36px' }}>
           <div
-            className="no-print"
             style={{
-              padding: '16px 24px',
-              backgroundColor: 'var(--color-surface-hover, #f9fafb)',
-              borderTop: '1px solid var(--color-border, #e5e7eb)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              width: '280px',
+              backgroundColor: '#f0fdfa',
+              border: '1px solid #ccfbf1',
+              borderRadius: '6px',
+              padding: '14px 18px',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <button
-                type="button"
-                className="btn btn-outline btn-sm"
-                onClick={handlePrint}
-                style={{ gap: '6px' }}
-              >
-                <Printer size={14} color="var(--color-primary)" />
-                <span>Print Receipt</span>
-              </button>
-
-              <button
-                type="button"
-                className="btn btn-outline btn-sm"
-                onClick={handleSendEmail}
-                style={{ gap: '6px' }}
-              >
-                <Mail size={14} color="var(--brand-purple)" />
-                <span>Send via Mail</span>
-              </button>
-
-              <button
-                type="button"
-                className="btn btn-outline btn-sm"
-                onClick={handleCopyShareLink}
-                style={{ gap: '6px' }}
-              >
-                {copiedLink ? <Check size={14} color="var(--color-success)" /> : <Share2 size={14} />}
-                <span>{copiedLink ? 'Link Copied!' : 'Share Link'}</span>
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#374151', marginBottom: '4px' }}>
+              <span>Gross Total:</span>
+              <span>₹{amount.toFixed(2)}</span>
             </div>
-
-            <button
-              type="button"
-              className="btn btn-outline btn-sm"
-              onClick={onClose}
-              style={{ fontWeight: 600 }}
-            >
-              Close
-            </button>
+            <div style={{ height: '1px', backgroundColor: '#ccfbf1', margin: '6px 0' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 800, color: '#0f766e' }}>
+              <span>Total Paid:</span>
+              <span>₹{amount.toFixed(2)}</span>
+            </div>
           </div>
+        </div>
+
+        {/* Signatures & Slip Footer */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '60px',
+            paddingTop: '28px',
+            borderTop: '1px dashed #d1d5db',
+            marginTop: '40px',
+          }}
+        >
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ height: '50px' }} />
+            <div style={{ borderTop: '1px solid #9ca3af', paddingTop: '6px', fontSize: '12px', fontWeight: 600, color: '#374151' }}>
+              Partner / Customer Signature
+            </div>
+          </div>
+
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ height: '50px' }} />
+            <div style={{ borderTop: '1px solid #9ca3af', paddingTop: '6px', fontSize: '12px', fontWeight: 600, color: '#374151' }}>
+              Authorized Signatory (Urban Furniture)
+            </div>
+          </div>
+        </div>
+
+        <div style={{ textAlign: 'center', marginTop: '30px', fontSize: '11px', color: '#9ca3af' }}>
+          This is an official computer-generated receipt voucher generated by Urban Furniture Accounting Portal.
         </div>
       </div>
     </>
@@ -746,4 +1222,5 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
 };
 
 export default PaymentReceiptModal;
+
 
