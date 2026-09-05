@@ -31,14 +31,14 @@ export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCan
     setFormData((prev) => ({ ...prev, role }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) {
       setError('Please provide full name.');
       return;
     }
 
-    const result = createNewUser(formData);
+    const result = await createNewUser(formData);
     if (!result.success) {
       setError(result.message);
       return;

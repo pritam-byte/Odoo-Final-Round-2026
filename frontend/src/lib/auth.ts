@@ -157,7 +157,7 @@ export const registerAndLogin = async (
   }
 
   // 2. Fallback to local store registration
-  const res = createNewUser(input);
+  const res = await createNewUser(input);
   if (!res.success || !res.user) {
     return res;
   }

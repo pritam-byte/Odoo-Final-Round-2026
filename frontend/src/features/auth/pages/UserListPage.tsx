@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { UserPlus, Search, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { UserPlus, Search, Check, RefreshCw } from 'lucide-react';
 import { UserAccount, UserRole } from '../schemas';
-import { getAllUsers, updateUserAccount, toggleUserStatus, triggerPasswordReset } from '../api';
+import { getAllUsers, fetchUsersApi, updateUserAccount, toggleUserStatus, triggerPasswordReset } from '../api';
 import { UsersTable } from '../components/UsersTable';
 import { UserEditModal } from '../components/UserEditModal';
 
@@ -16,15 +16,24 @@ export const UserListPage: React.FC<UserListPageProps> = ({ onNavigateToCreate }
   const [selectedUser, setSelectedUser] = useState<UserAccount | null>(null);
   const [toastMessage, setToastMessage] = useState<string>('');
 
+  const loadUsersFromBackend = async () => {
+    const liveUsers = await fetchUsersApi();
+    setUsers(liveUsers);
+  };
+
+  useEffect(() => {
+    loadUsersFromBackend();
+  }, []);
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 4000);
   };
 
-  const handleToggleStatus = (id: string) => {
+  const handleToggleStatus = async (id: string) => {
     const res = toggleUserStatus(id);
     if (res.success) {
-      setUsers(getAllUsers());
+      await loadUsersFromBackend();
       showToast(res.message);
     }
   };
@@ -36,11 +45,11 @@ export const UserListPage: React.FC<UserListPageProps> = ({ onNavigateToCreate }
     }
   };
 
-  const handleSaveUser = (updatedData: { name: string; email: string; role: UserRole; status: 'Active' | 'Inactive' }) => {
+  const handleSaveUser = async (updatedData: { name: string; email: string; role: UserRole; status: 'Active' | 'Inactive' }) => {
     if (!selectedUser) return;
-    const res = updateUserAccount(selectedUser.id, updatedData);
+    const res = await updateUserAccount(selectedUser.id, updatedData);
     if (res.success) {
-      setUsers(getAllUsers());
+      await loadUsersFromBackend();
       setSelectedUser(null);
       showToast(res.message);
     }
@@ -94,15 +103,28 @@ export const UserListPage: React.FC<UserListPageProps> = ({ onNavigateToCreate }
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={onNavigateToCreate}
-          className="btn btn-primary"
-          style={{ gap: '8px' }}
-        >
-          <UserPlus size={16} />
-          <span>+ New User</span>
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            type="button"
+            onClick={loadUsersFromBackend}
+            className="btn btn-outline"
+            style={{ gap: '6px' }}
+            title="Refresh list from PostgreSQL database"
+          >
+            <RefreshCw size={15} />
+            <span>Refresh</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onNavigateToCreate}
+            className="btn btn-primary"
+            style={{ gap: '8px' }}
+          >
+            <UserPlus size={16} />
+            <span>+ New User</span>
+          </button>
+        </div>
       </div>
 
       <div className="card-panel" style={{ padding: '16px 20px' }}>

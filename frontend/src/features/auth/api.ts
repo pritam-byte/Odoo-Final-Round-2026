@@ -1,51 +1,33 @@
 import { UserAccount, CreateUserInput, UpdateUserInput } from './schemas';
+import { apiRequest } from '../../lib/apiClient';
 
 const USERS_STORAGE_KEY = 'odoo_flow_mock_users';
 
 const initialMockUsers: UserAccount[] = [
   {
     id: 'usr_admin',
-    name: 'Pritam Admin',
-    loginId: 'admin_pritam',
-    email: 'admin@odoo-flow.com',
+    name: 'Admin01',
+    loginId: 'admin01',
+    email: 'admin@urbanfurniture.com',
     role: 'Admin',
     status: 'Active',
     createdAt: '2026-01-15',
     lastLogin: '2026-09-05 14:30'
-  },
-  {
-    id: 'usr_acct',
-    name: 'Sarah Accountant',
-    loginId: 'sarah_finance',
-    email: 'sarah.finance@odoo-flow.com',
-    role: 'Accountant',
-    status: 'Active',
-    createdAt: '2026-02-10',
-    lastLogin: '2026-09-04 11:15'
-  },
-  {
-    id: 'usr_client',
-    name: 'John Doe',
-    loginId: 'jdoe_client',
-    email: 'john.doe@company.com',
-    role: 'User',
-    status: 'Active',
-    partnerId: 'partner_john_doe',
-    createdAt: '2026-03-01',
-    lastLogin: '2026-09-05 09:40'
-  },
-  {
-    id: 'usr_inactive',
-    name: 'Robert Miller',
-    loginId: 'rmiller_ops',
-    email: 'robert.m@company.com',
-    role: 'User',
-    status: 'Inactive',
-    partnerId: 'partner_robert',
-    createdAt: '2026-04-12',
-    lastLogin: '2026-07-22 16:05'
   }
 ];
+
+export const mapBackendUserToFrontend = (u: any): UserAccount => ({
+  id: u.id,
+  name: u.loginId.charAt(0).toUpperCase() + u.loginId.slice(1),
+  loginId: u.loginId,
+  email: u.email || `${u.loginId}@urbanfurniture.com`,
+  role: u.role === 'ADMIN' ? 'Admin' : u.role === 'ACCOUNTANT' ? 'Accountant' : 'User',
+  status: 'Active',
+  partnerType: 'Both',
+  partnerId: u.contactId || (u.role === 'PORTAL_USER' ? `partner_${u.loginId}` : undefined),
+  createdAt: typeof u.createdAt === 'string' ? u.createdAt.split('T')[0] : new Date(u.createdAt).toISOString().split('T')[0],
+  lastLogin: u.updatedAt ? new Date(u.updatedAt).toLocaleString() : undefined,
+});
 
 const loadUsers = (): UserAccount[] => {
   try {
@@ -75,29 +57,36 @@ export const getAllUsers = (): UserAccount[] => {
   return [...mockUsers];
 };
 
+export const fetchUsersApi = async (): Promise<UserAccount[]> => {
+  try {
+    const res = await apiRequest<any[]>('/auth/users');
+    if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+      const mapped = res.data.map(mapBackendUserToFrontend);
+      mockUsers = mapped;
+      saveUsers(mapped);
+      return mapped;
+    }
+  } catch (e) {
+    console.warn('Failed to fetch users from backend, using cache:', e);
+  }
+  return getAllUsers();
+};
+
 export const getUserById = (id: string): UserAccount | null => {
   mockUsers = loadUsers();
   return mockUsers.find(u => u.id === id) || null;
 };
 
-export const createNewUser = (input: CreateUserInput): { success: boolean; message: string; user?: UserAccount } => {
+export const createNewUser = async (input: CreateUserInput): Promise<{ success: boolean; message: string; user?: UserAccount }> => {
   mockUsers = loadUsers();
-  const trimmedLogin = input.loginId.trim().toLowerCase();
-  const trimmedEmail = input.email.trim().toLowerCase();
+  const trimmedLogin = input.loginId.trim();
+  const trimmedEmail = input.email.trim();
   const trimmedName = input.name.trim();
+  const trimmedPassword = input.password || 'password123';
+  const roleEnum = input.role === 'Admin' ? 'ADMIN' : input.role === 'Accountant' ? 'ACCOUNTANT' : 'PORTAL_USER';
 
-  if (trimmedLogin.length < 3 || trimmedLogin.length > 20) {
-    return { success: false, message: 'Login ID must be between 3 and 20 characters.' };
-  }
-
-  const existingLogin = mockUsers.find(u => u.loginId.toLowerCase() === trimmedLogin);
-  if (existingLogin) {
-    return { success: false, message: 'Login ID is already taken. Please choose another.' };
-  }
-
-  const existingEmail = mockUsers.find(u => u.email.toLowerCase() === trimmedEmail);
-  if (existingEmail) {
-    return { success: false, message: 'Email address is already registered.' };
+  if (trimmedLogin.length < 3) {
+    return { success: false, message: 'Login ID must be at least 3 characters.' };
   }
 
   if (input.password && input.password.length < 6) {
@@ -111,11 +100,36 @@ export const createNewUser = (input: CreateUserInput): { success: boolean; messa
     return { success: false, message: 'Passwords do not match.' };
   }
 
+  // 1. Live Backend PostgreSQL Call
+  try {
+    const res = await apiRequest<{ user: any; message?: string }>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        loginId: trimmedLogin,
+        email: trimmedEmail,
+        password: trimmedPassword,
+        role: roleEnum,
+      }),
+    });
+
+    if (res.success && res.data?.user) {
+      const mapped = mapBackendUserToFrontend(res.data.user);
+      mockUsers = [mapped, ...mockUsers.filter(u => u.loginId !== mapped.loginId)];
+      saveUsers(mockUsers);
+      return { success: true, message: `User "${mapped.loginId}" created and stored in PostgreSQL!`, user: mapped };
+    } else if (res.error) {
+      return { success: false, message: res.error };
+    }
+  } catch (e: any) {
+    console.warn('Backend user registration error:', e);
+  }
+
+  // 2. Offline Fallback
   const newUser: UserAccount = {
     id: 'usr_' + Date.now(),
     name: trimmedName,
-    loginId: input.loginId.trim(),
-    email: input.email.trim(),
+    loginId: trimmedLogin,
+    email: trimmedEmail,
     role: input.role,
     partnerType: input.partnerType || (input.role === 'User' ? 'Customer' : undefined),
     status: 'Active',
@@ -124,16 +138,31 @@ export const createNewUser = (input: CreateUserInput): { success: boolean; messa
     lastLogin: undefined
   };
 
-  mockUsers.push(newUser);
+  mockUsers = [newUser, ...mockUsers];
   saveUsers(mockUsers);
-  return { success: true, message: 'User created successfully.', user: newUser };
+  return { success: true, message: 'User created (offline cache).', user: newUser };
 };
 
-export const updateUserAccount = (id: string, input: UpdateUserInput): { success: boolean; message: string; user?: UserAccount } => {
+export const updateUserAccount = async (id: string, input: UpdateUserInput): Promise<{ success: boolean; message: string; user?: UserAccount }> => {
   mockUsers = loadUsers();
   const index = mockUsers.findIndex(u => u.id === id);
   if (index === -1) {
     return { success: false, message: 'User not found.' };
+  }
+
+  const roleEnum = input.role === 'Admin' ? 'ADMIN' : input.role === 'Accountant' ? 'ACCOUNTANT' : 'PORTAL_USER';
+
+  // Live Backend Call
+  try {
+    await apiRequest(`/auth/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        email: input.email.trim(),
+        role: roleEnum,
+      }),
+    });
+  } catch (e) {
+    console.warn('Backend update user error:', e);
   }
 
   mockUsers[index] = {

@@ -252,3 +252,44 @@ export async function resetPassword(req: Request, res: Response) {
     return res.status(500).json({ error: error.message || "Failed to reset password" });
   }
 }
+
+// 4. Get all users (Admin view)
+export async function getUsers(req: Request, res: Response) {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        loginId: true,
+        email: true,
+        role: true,
+        contactId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    return res.status(200).json(users);
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message || "Failed to fetch users" });
+  }
+}
+
+// 5. Update user role / details
+export async function updateUser(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    const { role, email } = req.body;
+    const updated = await prisma.user.update({
+      where: { id: String(id) },
+      data: {
+        role: role ? role : undefined,
+        email: email ? email : undefined,
+      },
+      select: { id: true, loginId: true, email: true, role: true, contactId: true, updatedAt: true },
+    });
+    return res.status(200).json(updated);
+  } catch (error: any) {
+    return res.status(400).json({ error: error.message || "Failed to update user" });
+  }
+}
+
