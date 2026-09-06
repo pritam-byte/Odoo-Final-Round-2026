@@ -18,6 +18,9 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
       {/* Main Responsive Authentication Viewport */}
       <main className="auth-main">
         {children}
+        <footer className="page-footer" style={{ marginTop: '24px' }}>
+          <p>© {new Date().getFullYear()} Urban Furniture Inc. All rights reserved.</p>
+        </footer>
       </main>
     </div>
   );

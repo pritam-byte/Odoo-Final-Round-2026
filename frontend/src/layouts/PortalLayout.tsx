@@ -888,7 +888,13 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
         </aside>
 
         {/* Main Content Area */}
-        <main className="main-content">{children}</main>
+        <main className="main-content">
+          {children}
+
+          <footer className="page-footer">
+            <p>© {new Date().getFullYear()} Urban Furniture Inc. All rights reserved.</p>
+          </footer>
+        </main>
       </div>
     </div>
   );

@@ -35,8 +35,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({
           {children}
 
           <footer className="page-footer">
-            <p>Urban Furniture Resource Planning • Connected Intelligent Workspace</p>
-            <p>© {new Date().getFullYear()} Urban Furniture Inc. All rights reserved. System Operational.</p>
+            <p>© {new Date().getFullYear()} Urban Furniture Inc. All rights reserved.</p>
           </footer>
         </main>
       </div>
