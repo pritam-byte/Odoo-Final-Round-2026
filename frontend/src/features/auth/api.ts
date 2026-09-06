@@ -321,15 +321,3 @@ export const toggleUserStatus = (id: string): { success: boolean; message: strin
   };
 };
 
-export const triggerPasswordReset = (id: string): { success: boolean; message: string } => {
-  mockUsers = loadUsers();
-  const user = mockUsers.find(u => u.id === id);
-  if (!user) {
-    return { success: false, message: 'User not found.' };
-  }
-
-  return {
-    success: true,
-    message: `Secure password reset link generated and sent to ${user.email}.`
-  };
-};
