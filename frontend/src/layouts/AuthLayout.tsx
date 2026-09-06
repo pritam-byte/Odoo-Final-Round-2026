@@ -9,14 +9,17 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
     <div className="auth-wrapper">
       {/* Main Responsive Authentication Viewport */}
       <main className="auth-main">
-        {children}
-        <footer className="page-footer" style={{ marginTop: '24px' }}>
-          <p>© {new Date().getFullYear()} Urban Furniture Inc. All rights reserved.</p>
-        </footer>
+        <div className="auth-container">
+          {children}
+          <footer className="auth-footer">
+            <p>© {new Date().getFullYear()} Urban Furniture Inc. All rights reserved.</p>
+          </footer>
+        </div>
       </main>
     </div>
   );
 };
 
 export default AuthLayout;
+
 
