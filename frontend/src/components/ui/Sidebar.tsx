@@ -92,11 +92,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               path: '/sales/invoices',
             },
             {
-              id: 'sales-payments',
-              label: 'Payments & Collections',
-              path: '/payments',
-            },
-            {
               id: 'sales-customers',
               label: 'Customers / CRM',
               path: '/contacts',
@@ -149,11 +144,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               id: 'journals-config',
               label: 'Journals',
               path: '/journals',
-            },
-            {
-              id: 'payments-ledger',
-              label: 'Payments Ledger',
-              path: '/payments',
             },
             {
               id: 'analytic-accounts',
