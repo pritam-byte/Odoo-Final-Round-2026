@@ -41,6 +41,7 @@ import { ReceivablesAgingChart } from '../components/ReceivablesAgingChart';
 import { CashFlowBarChart } from '../components/CashFlowBarChart';
 import { TopDebtorsRanking } from '../components/TopDebtorsRanking';
 import { RecentActivityFeed } from '../components/RecentActivityFeed';
+import { CustomDatePicker } from '../../../components/ui/CustomDatePicker';
 
 export const DashboardPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { invoices, bills, accounts, budgets, journalEntries, payments: storePayments, getBudgetAchievedAmount } = useAccountingStore();
@@ -431,59 +432,94 @@ export const DashboardPage: React.FC<{ onNavigate: (route: string) => void }> = 
       <div
         className="card-panel"
         style={{
-          padding: '12px 18px',
+          padding: '12px 20px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '12px',
+          gap: '14px',
           backgroundColor: '#ffffff',
           borderRadius: 'var(--radius-md)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Calendar size={16} style={{ color: 'var(--color-primary)' }} />
-          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
-            Financial Visualization Period:
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: '#ecfdf5',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--color-primary)',
+            }}
+          >
+            <Calendar size={17} strokeWidth={2} />
+          </div>
+          <div>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+              Financial Visualization Period
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+              Filter real-time accounting charts, cash flow, and trend analytics
+            </div>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-          {(
-            [
-              { id: '30d', label: 'Last 30 Days' },
-              { id: '6m', label: 'Last 6 Months' },
-              { id: 'fy', label: 'This Financial Year' },
-              { id: 'custom', label: 'Custom Range' },
-            ] as const
-          ).map((filter) => (
-            <button
-              key={filter.id}
-              type="button"
-              className={`auth-tab-btn ${selectedPeriod === filter.id ? 'active' : ''}`}
-              onClick={() => setSelectedPeriod(filter.id)}
-              style={{ padding: '6px 12px', fontSize: '12px' }}
-            >
-              {filter.label}
-            </button>
-          ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              backgroundColor: '#f1f5f9',
+              padding: '3px',
+              borderRadius: 'var(--radius-md, 8px)',
+              gap: '2px',
+            }}
+          >
+            {(
+              [
+                { id: '30d', label: 'Last 30 Days' },
+                { id: '6m', label: 'Last 6 Months' },
+                { id: 'fy', label: 'This Financial Year' },
+                { id: 'custom', label: 'Custom Range' },
+              ] as const
+            ).map((filter) => (
+              <button
+                key={filter.id}
+                type="button"
+                className={`auth-tab-btn ${selectedPeriod === filter.id ? 'active' : ''}`}
+                onClick={() => setSelectedPeriod(filter.id)}
+                style={{
+                  padding: '6px 14px',
+                  fontSize: '12px',
+                  borderRadius: 'var(--radius-sm, 6px)',
+                  fontWeight: selectedPeriod === filter.id ? 700 : 500,
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
 
           {selectedPeriod === 'custom' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '6px' }}>
-              <input
-                type="date"
-                className="form-input"
-                style={{ padding: '4px 8px', fontSize: '12px', height: '32px' }}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '4px' }}>
+              <CustomDatePicker
                 value={customStartDate}
-                onChange={(e) => setCustomStartDate(e.target.value)}
+                onChange={(d) => setCustomStartDate(d)}
+                placeholder="Start Date"
+                size="sm"
+                width={140}
               />
-              <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>to</span>
-              <input
-                type="date"
-                className="form-input"
-                style={{ padding: '4px 8px', fontSize: '12px', height: '32px' }}
+              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)' }}>to</span>
+              <CustomDatePicker
                 value={customEndDate}
-                onChange={(e) => setCustomEndDate(e.target.value)}
+                onChange={(d) => setCustomEndDate(d)}
+                placeholder="End Date"
+                size="sm"
+                width={140}
               />
             </div>
           )}
@@ -493,7 +529,7 @@ export const DashboardPage: React.FC<{ onNavigate: (route: string) => void }> = 
             className="btn btn-outline btn-sm"
             onClick={loadDashboardData}
             title="Refresh dashboard metrics"
-            style={{ padding: '6px 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+            style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px', height: '34px' }}
           >
             <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
             <span>Sync</span>
