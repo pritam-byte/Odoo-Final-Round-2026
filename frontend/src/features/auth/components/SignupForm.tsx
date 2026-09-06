@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { UserPlus, AlertCircle } from 'lucide-react';
+import { BrandLogo } from '../../../components/ui/BrandLogo';
 import { registerAndLogin } from '../../../lib/auth';
 import { UserRole, CreateUserInput, UserAccount } from '../schemas';
 
@@ -58,8 +59,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onNavigateToL
   return (
     <div className="card-panel" style={{ width: '100%', maxWidth: '500px', padding: '36px', margin: '0 auto' }}>
       <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-        <h2 className="card-title" style={{ fontSize: '22px', marginBottom: '6px' }}>
-          Create Your Account
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+          <BrandLogo height={48} />
+        </div>
+        <h2 className="card-title" style={{ fontSize: '24px', fontWeight: 800, marginBottom: '6px' }}>
+          Create Account
         </h2>
         <p className="card-subtitle">
           Register to access your role-specific dashboard (User, Accountant, or Admin)

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { LogIn, AlertCircle, CheckCircle2, ArrowLeft, Lock, Mail, ShieldCheck, RefreshCw } from 'lucide-react';
+import { BrandLogo } from '../../../components/ui/BrandLogo';
 import { loginUser } from '../../../lib/auth';
 import { apiRequest } from '../../../lib/apiClient';
 import { UserAccount } from '../schemas';
@@ -222,6 +223,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
       <div className="card-panel" style={{ width: '100%', maxWidth: '460px', padding: '36px', margin: '0 auto' }}>
         {/* Wizard Step Header */}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+            <BrandLogo height={44} />
+          </div>
           <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: 'var(--color-primary-subtle)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px auto' }}>
             {forgotStep === 1 && <Mail size={24} />}
             {forgotStep === 2 && <ShieldCheck size={26} />}
@@ -476,8 +480,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToSig
   return (
     <div className="card-panel" style={{ width: '100%', maxWidth: '440px', padding: '36px', margin: '0 auto' }}>
       <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-        <h2 className="card-title" style={{ fontSize: '22px', marginBottom: '6px' }}>
-          Sign In to Urban Furniture
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+          <BrandLogo height={48} />
+        </div>
+        <h2 className="card-title" style={{ fontSize: '24px', fontWeight: 800, marginBottom: '6px' }}>
+          Sign In
         </h2>
         <p className="card-subtitle">
           Enter your login credentials to access your account
