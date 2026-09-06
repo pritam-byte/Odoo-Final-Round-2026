@@ -8,6 +8,7 @@ import { FormField } from '../../../components/ui/FormField';
 import { DataTable, Column } from '../../../components/ui/DataTable';
 import { Many2OneSelect } from '../../../components/ui/Many2OneSelect';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
+import { CustomSelect } from '../../../components/ui/CustomSelect';
 
 export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { products, categories, addProduct, updateProduct, addCategory } = useAccountingStore();
@@ -303,18 +304,18 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
           {/* Product Type Dropdown (Goods / Service / Combo) matching Wireframe */}
           <div className="form-group">
             <label className="form-label" htmlFor="prod-type">
-              Product Type (Dropdown: Goods / Service / Combo)
+              Product Type
             </label>
-            <select
-              id="prod-type"
-              className="form-input select-filter"
+            <CustomSelect<ProductType>
               value={type}
-              onChange={(e) => setType(e.target.value as ProductType)}
-            >
-              <option value="Goods">Goods (Stockable / Physical Item)</option>
-              <option value="Service">Service (Non-stockable / Billable Work)</option>
-              <option value="Combo">Combo (Bundled Kit / Assembly)</option>
-            </select>
+              onChange={(newVal) => setType(newVal)}
+              options={[
+                { value: 'Goods', label: 'Goods (Stockable / Physical Item)' },
+                { value: 'Service', label: 'Service (Non-stockable / Billable Work)' },
+                { value: 'Combo', label: 'Combo (Bundled Kit / Assembly)' },
+              ]}
+              width="100%"
+            />
           </div>
 
           {/* Category Many2One Field (Creatable and Saved on the fly) matching Wireframe */}

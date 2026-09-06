@@ -7,6 +7,7 @@ import { FormField } from '../../../components/ui/FormField';
 import { DataTable, Column } from '../../../components/ui/DataTable';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
 import { StatusBadge } from '../../../components/ui/StatusBadge';
+import { CustomSelect } from '../../../components/ui/CustomSelect';
 
 export const AnalyticAccountsPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { analytics, addAnalytic, budgets, getBudgetAchievedAmount } = useAccountingStore();
@@ -338,15 +339,15 @@ export const AnalyticAccountsPage: React.FC<{ onNavigate: (route: string) => voi
             <label className="form-label" htmlFor="an-type">
               Type (Income / Expense)
             </label>
-            <select
-              id="an-type"
-              className="form-input select-filter"
+            <CustomSelect<'Expense' | 'Income'>
               value={type}
-              onChange={(e) => setType(e.target.value as 'Income' | 'Expense')}
-            >
-              <option value="Expense">Expense (Cost Center Tracking)</option>
-              <option value="Income">Income (Revenue Center Tracking)</option>
-            </select>
+              onChange={(newVal) => setType(newVal)}
+              options={[
+                { value: 'Expense', label: 'Expense (Cost Center Tracking)' },
+                { value: 'Income', label: 'Income (Revenue Center Tracking)' },
+              ]}
+              width="100%"
+            />
           </div>
         </form>
       </Modal>

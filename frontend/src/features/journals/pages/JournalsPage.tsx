@@ -7,6 +7,7 @@ import { FormField } from '../../../components/ui/FormField';
 import { DataTable, Column } from '../../../components/ui/DataTable';
 import { Many2OneSelect } from '../../../components/ui/Many2OneSelect';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
+import { CustomSelect } from '../../../components/ui/CustomSelect';
 
 export const JournalsPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { journals, accounts, addJournal } = useAccountingStore();
@@ -171,19 +172,19 @@ export const JournalsPage: React.FC<{ onNavigate: (route: string) => void }> = (
 
           <div className="form-group">
             <label className="form-label" htmlFor="journal-type">
-              Journal Type (Dropdown: Sales / Purchase / Bank / Cash)
+              Journal Type
             </label>
-            <select
-              id="journal-type"
-              className="form-input select-filter"
+            <CustomSelect<JournalType>
               value={type}
-              onChange={(e) => setType(e.target.value as JournalType)}
-            >
-              <option value="Sales">Sales (Invoicing & Revenue Book)</option>
-              <option value="Purchase">Purchase (Vendor Bills & Procurement Book)</option>
-              <option value="Bank">Bank (Wire Transfers & Bank Statements)</option>
-              <option value="Cash">Cash (Petty Cash Receipts & Disbursals)</option>
-            </select>
+              onChange={(newVal) => setType(newVal)}
+              options={[
+                { value: 'Sales', label: 'Sales (Invoicing & Revenue Book)' },
+                { value: 'Purchase', label: 'Purchase (Vendor Bills & Procurement Book)' },
+                { value: 'Bank', label: 'Bank (Wire Transfers & Bank Statements)' },
+                { value: 'Cash', label: 'Cash (Petty Cash Receipts & Disbursals)' },
+              ]}
+              width="100%"
+            />
           </div>
 
           <Many2OneSelect

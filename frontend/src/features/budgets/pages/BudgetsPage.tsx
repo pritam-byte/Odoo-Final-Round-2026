@@ -796,6 +796,7 @@ export const BudgetsPage: React.FC<{ onNavigate: (route: string) => void }> = ({
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         title="Create New Budget Target"
+        maxWidth="720px"
         footer={
           <>
             <Button variant="outline" onClick={() => setIsCreateModalOpen(false)} leftIcon={<ArrowLeft size={15} />}>

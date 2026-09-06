@@ -6,6 +6,7 @@ import { AccountantNav } from '../../../components/ui/AccountantNav';
 import { fetchProfitLossApi, ProfitLossReportData } from '../api';
 import { exportProfitLossPdf } from '../../../lib/pdfExport';
 import { DocumentSignatureStamp } from '../../../components/ui/DocumentSignatureStamp';
+import { CustomSelect } from '../../../components/ui/CustomSelect';
 
 export const ProfitLossReportPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { invoices, bills, accounts } = useAccountingStore();
@@ -93,16 +94,16 @@ export const ProfitLossReportPage: React.FC<{ onNavigate: (route: string) => voi
             Print
           </Button>
 
-          <select
-            className="form-input select-filter"
-            style={{ fontWeight: 600, minWidth: '100px', textAlign: 'center' }}
+          <CustomSelect
             value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
-          >
-            <option value="2026">2026</option>
-            <option value="2025">2025</option>
-            <option value="2024">2024</option>
-          </select>
+            onChange={(v) => setSelectedYear(v)}
+            options={[
+              { value: '2026', label: '2026' },
+              { value: '2025', label: '2025' },
+              { value: '2024', label: '2024' },
+            ]}
+            width={100}
+          />
 
           <Button
             variant="primary"

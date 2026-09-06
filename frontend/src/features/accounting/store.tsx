@@ -294,6 +294,17 @@ export interface AccountingStoreContextType {
 
 const AccountingStoreContext = createContext<AccountingStoreContextType | undefined>(undefined);
 
+const DEFAULT_PRODUCT_CATEGORIES: ProductCategory[] = [
+  { id: 'cat_living_room', name: 'Living Room Furniture' },
+  { id: 'cat_bedroom', name: 'Bedroom Furniture' },
+  { id: 'cat_office', name: 'Office & Workstation' },
+  { id: 'cat_dining', name: 'Dining & Kitchen' },
+  { id: 'cat_storage', name: 'Storage & Wardrobes' },
+  { id: 'cat_lighting', name: 'Lighting & Fixtures' },
+  { id: 'cat_decor', name: 'Decor & Accessories' },
+  { id: 'cat_general', name: 'General Goods' },
+];
+
 export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Purge legacy mock storage on initialization
   useEffect(() => {
@@ -318,7 +329,10 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
   }, []);
 
   const [contacts, setContacts] = useState<Contact[]>(() => getCachedData<Contact>('odoo_contacts'));
-  const [categories, setCategories] = useState<ProductCategory[]>(() => getCachedData<ProductCategory>('odoo_categories'));
+  const [categories, setCategories] = useState<ProductCategory[]>(() => {
+    const cached = getCachedData<ProductCategory>('odoo_categories');
+    return cached && cached.length > 0 ? cached : DEFAULT_PRODUCT_CATEGORIES;
+  });
   const [products, setProducts] = useState<Product[]>(() => getCachedData<Product>('odoo_products'));
   const [accounts, setAccounts] = useState<Account[]>(() => getCachedData<Account>('odoo_accounts'));
   const [journals, setJournals] = useState<Journal[]>(() => getCachedData<Journal>('odoo_journals'));
