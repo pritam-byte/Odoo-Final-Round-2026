@@ -152,7 +152,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
       >
         {/* Screen Modal Window */}
         <div
-          className="card-panel"
+          className="card-panel custom-modal-box"
           style={{
             width: '100%',
             maxWidth: '660px',
@@ -165,6 +165,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
             display: 'flex',
             flexDirection: 'column',
             position: 'relative',
+            maxHeight: '90vh',
           }}
         >
           {/* Toast Notification inside Modal */}
@@ -414,6 +415,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
 
             {/* Structured Details Grid */}
             <div
+              className="responsive-modal-grid-2"
               style={{
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
@@ -595,6 +597,8 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '8px',
                 paddingTop: '16px',
                 borderTop: '1px solid var(--color-border)',
               }}

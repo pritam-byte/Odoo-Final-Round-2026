@@ -64,20 +64,25 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
         justifyContent: 'center',
         zIndex: 2000,
         backdropFilter: 'blur(3px)',
+        padding: '16px',
+        overflowY: 'auto',
       }}
     >
       <div
-        className="card-panel"
+        className="card-panel custom-modal-box"
         style={{
           width: '100%',
           maxWidth: '480px',
-          margin: '20px',
-          padding: '28px',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          margin: 'auto',
+          padding: '24px',
           boxShadow: 'var(--shadow-lg)',
         }}
       >
         {/* Modal Header */}
-        <div className="card-header" style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '14px' }}>
+        <div className="card-header" style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <span
               style={{
@@ -90,7 +95,7 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
             >
               Customer Invoice Checkout
             </span>
-            <h3 className="card-title" style={{ fontSize: '18px', marginTop: '2px' }}>
+            <h3 className="card-title" style={{ fontSize: '18px', marginTop: '2px', margin: 0 }}>
               Pay Dues: {document.number}
             </h3>
           </div>
@@ -123,6 +128,7 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
           {/* Summary Box */}
           <div
+            className="responsive-modal-grid-2"
             style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
@@ -220,7 +226,7 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
           {/* Payment Method Selector */}
           <div className="form-group">
             <label className="form-label">Payment Method</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div className="responsive-modal-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <button
                 type="button"
                 onClick={() => setPaymentMethod('Bank')}
@@ -271,6 +277,7 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'flex-end',
+              flexWrap: 'wrap',
               gap: '10px',
               marginTop: '8px',
               paddingTop: '16px',

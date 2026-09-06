@@ -193,8 +193,8 @@ export const SalesOrdersPage: React.FC<{ onNavigate: (route: string) => void }> 
           title={`Sales Order: ${viewingOrder.orderNumber}`}
           maxWidth="700px"
           footer={
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {viewingOrder.status === 'Draft' && (
                   <Button
                     variant="primary"
@@ -224,7 +224,7 @@ export const SalesOrdersPage: React.FC<{ onNavigate: (route: string) => void }> 
           }
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', padding: '12px', backgroundColor: 'var(--color-bg)', borderRadius: '6px' }}>
+            <div className="responsive-modal-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', padding: '12px', backgroundColor: 'var(--color-bg)', borderRadius: '6px' }}>
               <div>
                 <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', display: 'block' }}>Customer:</span>
                 <span style={{ fontWeight: 600 }}>{viewingOrder.partnerName}</span>
@@ -271,7 +271,7 @@ export const SalesOrdersPage: React.FC<{ onNavigate: (route: string) => void }> 
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <Many2OneSelect
               label="Customer (Contact)"
               options={contacts.map((c) => ({ id: c.id, name: c.name, subtitle: c.email }))}

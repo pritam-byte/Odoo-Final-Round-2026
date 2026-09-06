@@ -276,7 +276,7 @@ export const RegisterPaymentModal: React.FC<RegisterPaymentModalProps> = ({
         </div>
 
         {/* Amount & Method */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <FormField
             label="Payment Amount (₹)"
             type="number"
@@ -301,7 +301,7 @@ export const RegisterPaymentModal: React.FC<RegisterPaymentModalProps> = ({
         </div>
 
         {/* Date & Reference */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <div className="form-group">
             <label className="form-label">Payment Date *</label>
             <CustomDatePicker

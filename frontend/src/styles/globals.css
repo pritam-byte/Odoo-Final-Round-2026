@@ -1455,11 +1455,20 @@ input[type="date"]:focus,
   }
 
   .modal-container,
-  .custom-modal-box {
+  .custom-modal-box,
+  .custom-modal-card {
     width: 95vw !important;
     max-width: 95vw !important;
-    margin: 10px !important;
+    margin: 8px auto !important;
+  }
+
+  .modal-body-content {
     padding: 16px !important;
+  }
+
+  .modal-footer-bar {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
   }
 
   .table-responsive-wrapper,
@@ -1467,6 +1476,19 @@ input[type="date"]:focus,
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     width: 100%;
+    max-width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .responsive-form-grid-2,
+  .responsive-form-grid-3,
+  .responsive-form-grid-4,
+  .responsive-modal-grid-2,
+  .responsive-modal-grid-3,
+  .responsive-modal-grid-4,
+  .responsive-modal-split-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
   }
 }
 

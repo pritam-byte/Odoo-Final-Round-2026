@@ -115,7 +115,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div className="form-group">
             <label className="form-label">Partner (Autofilled)</label>
             <div
@@ -142,7 +142,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <FormField
             label="Amount (₹)"
             type="number"

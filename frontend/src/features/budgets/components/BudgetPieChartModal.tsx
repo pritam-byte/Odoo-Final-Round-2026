@@ -96,7 +96,7 @@ export const BudgetPieChartModal: React.FC<BudgetPieChartModalProps> = ({
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Database Entity Attribution Badges */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', padding: '14px', backgroundColor: 'var(--color-bg)', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+        <div className="responsive-modal-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', padding: '14px', backgroundColor: 'var(--color-bg)', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--color-text-muted)', marginBottom: '2px' }}>
               <Database size={13} style={{ color: 'var(--color-primary)' }} />
@@ -135,14 +135,14 @@ export const BudgetPieChartModal: React.FC<BudgetPieChartModalProps> = ({
         </div>
 
         {/* Visual Layout: Pie Chart (Left) + Interactive Legend & Metrics (Right) */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px', alignItems: 'center', padding: '8px 0' }}>
+        <div className="responsive-modal-split-grid" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px', alignItems: 'center', padding: '8px 0' }}>
           {/* SVG Pie Chart Canvas with Real-Time Data Labels */}
-          <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', maxWidth: '300px', margin: '0 auto' }}>
             <svg
               width="300"
               height="300"
               viewBox="0 0 300 300"
-              style={{ filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.08))', overflow: 'visible' }}
+              style={{ filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.08))', overflow: 'visible', maxWidth: '100%', height: 'auto' }}
             >
               {/* Achieved Slice (Cyan/Sky Blue) */}
               {achieved > 0 && (

@@ -538,7 +538,7 @@ export const BudgetsPage: React.FC<{ onNavigate: (route: string) => void }> = ({
 
             {/* Revision Relationship Link Banners */}
             {activeBudget.originalBudgetName && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', fontSize: '12px', color: '#166534' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', fontSize: '12px', color: '#166534', flexWrap: 'wrap' }}>
                 <LinkIcon size={14} />
                 <span>
                   Revised from original budget: <strong>{activeBudget.originalBudgetName}</strong>
@@ -556,9 +556,8 @@ export const BudgetsPage: React.FC<{ onNavigate: (route: string) => void }> = ({
                 )}
               </div>
             )}
-
             {activeBudget.revisedBudgetName && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', backgroundColor: '#fefce8', border: '1px solid #fef08a', borderRadius: '6px', fontSize: '12px', color: '#854d0e' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', backgroundColor: '#fefce8', border: '1px solid #fef08a', borderRadius: '6px', fontSize: '12px', color: '#854d0e', flexWrap: 'wrap' }}>
                 <RotateCcw size={14} />
                 <span>
                   Revised With: <strong>{activeBudget.revisedBudgetName}</strong>
@@ -578,7 +577,7 @@ export const BudgetsPage: React.FC<{ onNavigate: (route: string) => void }> = ({
             )}
 
             {/* Metadata Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', backgroundColor: 'var(--color-bg)', padding: '16px', borderRadius: '8px' }}>
+            <div className="responsive-modal-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', backgroundColor: 'var(--color-bg)', padding: '16px', borderRadius: '8px' }}>
               <div>
                 <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', display: 'block' }}>Cost Center</span>
                 <strong style={{ fontSize: '13px', color: 'var(--color-text-primary)' }}>{activeBudget.analyticName}</strong>
@@ -604,55 +603,59 @@ export const BudgetsPage: React.FC<{ onNavigate: (route: string) => void }> = ({
               <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '8px', color: 'var(--color-text-primary)' }}>
                 Budget Position & Ledger Alignment
               </h4>
-              <table className="custom-table" style={{ backgroundColor: '#ffffff', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
-                <thead>
-                  <tr>
-                    <th>Analytic Cost Center</th>
-                    <th>Type</th>
-                    <th style={{ textAlign: 'right' }}>Committed Amount ($)</th>
-                    <th style={{ textAlign: 'right' }}>Achieved Amount ($)</th>
-                    <th style={{ textAlign: 'right' }}>Achieved %</th>
-                    <th style={{ textAlign: 'right' }}>Amount to Achieve ($)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(() => {
-                    const achieved = getBudgetAchievedAmount(activeBudget);
-                    const committed = Math.max(1, activeBudget.committedAmount);
-                    const percent = Math.min(100, Math.round((achieved / committed) * 100));
-                    const toAchieve = Math.max(0, activeBudget.committedAmount - achieved);
+              <div className="table-responsive-wrapper">
+                <table className="custom-table" style={{ backgroundColor: '#ffffff', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
+                  <thead>
+                    <tr>
+                      <th>Analytic Cost Center</th>
+                      <th>Type</th>
+                      <th style={{ textAlign: 'right' }}>Committed Amount ($)</th>
+                      <th style={{ textAlign: 'right' }}>Achieved Amount ($)</th>
+                      <th style={{ textAlign: 'right' }}>Achieved %</th>
+                      <th style={{ textAlign: 'right' }}>Amount to Achieve ($)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(() => {
+                      const achieved = getBudgetAchievedAmount(activeBudget);
+                      const committed = Math.max(1, activeBudget.committedAmount);
+                      const percent = Math.min(100, Math.round((achieved / committed) * 100));
+                      const toAchieve = Math.max(0, activeBudget.committedAmount - achieved);
 
-                    return (
-                      <tr>
-                        <td style={{ fontWeight: 600 }}>{activeBudget.analyticName}</td>
-                        <td>
-                          <span className={`badge-pill ${activeBudget.type === 'Income' ? 'badge-completed' : 'badge-pending'}`}>
-                            {activeBudget.type}
-                          </span>
-                        </td>
-                        <td style={{ textAlign: 'right', fontWeight: 600 }}>
-                          ₹{activeBudget.committedAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                        </td>
-                        <td style={{ textAlign: 'right' }}>
-                          <span
-                            style={{ fontWeight: 700, color: 'var(--color-primary)', cursor: 'pointer', textDecoration: 'underline' }}
-                            onClick={() => setInspectingBudget(activeBudget)}
-                            title="Click to view matching postings"
-                          >
-                            ₹{achieved.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                          </span>
-                        </td>
-                        <td style={{ textAlign: 'right', fontWeight: 700, color: percent >= 100 ? 'var(--color-success)' : 'var(--color-primary)' }}>
-                          {percent}%
-                        </td>
-                        <td style={{ textAlign: 'right', fontWeight: 600, color: toAchieve > 0 ? '#b91c1c' : '#15803d' }}>
-                          ₹{toAchieve.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                        </td>
-                      </tr>
-                    );
-                  })()}
-                </tbody>
-              </table>
+                      return (
+                        <tr>
+                          <td style={{ fontWeight: 600 }}>{activeBudget.analyticName}</td>
+                          <td>
+                            <span className={`badge-pill ${activeBudget.type === 'Income' ? 'badge-completed' : 'badge-pending'}`}>
+                              {activeBudget.type}
+                            </span>
+                          </td>
+                          <td style={{ textAlign: 'right', fontWeight: 600 }}>
+                            ₹{activeBudget.committedAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </td>
+                          <td style={{ textAlign: 'right' }}>
+                            <span
+                              style={{ fontWeight: 700, color: 'var(--color-primary)', cursor: 'pointer', textDecoration: 'underline' }}
+                              onClick={() => setInspectingBudget(activeBudget)}
+                              title="Click to view matching postings"
+                            >
+                              ₹{achieved.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </span>
+                          </td>
+                          <td style={{ textAlign: 'right' }}>
+                            <span style={{ fontWeight: 700, color: percent >= 100 ? '#15803d' : '#b45309' }}>
+                              {percent}%
+                            </span>
+                          </td>
+                          <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--color-text-muted)' }}>
+                            ₹{toAchieve.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </td>
+                        </tr>
+                      );
+                    })()}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Quick Progress Summary Bar */}
@@ -690,7 +693,7 @@ export const BudgetsPage: React.FC<{ onNavigate: (route: string) => void }> = ({
               Revising this budget will mark the current record as <strong>Revised</strong> and generate a linked successor budget target with the updated commitment amount.
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', padding: '12px', backgroundColor: 'var(--color-bg)', borderRadius: '6px' }}>
+            <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', padding: '12px', backgroundColor: 'var(--color-bg)', borderRadius: '6px' }}>
               <div>
                 <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Current Committed Target:</span>
                 <p style={{ fontWeight: 700, fontSize: '15px' }}>₹{activeBudget.committedAmount.toLocaleString()}</p>
@@ -748,34 +751,36 @@ export const BudgetsPage: React.FC<{ onNavigate: (route: string) => void }> = ({
                 No invoices or bills have been posted against this analytic center in this date window yet.
               </div>
             ) : (
-              <table className="custom-table" style={{ backgroundColor: '#ffffff', borderRadius: '6px' }}>
-                <thead>
-                  <tr>
-                    <th>Type</th>
-                    <th>Document #</th>
-                    <th>Partner</th>
-                    <th>Date</th>
-                    <th style={{ textAlign: 'right' }}>Matched Amount (₹)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {getBudgetMatchedTransactions(inspectingBudget).map((t) => (
-                    <tr key={t.id}>
-                      <td>
-                        <span className={`badge-pill ${t.type === 'Invoice' ? 'badge-completed' : 'badge-pending'}`}>
-                          {t.type}
-                        </span>
-                      </td>
-                      <td style={{ fontWeight: 600, color: 'var(--color-primary)' }}>{t.number}</td>
-                      <td>{t.partner}</td>
-                      <td>{t.date}</td>
-                      <td style={{ textAlign: 'right', fontWeight: 600 }}>
-                        ₹{t.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      </td>
+              <div className="table-responsive-wrapper">
+                <table className="custom-table" style={{ backgroundColor: '#ffffff', borderRadius: '6px' }}>
+                  <thead>
+                    <tr>
+                      <th>Type</th>
+                      <th>Document #</th>
+                      <th>Partner</th>
+                      <th>Date</th>
+                      <th style={{ textAlign: 'right' }}>Matched Amount (₹)</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {getBudgetMatchedTransactions(inspectingBudget).map((t) => (
+                      <tr key={t.id}>
+                        <td>
+                          <span className={`badge-pill ${t.type === 'Invoice' ? 'badge-completed' : 'badge-pending'}`}>
+                            {t.type}
+                          </span>
+                        </td>
+                        <td style={{ fontWeight: 600, color: 'var(--color-primary)' }}>{t.number}</td>
+                        <td>{t.partner}</td>
+                        <td>{t.date}</td>
+                        <td style={{ textAlign: 'right', fontWeight: 600 }}>
+                          ₹{t.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </Modal>
@@ -824,7 +829,7 @@ export const BudgetsPage: React.FC<{ onNavigate: (route: string) => void }> = ({
             autoFocus
           />
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+          <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
             <div className="form-group">
               <label className="form-label">Start Date *</label>
               <CustomDatePicker
@@ -845,7 +850,7 @@ export const BudgetsPage: React.FC<{ onNavigate: (route: string) => void }> = ({
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+          <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
             <div className="form-group">
               <label className="form-label" htmlFor="budget-analytic">
                 Analytic Cost Center
