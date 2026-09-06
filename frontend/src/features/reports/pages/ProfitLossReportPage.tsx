@@ -69,7 +69,7 @@ export const ProfitLossReportPage: React.FC<{ onNavigate: (route: string) => voi
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Button
             variant="outline"
             onClick={() => exportProfitLossPdf({
@@ -102,7 +102,7 @@ export const ProfitLossReportPage: React.FC<{ onNavigate: (route: string) => voi
               { value: '2025', label: '2025' },
               { value: '2024', label: '2024' },
             ]}
-            width={100}
+            width={110}
           />
 
           <Button

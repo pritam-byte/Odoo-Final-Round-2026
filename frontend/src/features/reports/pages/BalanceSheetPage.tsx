@@ -77,7 +77,7 @@ export const BalanceSheetPage: React.FC<{ onNavigate: (route: string) => void }>
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Button
             variant="outline"
             onClick={() => exportBalanceSheetPdf({
@@ -111,7 +111,7 @@ export const BalanceSheetPage: React.FC<{ onNavigate: (route: string) => void }>
               { value: '2025', label: '2025' },
               { value: '2024', label: '2024' },
             ]}
-            width={100}
+            width={110}
           />
 
           <Button

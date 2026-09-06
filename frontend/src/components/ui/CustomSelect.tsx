@@ -87,7 +87,8 @@ export function CustomSelect<T = string>({
         position: 'relative',
         display: 'inline-flex',
         flexDirection: 'column',
-        width: width,
+        width: typeof width === 'number' ? `${width}px` : width,
+        boxSizing: 'border-box',
         ...style,
       }}
     >
@@ -127,7 +128,8 @@ export function CustomSelect<T = string>({
           cursor: disabled ? 'not-allowed' : 'pointer',
           transition: 'all 0.15s ease',
           outline: 'none',
-          minWidth: '130px',
+          width: '100%',
+          boxSizing: 'border-box',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
