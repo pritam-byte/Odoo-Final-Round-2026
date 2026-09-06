@@ -6,7 +6,6 @@ import {
   fetchAllUsersApi,
   updateUserAccountApi,
   toggleUserStatus,
-  triggerPasswordReset,
 } from '../api';
 import { UsersTable } from '../components/UsersTable';
 import { UserEditModal } from '../components/UserEditModal';
@@ -43,13 +42,6 @@ export const UserListPage: React.FC<UserListPageProps> = ({ onNavigateToCreate }
     const res = toggleUserStatus(id);
     if (res.success) {
       setUsers(getAllUsers());
-      showToast(res.message);
-    }
-  };
-
-  const handleResetPassword = (id: string) => {
-    const res = triggerPasswordReset(id);
-    if (res.success) {
       showToast(res.message);
     }
   };
@@ -178,7 +170,6 @@ export const UserListPage: React.FC<UserListPageProps> = ({ onNavigateToCreate }
           users={filteredUsers}
           onEdit={(u) => setSelectedUser(u)}
           onToggleStatus={handleToggleStatus}
-          onResetPassword={handleResetPassword}
         />
       </div>
 

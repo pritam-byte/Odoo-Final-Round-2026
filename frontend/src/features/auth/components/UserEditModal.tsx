@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { X, KeyRound, Save } from 'lucide-react';
+import { X, Save } from 'lucide-react';
 import { UserAccount, UserRole, UserStatus } from '../schemas';
 import { RoleSelector } from './RoleSelector';
-import { triggerPasswordReset } from '../api';
 
 export interface UserEditModalProps {
   user: UserAccount;
@@ -15,16 +14,10 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({ user, onClose, onS
   const [email, setEmail] = useState(user.email);
   const [role, setRole] = useState<UserRole>(user.role);
   const [status, setStatus] = useState<UserStatus>(user.status);
-  const [resetMessage, setResetMessage] = useState<string>('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave({ name, email, role, status });
-  };
-
-  const handleResetPassword = () => {
-    const res = triggerPasswordReset(user.id);
-    setResetMessage(res.message);
   };
 
   return (
@@ -72,26 +65,6 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({ user, onClose, onS
             <X size={18} />
           </button>
         </div>
-
-        {resetMessage && (
-          <div
-            style={{
-              padding: '10px 14px',
-              backgroundColor: 'var(--color-primary-light)',
-              color: 'var(--color-primary)',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: '13px',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              marginTop: '12px'
-            }}
-          >
-            <KeyRound size={16} />
-            <span>{resetMessage}</span>
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
           <div className="form-group">
@@ -179,39 +152,6 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({ user, onClose, onS
                 Inactive (Blocked immediately)
               </label>
             </div>
-          </div>
-
-          <div
-            style={{
-              padding: '14px',
-              backgroundColor: 'var(--color-bg)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '10px',
-              marginTop: '4px'
-            }}
-          >
-            <div>
-              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)', display: 'block' }}>
-                Password Management
-              </span>
-              <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                Plaintext password is encrypted and never exposed.
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={handleResetPassword}
-              className="btn btn-outline btn-sm"
-              style={{ gap: '6px' }}
-            >
-              <KeyRound size={14} />
-              <span>Send Reset Link</span>
-            </button>
           </div>
 
           <div

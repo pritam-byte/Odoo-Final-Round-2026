@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit2, KeyRound } from 'lucide-react';
+import { Edit2 } from 'lucide-react';
 import { UserAccount, UserRole } from '../schemas';
 import { StatusToggle } from './StatusToggle';
 
@@ -7,14 +7,12 @@ export interface UsersTableProps {
   users: UserAccount[];
   onEdit: (user: UserAccount) => void;
   onToggleStatus: (id: string) => void;
-  onResetPassword: (id: string) => void;
 }
 
 export const UsersTable: React.FC<UsersTableProps> = ({
   users,
   onEdit,
   onToggleStatus,
-  onResetPassword
 }) => {
   const getRoleBadgeClass = (role: UserRole) => {
     switch (role) {
@@ -90,15 +88,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                     >
                       <Edit2 size={13} />
                       <span>Edit</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-ghost btn-sm"
-                      onClick={() => onResetPassword(u.id)}
-                      title="Send Password Reset"
-                      style={{ padding: '5px 8px' }}
-                    >
-                      <KeyRound size={13} />
                     </button>
                   </div>
                 </td>
