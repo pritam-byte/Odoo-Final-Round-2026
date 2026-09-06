@@ -91,11 +91,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               label: 'Customer Invoices',
               path: '/sales/invoices',
             },
-            {
-              id: 'sales-customers',
-              label: 'Customers / CRM',
-              path: '/contacts',
-            },
           ],
         },
         {
@@ -117,11 +112,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               id: 'purchase-payments',
               label: 'Payments & Due',
               path: '/payments',
-            },
-            {
-              id: 'purchase-vendors',
-              label: 'Vendors / Suppliers',
-              path: '/contacts',
             },
           ],
         },
