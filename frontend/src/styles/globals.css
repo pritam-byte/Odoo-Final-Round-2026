@@ -264,7 +264,7 @@ input, select, textarea {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  padding: 16px 12px;
+  padding: 16px 12px 48px 12px;
   gap: 6px;
   overflow-y: auto;
   overflow-x: hidden;
@@ -293,6 +293,7 @@ input, select, textarea {
   display: flex;
   flex-direction: column;
   gap: 3px;
+  flex-shrink: 0;
 }
 
 .sidebar-group-title {
@@ -306,8 +307,11 @@ input, select, textarea {
 
 .sidebar-divider {
   height: 1px;
+  min-height: 1px;
   background-color: var(--color-border);
   margin: 10px 4px;
+  flex-shrink: 0;
+  display: block;
 }
 
 .sidebar-item {
