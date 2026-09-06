@@ -95,6 +95,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               label: 'Customer Invoices',
               path: '/sales/invoices',
             },
+            {
+              id: 'sales-customers',
+              label: 'Customers / CRM',
+              path: '/contacts',
+            },
           ],
         },
         {
@@ -116,6 +121,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               id: 'purchase-payments',
               label: 'Payments & Due',
               path: '/payments',
+            },
+            {
+              id: 'purchase-vendors',
+              label: 'Vendors / Suppliers',
+              path: '/contacts',
             },
           ],
         },
@@ -206,7 +216,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               },
               {
                 id: 'settings',
-                label: 'System Settings',
+                label: 'System Configuration',
                 icon: <Settings size={17} strokeWidth={1.75} />,
                 path: '/settings',
               },
@@ -263,7 +273,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const handleItemClick = (e: React.MouseEvent, path: string) => {
     e.preventDefault();
     onNavigate?.(path);
-    onCloseMobile?.();
   };
 
   const isChildActive = (childPath: string) => {
@@ -299,85 +308,86 @@ export const Sidebar: React.FC<SidebarProps> = ({
         />
       )}
       <aside className={`left-sidebar ${isMobileOpen ? 'mobile-open' : ''}`}>
-        {navGroups.map((group, groupIndex) => (
-          <React.Fragment key={groupIndex}>
-            {groupIndex > 0 && <div className="sidebar-divider" />}
-            <div className="sidebar-group">
-              {group.title && (
-                <span className="sidebar-group-title">{group.title}</span>
-              )}
-              {group.items.map((item) => {
-                const isExpanded = !!expandedSections[item.id];
-                const isSectionActive = isParentActive(item);
+      {navGroups.map((group, groupIndex) => (
+        <React.Fragment key={groupIndex}>
+          {groupIndex > 0 && <div className="sidebar-divider" />}
+          <div className="sidebar-group">
+            {group.title && (
+              <span className="sidebar-group-title">{group.title}</span>
+            )}
+            {group.items.map((item) => {
+              const isExpanded = !!expandedSections[item.id];
+              const isSectionActive = isParentActive(item);
 
-                // 1. Expandable Parent Item
-                if (item.children && item.children.length > 0) {
-                  return (
-                    <div key={item.id} style={{ display: 'flex', flexDirection: 'column' }}>
-                      <button
-                        type="button"
-                        className={`sidebar-item ${isSectionActive ? 'active' : ''}`}
-                        onClick={(e) => toggleSection(item.id, e)}
-                      >
-                        <span className="sidebar-item-icon">{item.icon}</span>
-                        <span style={{ flex: 1 }}>{item.label}</span>
-                        <span className={`sidebar-chevron ${isExpanded ? 'expanded' : ''}`}>
-                          <ChevronDown size={14} />
-                        </span>
-                      </button>
-
-                      {isExpanded && (
-                        <div className="sidebar-child-list">
-                          {item.children.map((child) => {
-                            const active = isChildActive(child.path);
-                            return (
-                              <a
-                                key={child.id}
-                                href={`#${child.path}`}
-                                className={`sidebar-sub-item ${active ? 'active' : ''}`}
-                                onClick={(e) => handleItemClick(e, child.path)}
-                              >
-                                <span className="sidebar-sub-item-bullet" />
-                                <span style={{ flex: 1 }}>{child.label}</span>
-                                {child.badge && (
-                                  <span className="badge-pill" style={{ fontSize: '10px', padding: '1px 5px' }}>
-                                    {child.badge}
-                                  </span>
-                                )}
-                              </a>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                }
-
-                // 2. Direct Link Item (e.g. Dashboard, Users, Settings)
-                const directActive = item.path ? isChildActive(item.path) : false;
+              // 1. Expandable Parent Item
+              if (item.children && item.children.length > 0) {
                 return (
-                  <a
-                    key={item.id}
-                    href={`#${item.path}`}
-                    className={`sidebar-item ${directActive ? 'active' : ''}`}
-                    onClick={(e) => handleItemClick(e, item.path || '/dashboard')}
-                  >
-                    <span className="sidebar-item-icon">{item.icon}</span>
-                    <span style={{ flex: 1 }}>{item.label}</span>
-                    {item.badge && (
-                      <span className="badge-pill badge-overdue" style={{ fontSize: '10px', padding: '1px 6px' }}>
-                        {item.badge}
+                  <div key={item.id} style={{ display: 'flex', flexDirection: 'column' }}>
+                    <button
+                      type="button"
+                      className={`sidebar-item ${isSectionActive ? 'active' : ''}`}
+                      onClick={(e) => toggleSection(item.id, e)}
+                    >
+                      <span className="sidebar-item-icon">{item.icon}</span>
+                      <span style={{ flex: 1 }}>{item.label}</span>
+                      <span className={`sidebar-chevron ${isExpanded ? 'expanded' : ''}`}>
+                        <ChevronDown size={14} />
                       </span>
+                    </button>
+
+                    {isExpanded && (
+                      <div className="sidebar-child-list">
+                        {item.children.map((child) => {
+                          const active = isChildActive(child.path);
+                          return (
+                            <a
+                              key={child.id}
+                              href={`#${child.path}`}
+                              className={`sidebar-sub-item ${active ? 'active' : ''}`}
+                              onClick={(e) => handleItemClick(e, child.path)}
+                            >
+                              <span className="sidebar-sub-item-bullet" />
+                              <span style={{ flex: 1 }}>{child.label}</span>
+                              {child.badge && (
+                                <span className="badge-pill" style={{ fontSize: '10px', padding: '1px 5px' }}>
+                                  {child.badge}
+                                </span>
+                              )}
+                            </a>
+                          );
+                        })}
+                      </div>
                     )}
-                  </a>
+                  </div>
                 );
-              })}
-            </div>
-          </React.Fragment>
-        ))}
-      </aside>
+              }
+
+              // 2. Direct Link Item (e.g. Dashboard, Users, Settings)
+              const directActive = item.path ? isChildActive(item.path) : false;
+              return (
+                <a
+                  key={item.id}
+                  href={`#${item.path}`}
+                  className={`sidebar-item ${directActive ? 'active' : ''}`}
+                  onClick={(e) => handleItemClick(e, item.path || '/dashboard')}
+                >
+                  <span className="sidebar-item-icon">{item.icon}</span>
+                  <span style={{ flex: 1 }}>{item.label}</span>
+                  {item.badge && (
+                    <span className="badge-pill badge-overdue" style={{ fontSize: '10px', padding: '1px 6px' }}>
+                      {item.badge}
+                    </span>
+                  )}
+                </a>
+              );
+            })}
+          </div>
+        </React.Fragment>
+      ))}
+    </aside>
     </>
   );
 };
 
 export default Sidebar;
+
