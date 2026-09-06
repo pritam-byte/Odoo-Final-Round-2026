@@ -167,7 +167,8 @@ export const PurchaseOrdersPage: React.FC<{ onNavigate: (route: string) => void 
       {/* Purchase panel with counts tabs */}
       <div className="card-panel">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-          <div className="auth-tabs" style={{ width: 'auto', minWidth: '280px' }}>
+          {/* Tabs */}
+          <div className="auth-tabs" style={{ width: 'auto', flexWrap: 'nowrap' }}>
             {(['All', 'Confirmed', 'Draft'] as const).map((tab) => {
               const count = purchaseOrders.filter((p) => tab === 'All' || p.status === tab).length;
               return (
