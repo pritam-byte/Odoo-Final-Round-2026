@@ -11,6 +11,7 @@ export const registerSchema = z.object({
     .min(6, "Password must be at least 6 characters"),
   role: z.enum(["ADMIN", "ACCOUNTANT", "PORTAL_USER"]).default("ACCOUNTANT"),
   name: z.string().optional(),
+  contactType: z.enum(["CUSTOMER", "VENDOR", "BOTH"]).optional(),
   contactId: z.string().uuid().optional().nullable(),
 });
 

@@ -6,18 +6,25 @@ import { RoleSelector } from './RoleSelector';
 export interface UserEditModalProps {
   user: UserAccount;
   onClose: () => void;
-  onSave: (updated: { name: string; email: string; role: UserRole; status: UserStatus }) => void;
+  onSave: (updated: { name: string; email: string; role: UserRole; partnerType?: 'Customer' | 'Vendor' | 'Both'; status: UserStatus }) => void;
 }
 
 export const UserEditModal: React.FC<UserEditModalProps> = ({ user, onClose, onSave }) => {
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
   const [role, setRole] = useState<UserRole>(user.role);
+  const [partnerType, setPartnerType] = useState<'Customer' | 'Vendor' | 'Both'>(user.partnerType || 'Customer');
   const [status, setStatus] = useState<UserStatus>(user.status);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ name, email, role, status });
+    onSave({
+      name,
+      email,
+      role,
+      partnerType: role === 'User' ? partnerType : undefined,
+      status,
+    });
   };
 
   return (
@@ -104,6 +111,44 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({ user, onClose, onS
             <label className="form-label">Assign Role</label>
             <RoleSelector value={role} onChange={setRole} />
           </div>
+
+          {role === 'User' && (
+            <div
+              className="form-group"
+              style={{
+                backgroundColor: 'var(--color-bg)',
+                padding: '12px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--color-border)',
+              }}
+            >
+              <label className="form-label" style={{ margin: '0 0 6px 0', fontSize: '13px', fontWeight: 700 }}>
+                Portal Contact Scope (Strict Type)
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                {(
+                  [
+                    { id: 'Customer', label: '👤 Customer' },
+                    { id: 'Vendor', label: '🚚 Vendor' },
+                    { id: 'Both', label: '🔄 Both' },
+                  ] as const
+                ).map((opt) => {
+                  const isSelected = partnerType === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setPartnerType(opt.id)}
+                      className={`btn btn-sm ${isSelected ? 'btn-primary' : 'btn-outline'}`}
+                      style={{ justifyContent: 'center' }}
+                    >
+                      <span>{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div className="form-group">
             <label className="form-label">Account Status</label>

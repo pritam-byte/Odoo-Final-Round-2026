@@ -60,18 +60,26 @@ export const mapFrontendRole = (role: UserRole): string => {
   return 'PORTAL_USER';
 };
 
-export const mapBackendUserToFrontend = (u: any): UserAccount => ({
-  id: u.id,
-  name: u.contact?.name || u.loginId.charAt(0).toUpperCase() + u.loginId.slice(1),
-  loginId: u.loginId,
-  email: u.email || `${u.loginId}@urbanfurniture.com`,
-  role: mapBackendRole(u.role),
-  status: 'Active',
-  partnerType: 'Both',
-  partnerId: u.contactId || (u.role === 'PORTAL_USER' ? `partner_${u.loginId}` : undefined),
-  createdAt: typeof u.createdAt === 'string' ? u.createdAt.split('T')[0] : new Date(u.createdAt).toISOString().split('T')[0],
-  lastLogin: u.updatedAt ? new Date(u.updatedAt).toLocaleString() : undefined,
-});
+export const mapBackendUserToFrontend = (u: any): UserAccount => {
+  let partnerType: 'Customer' | 'Vendor' | 'Both' | undefined = undefined;
+  if (u.contact?.type === 'CUSTOMER') partnerType = 'Customer';
+  else if (u.contact?.type === 'VENDOR') partnerType = 'Vendor';
+  else if (u.contact?.type === 'BOTH') partnerType = 'Both';
+  else if (u.role === 'PORTAL_USER') partnerType = 'Customer';
+
+  return {
+    id: u.id,
+    name: u.contact?.name || u.loginId.charAt(0).toUpperCase() + u.loginId.slice(1),
+    loginId: u.loginId,
+    email: u.email || `${u.loginId}@urbanfurniture.com`,
+    role: mapBackendRole(u.role),
+    status: 'Active',
+    partnerType,
+    partnerId: u.contactId || (u.role === 'PORTAL_USER' ? `partner_${u.loginId}` : undefined),
+    createdAt: typeof u.createdAt === 'string' ? u.createdAt.split('T')[0] : new Date(u.createdAt).toISOString().split('T')[0],
+    lastLogin: u.updatedAt ? new Date(u.updatedAt).toLocaleString() : undefined,
+  };
+};
 
 const loadUsers = (): UserAccount[] => {
   try {
@@ -127,6 +135,10 @@ export const createNewUserApi = async (
     return { success: false, message: 'Password must be at least 6 characters.' };
   }
 
+  const contactType = input.partnerType
+    ? (input.partnerType.toUpperCase() as 'CUSTOMER' | 'VENDOR' | 'BOTH')
+    : (input.role === 'User' ? 'CUSTOMER' : undefined);
+
   // Live PostgreSQL call
   try {
     const backendRes = await apiRequest('/auth/register', {
@@ -137,6 +149,7 @@ export const createNewUserApi = async (
         email: input.email.trim(),
         password: input.password || 'password123',
         role: mapFrontendRole(input.role),
+        contactType,
       }),
     });
 
@@ -148,6 +161,7 @@ export const createNewUserApi = async (
         loginId: bUser.loginId,
         email: bUser.email,
         role: mapBackendRole(bUser.role),
+        partnerType: input.partnerType || (input.role === 'User' ? 'Customer' : undefined),
         status: 'Active',
         partnerId: bUser.contactId || undefined,
         createdAt: new Date().toISOString().split('T')[0],
@@ -177,6 +191,10 @@ export const updateUserAccountApi = async (
   id: string,
   input: UpdateUserInput
 ): Promise<{ success: boolean; message: string; user?: UserAccount }> => {
+  const contactType = input.partnerType
+    ? (input.partnerType.toUpperCase() as 'CUSTOMER' | 'VENDOR' | 'BOTH')
+    : undefined;
+
   try {
     const backendRes = await apiRequest(`/auth/users/${id}`, {
       method: 'PUT',
@@ -184,6 +202,7 @@ export const updateUserAccountApi = async (
         name: input.name.trim(),
         email: input.email.trim(),
         role: mapFrontendRole(input.role),
+        contactType,
       }),
     });
 
@@ -195,6 +214,7 @@ export const updateUserAccountApi = async (
         loginId: bUser.loginId,
         email: bUser.email,
         role: mapBackendRole(bUser.role),
+        partnerType: input.partnerType || (input.role === 'User' ? 'Customer' : undefined),
         status: input.status,
         createdAt: bUser.createdAt ? new Date(bUser.createdAt).toISOString().split('T')[0] : '2026-01-01',
       };
@@ -296,6 +316,7 @@ export const updateUserAccount = (id: string, input: UpdateUserInput): { success
     name: input.name.trim(),
     email: input.email.trim(),
     role: input.role,
+    partnerType: input.partnerType !== undefined ? input.partnerType : mockUsers[index].partnerType,
     status: input.status
   };
 

@@ -19,6 +19,7 @@ export const productSchema = z.object({
   cost: z.coerce.number().min(0, "Cost cannot be negative"),
   type: z.enum(["GOODS", "SERVICE", "COMBO"]).default("GOODS"),
   image: z.string().optional(),
+  maxQuantity: z.coerce.number().min(0).optional(),
 });
 
 export const analyticSchema = z.object({

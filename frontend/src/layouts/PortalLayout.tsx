@@ -51,7 +51,7 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
   const notifContainerRef = useRef<HTMLDivElement>(null);
 
   const currentUser = user || getStoredUser() || CURRENT_USER;
-  const pType = currentUser.partnerType || 'Both';
+  const pType = currentUser?.partnerType || 'Customer';
 
   // Automatically close mobile menu on tab change
   useEffect(() => {

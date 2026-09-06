@@ -46,6 +46,7 @@ export interface Product {
   salesPrice: number;
   cost: number;
   imageUrl?: string;
+  maxQuantity?: number; // 0 or undefined = unlimited
 }
 
 export interface Account {
@@ -267,7 +268,7 @@ export interface AccountingStoreContextType {
 
   invoices: CustomerInvoice[];
   addInvoice: (inv: Omit<CustomerInvoice, 'id' | 'invoiceNumber' | 'amountPaid' | 'amountDue'>) => CustomerInvoice;
-  confirmInvoice: (id: string) => void;
+  confirmInvoice: (id: string) => Promise<{ success: boolean; error?: string }>;
   payInvoice: (id: string, amount: number, paymentVia: 'Bank' | 'Cash' | 'Razorpay', date: string) => void;
 
   // Purchases & Bills
@@ -277,7 +278,7 @@ export interface AccountingStoreContextType {
 
   bills: VendorBill[];
   addBill: (b: Omit<VendorBill, 'id' | 'billNumber' | 'amountPaid' | 'amountDue'>) => VendorBill;
-  confirmBill: (id: string) => void;
+  confirmBill: (id: string) => Promise<{ success: boolean; error?: string }>;
   payBill: (id: string, amount: number, paymentVia: 'Bank' | 'Cash' | 'Razorpay', date: string) => void;
 
   // Payments
@@ -374,6 +375,7 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
     salesPrice: Number(p.salesPrice) || 0,
     cost: Number(p.cost) || 0,
     imageUrl: p.image || undefined,
+    maxQuantity: p.maxQuantity ? Number(p.maxQuantity) : undefined,
   });
 
   const mapBackendAccount = (a: any): Account => {
@@ -801,6 +803,7 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
         cost: p.cost,
         type: (p.type?.toUpperCase() || 'GOODS'),
         image: p.imageUrl || '',
+        maxQuantity: p.maxQuantity ?? null,
       }),
     }).then((res) => {
       if (res.success && res.data) {
@@ -1107,20 +1110,28 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
     return newInv;
   };
 
-  const confirmInvoice = (id: string) => {
+  const confirmInvoice = async (id: string): Promise<{ success: boolean; error?: string }> => {
+    // Optimistically mark confirmed
     setInvoices((prev) =>
       prev.map((inv) => (inv.id === id ? { ...inv, status: 'Confirmed' } : inv))
     );
 
-    apiRequest(`/customer-invoices/${id}/confirm`, { method: 'POST' }).then((res) => {
-      if (res.success) {
-        apiRequest('/journal-entries').then((jeRes) => {
-          if (jeRes.success && Array.isArray(jeRes.data)) {
-            setJournalEntries(jeRes.data.map(mapBackendJournalEntry));
-          }
-        });
-      }
-    });
+    const res = await apiRequest(`/customer-invoices/${id}/confirm`, { method: 'POST' });
+    if (res.success) {
+      apiRequest('/journal-entries').then((jeRes) => {
+        if (jeRes.success && Array.isArray(jeRes.data)) {
+          setJournalEntries(jeRes.data.map(mapBackendJournalEntry));
+        }
+      });
+      return { success: true };
+    } else {
+      // Revert optimistic update on failure
+      setInvoices((prev) =>
+        prev.map((inv) => (inv.id === id ? { ...inv, status: 'Draft' } : inv))
+      );
+      const errorMsg: string = res.error || 'Failed to confirm invoice.';
+      return { success: false, error: errorMsg };
+    }
   };
 
   const payInvoice = (id: string, amount: number, paymentVia: 'Bank' | 'Cash' | 'Razorpay', date: string) => {
@@ -1256,20 +1267,28 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
     return newBill;
   };
 
-  const confirmBill = (id: string) => {
+  const confirmBill = async (id: string): Promise<{ success: boolean; error?: string }> => {
+    // Optimistically mark confirmed
     setBills((prev) =>
       prev.map((b) => (b.id === id ? { ...b, status: 'Confirmed' } : b))
     );
 
-    apiRequest(`/vendor-bills/${id}/confirm`, { method: 'POST' }).then((res) => {
-      if (res.success) {
-        apiRequest('/journal-entries').then((jeRes) => {
-          if (jeRes.success && Array.isArray(jeRes.data)) {
-            setJournalEntries(jeRes.data.map(mapBackendJournalEntry));
-          }
-        });
-      }
-    });
+    const res = await apiRequest(`/vendor-bills/${id}/confirm`, { method: 'POST' });
+    if (res.success) {
+      apiRequest('/journal-entries').then((jeRes) => {
+        if (jeRes.success && Array.isArray(jeRes.data)) {
+          setJournalEntries(jeRes.data.map(mapBackendJournalEntry));
+        }
+      });
+      return { success: true };
+    } else {
+      // Revert optimistic update on failure
+      setBills((prev) =>
+        prev.map((b) => (b.id === id ? { ...b, status: 'Draft' } : b))
+      );
+      const errorMsg: string = res.error || 'Failed to confirm bill.';
+      return { success: false, error: errorMsg };
+    }
   };
 
   const payBill = (id: string, amount: number, paymentVia: 'Bank' | 'Cash' | 'Razorpay', date: string) => {

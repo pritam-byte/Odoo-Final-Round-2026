@@ -299,6 +299,29 @@ export const ContactsPage: React.FC<{ onNavigate: (route: string) => void }> = (
                 placeholder="+91 9090090909"
                 leadingIcon={<Phone size={15} />}
               />
+
+              <div className="form-group">
+                <label className="form-label">Contact Type (Strict Selection)</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                  {(
+                    [
+                      { id: 'customer', label: '👤 Customer' },
+                      { id: 'vendor', label: '🚚 Vendor' },
+                      { id: 'partner', label: '🔄 Both' },
+                    ] as const
+                  ).map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setType(t.id)}
+                      className={`btn btn-sm ${type === t.id ? 'btn-primary' : 'btn-outline'}`}
+                      style={{ justifyContent: 'center', padding: '6px 4px', fontSize: '12px' }}
+                    >
+                      <span>{t.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Image Upload Box matching Wireframe */}

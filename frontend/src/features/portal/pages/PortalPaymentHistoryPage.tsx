@@ -8,7 +8,7 @@ import { getStoredUser } from '../../../lib/auth';
 
 export const PortalPaymentHistoryPage: React.FC = () => {
   const currentUser = getStoredUser();
-  const pType = currentUser?.partnerType || 'Both';
+  const pType = currentUser?.partnerType || 'Customer';
 
   const [payments, setPayments] = useState<PortalPayment[]>(() => getMyPayments());
   const [selectedPayment, setSelectedPayment] = useState<PortalPayment | null>(null);

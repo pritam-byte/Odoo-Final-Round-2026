@@ -15,7 +15,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onNavigateToL
     loginId: '',
     email: '',
     role: 'User',
-    partnerType: 'Both',
+    partnerType: 'Customer',
     password: '',
     confirmPassword: '',
   });
@@ -33,7 +33,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onNavigateToL
     setFormData((prev) => ({
       ...prev,
       role,
-      partnerType: role === 'User' ? (prev.partnerType || 'Both') : undefined,
+      partnerType: role === 'User' ? (prev.partnerType || 'Customer') : undefined,
     }));
   };
 

@@ -22,7 +22,7 @@ export interface PortalDashboardPageProps {
 
 export const PortalDashboardPage: React.FC<PortalDashboardPageProps> = ({ onNavigate, user }) => {
   const currentUser = user || getStoredUser() || CURRENT_USER;
-  const pType = currentUser?.partnerType || 'Both';
+  const pType = currentUser?.partnerType || 'Customer';
   const userName = currentUser?.name || 'User';
 
   const [dualFilter, setDualFilter] = useState<'ALL' | 'invoice' | 'bill'>('ALL');

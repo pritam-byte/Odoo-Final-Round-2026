@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Check, ArrowLeft, Wallet, Printer, Send, CheckCircle2, Download } from 'lucide-react';
+import { Plus, Check, ArrowLeft, Wallet, Printer, Send, CheckCircle2, AlertTriangle, Download } from 'lucide-react';
 import { useAccountingStore, CustomerInvoice, OrderLine } from '../../accounting/store';
 import { Button } from '../../../components/ui/Button';
 import { StatusBadge } from '../../../components/ui/StatusBadge';
@@ -31,6 +31,7 @@ export const InvoicesPage: React.FC<{ onNavigate: (route: string) => void }> = (
   const [dueDate, setDueDate] = useState(new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0]);
   const [lines, setLines] = useState<OrderLine[]>([]);
   const [error, setError] = useState('');
+  const [budgetError, setBudgetError] = useState<string | null>(null);
 
   const openCreateModal = () => {
     setPartnerId(contacts[0]?.id || '');
@@ -58,10 +59,19 @@ export const InvoicesPage: React.FC<{ onNavigate: (route: string) => void }> = (
     setIsCreateModalOpen(true);
   };
 
-  const handleSaveInvoice = (status: 'Draft' | 'Confirmed') => {
+  const handleSaveInvoice = async (status: 'Draft' | 'Confirmed') => {
     if (lines.length === 0) {
       setError('Please add at least one line item to this invoice.');
       return;
+    }
+
+    for (const line of lines) {
+      const prod = products.find((p) => p.id === line.productId);
+      const qty = Number(line.quantity) || 0;
+      if (prod?.maxQuantity && prod.maxQuantity > 0 && qty > prod.maxQuantity) {
+        setError(`Cannot save invoice: Product "${prod.name}" quantity (${qty}) exceeds the maximum allowed limit of ${prod.maxQuantity}. Please adjust before saving.`);
+        return;
+      }
     }
 
     const partner = contacts.find((c) => c.id === partnerId) || contacts[0];
@@ -79,7 +89,12 @@ export const InvoicesPage: React.FC<{ onNavigate: (route: string) => void }> = (
     });
 
     if (status === 'Confirmed') {
-      confirmInvoice(created.id);
+      const result = await confirmInvoice(created.id);
+      if (!result.success) {
+        setBudgetError(result.error || 'Failed to confirm invoice.');
+        setIsCreateModalOpen(false);
+        return;
+      }
     }
 
     setIsCreateModalOpen(false);
@@ -216,9 +231,14 @@ export const InvoicesPage: React.FC<{ onNavigate: (route: string) => void }> = (
                   <Button
                     variant="primary"
                     size="sm"
-                    onClick={() => {
-                      confirmInvoice(viewingInvoice.id);
-                      setViewingInvoice({ ...viewingInvoice, status: 'Confirmed' });
+                    onClick={async () => {
+                      const result = await confirmInvoice(viewingInvoice.id);
+                      if (result.success) {
+                        setViewingInvoice({ ...viewingInvoice, status: 'Confirmed' });
+                      } else {
+                        setBudgetError(result.error || 'Failed to confirm invoice.');
+                        setViewingInvoice(null);
+                      }
                     }}
                     leftIcon={<CheckCircle2 size={14} />}
                   >
@@ -416,6 +436,36 @@ export const InvoicesPage: React.FC<{ onNavigate: (route: string) => void }> = (
           <LineItemsTable lines={lines} onChange={setLines} defaultAccountType="Income" />
         </form>
       </Modal>
+      {/* Budget Exceeded Error Modal */}
+      {budgetError && (
+        <Modal
+          isOpen={true}
+          onClose={() => setBudgetError(null)}
+          title={
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#b91c1c' }}>
+              <AlertTriangle size={18} />
+              <span>Budget Limit Exceeded — Invoice Blocked</span>
+            </div>
+          }
+          maxWidth="520px"
+          footer={
+            <Button variant="primary" onClick={() => setBudgetError(null)}>
+              OK, Go Back
+            </Button>
+          }
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ padding: '14px 16px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', fontSize: '13px', color: '#991b1b', lineHeight: '1.6' }}>
+              {budgetError.replace('BUDGET_EXCEEDED: ', '')}
+            </div>
+            <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+              This invoice has <strong>not been confirmed</strong>. Please either reduce the invoice amount to stay
+              within the remaining budget, or go to <strong>Accounting → Budgets</strong> and revise the committed
+              budget amount before confirming.
+            </p>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

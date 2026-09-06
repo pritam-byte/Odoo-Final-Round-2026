@@ -25,7 +25,9 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
   const [salesPrice, setSalesPrice] = useState<number>(100);
   const [cost, setCost] = useState<number>(50);
   const [imageUrl, setImageUrl] = useState('');
+  const [maxQuantity, setMaxQuantity] = useState<number | ''>(0);
   const [error, setError] = useState('');
+  const [savedProductName, setSavedProductName] = useState<string | null>(null);
 
   const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -48,6 +50,7 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
     setSalesPrice(100);
     setCost(50);
     setImageUrl('');
+    setMaxQuantity(0);
     setError('');
     setIsModalOpen(true);
   };
@@ -60,6 +63,7 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
     setSalesPrice(p.salesPrice);
     setCost(p.cost);
     setImageUrl(p.imageUrl || '');
+    setMaxQuantity(p.maxQuantity ?? 0);
     setError('');
     setIsModalOpen(true);
   };
@@ -81,6 +85,7 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
       salesPrice: Number(salesPrice) || 0,
       cost: Number(cost) || 0,
       imageUrl: imageUrl || '',
+      maxQuantity: maxQuantity !== '' && Number(maxQuantity) > 0 ? Number(maxQuantity) : undefined,
     };
 
     if (editingProduct) {
@@ -89,6 +94,7 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
       addProduct(payload);
     }
 
+    setSavedProductName(name);
     setIsModalOpen(false);
   };
 
@@ -158,12 +164,50 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
       align: 'right',
       render: (p) => <span style={{ color: 'var(--color-text-muted)' }}>₹{p.cost.toLocaleString()}</span>,
     },
+    {
+      key: 'maxQuantity',
+      header: 'Max Order Qty',
+      align: 'center',
+      render: (p) => (
+        <span style={{
+          fontWeight: 600,
+          color: p.maxQuantity ? 'var(--color-primary)' : 'var(--color-text-muted)',
+          fontSize: '13px',
+        }}>
+          {p.maxQuantity ? p.maxQuantity : '∞ Unlimited'}
+        </span>
+      ),
+    },
   ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Accountant Module Navigation */}
       <AccountantNav currentRoute="/products" onNavigate={onNavigate} />
+
+      {/* Post-save success banner showing saved product name */}
+      {savedProductName && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '10px 16px',
+          backgroundColor: '#f0fdf4',
+          border: '1px solid #bbf7d0',
+          borderRadius: '8px',
+          fontSize: '13px',
+          color: '#166534',
+          gap: '8px',
+        }}>
+          <span>
+            ✅ Product <strong>"{savedProductName}"</strong> saved successfully.
+          </span>
+          <button
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#166534', fontWeight: 700, fontSize: '16px', lineHeight: 1 }}
+            onClick={() => setSavedProductName(null)}
+          >×</button>
+        </div>
+      )}
 
       {/* Header & Controls matching Wireframe */}
       <div className="content-header">
@@ -353,6 +397,34 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
               leadingIcon={<IndianRupee size={15} />}
               required
             />
+          </div>
+
+          {/* Max Order Quantity */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Max Order Quantity per Transaction
+              <span style={{
+                fontSize: '10px',
+                fontWeight: 500,
+                padding: '2px 7px',
+                borderRadius: '10px',
+                backgroundColor: '#eff6ff',
+                color: '#1d4ed8',
+                border: '1px solid #bfdbfe',
+              }}>Optional</span>
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              className="form-input"
+              value={maxQuantity}
+              onChange={(e) => setMaxQuantity(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value) || 0))}
+              placeholder="Leave 0 for unlimited..."
+            />
+            <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+              Set a per-order quantity cap. Orders trying to exceed this will be blocked. Set to 0 for no limit.
+            </span>
           </div>
 
           {/* Product Image Upload (No URL entry required) */}

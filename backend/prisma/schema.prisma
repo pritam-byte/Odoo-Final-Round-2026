@@ -77,9 +77,10 @@ model Product {
   salesPrice Decimal     @default(0.0) @db.Decimal(12, 2)
   cost       Decimal     @default(0.0) @db.Decimal(12, 2)
   type       ProductType @default(GOODS)
-  image      String?
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  image       String?
+  maxQuantity Int?        @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
   purchaseOrderLines   PurchaseOrderLine[]
   vendorBillLines      VendorBillLine[]

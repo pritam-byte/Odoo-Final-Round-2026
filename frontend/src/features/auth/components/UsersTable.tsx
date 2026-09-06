@@ -63,9 +63,16 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                 </td>
                 <td>{u.email}</td>
                 <td>
-                  <span className={getRoleBadgeClass(u.role)}>
-                    {u.role}
-                  </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', alignItems: 'flex-start' }}>
+                    <span className={getRoleBadgeClass(u.role)}>
+                      {u.role === 'User' ? 'Portal User' : u.role}
+                    </span>
+                    {u.role === 'User' && (
+                      <span className="badge-pill badge-neutral" style={{ fontSize: '10px', padding: '1px 6px' }}>
+                        {u.partnerType || 'Customer'}
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td>
                   <StatusToggle

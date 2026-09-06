@@ -39,7 +39,7 @@ export async function register(req: Request, res: Response) {
         data: {
           name: parsed.name,
           email: parsed.email,
-          type: "BOTH",
+          type: parsed.contactType || "CUSTOMER",
         },
       });
       contactId = contact.id;
@@ -53,10 +53,36 @@ export async function register(req: Request, res: Response) {
         role: parsed.role,
         contactId: contactId,
       },
-      select: { id: true, loginId: true, email: true, role: true, contactId: true, createdAt: true },
+      select: {
+        id: true,
+        loginId: true,
+        email: true,
+        role: true,
+        contactId: true,
+        createdAt: true,
+        contact: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+          },
+        },
+      },
     });
 
-    return res.status(201).json({ message: "User registered successfully", user });
+    return res.status(201).json({
+      message: "User registered successfully",
+      user: {
+        id: user.id,
+        loginId: user.loginId,
+        email: user.email,
+        role: user.role,
+        contactId: user.contactId,
+        contactType: user.contact?.type || (user.role === 'PORTAL_USER' ? 'CUSTOMER' : undefined),
+        name: user.contact?.name,
+        createdAt: user.createdAt,
+      },
+    });
   } catch (error: any) {
     return res.status(400).json({ error: error.errors?.[0]?.message || error.message });
   }
@@ -94,7 +120,7 @@ export async function getUsers(req: Request, res: Response) {
 export async function updateUser(req: Request, res: Response) {
   try {
     const id = String(req.params.id);
-    const { email, role, password, name } = req.body;
+    const { email, role, password, name, contactType } = req.body;
 
     const dataToUpdate: any = {};
     if (email) dataToUpdate.email = email;
@@ -118,10 +144,14 @@ export async function updateUser(req: Request, res: Response) {
       },
     });
 
-    if (name && updated.contactId) {
+    if (updated.contactId && (name || email || contactType)) {
       await prisma.contact.update({
         where: { id: updated.contactId },
-        data: { name, email: email || undefined },
+        data: {
+          name: name || undefined,
+          email: email || undefined,
+          type: contactType || undefined,
+        },
       });
     }
 
@@ -157,6 +187,15 @@ export async function login(req: Request, res: Response) {
           { email: { equals: trimmed, mode: 'insensitive' } },
         ],
       },
+      include: {
+        contact: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+          },
+        },
+      },
     });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
@@ -182,6 +221,8 @@ export async function login(req: Request, res: Response) {
         email: user.email,
         role: user.role,
         contactId: user.contactId,
+        contactType: user.contact?.type || (user.role === 'PORTAL_USER' ? 'CUSTOMER' : undefined),
+        name: user.contact?.name,
       },
     });
   } catch (error: any) {

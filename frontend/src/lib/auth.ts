@@ -75,13 +75,19 @@ export const loginUser = async (
       const { token, user: bUser } = backendRes.data;
       if (token) setAuthToken(token);
 
+      let partnerType: 'Customer' | 'Vendor' | 'Both' | undefined = undefined;
+      if (bUser.contactType === 'VENDOR') partnerType = 'Vendor';
+      else if (bUser.contactType === 'BOTH') partnerType = 'Both';
+      else if (bUser.contactType === 'CUSTOMER') partnerType = 'Customer';
+      else if (bUser.role === 'PORTAL_USER') partnerType = 'Customer';
+
       const mappedUser: UserAccount = {
         id: bUser.id,
-        name: bUser.loginId.charAt(0).toUpperCase() + bUser.loginId.slice(1),
+        name: bUser.name || (bUser.loginId.charAt(0).toUpperCase() + bUser.loginId.slice(1)),
         loginId: bUser.loginId,
         email: bUser.email || `${bUser.loginId}@urbanfurniture.com`,
         role: mapBackendRole(bUser.role),
-        partnerType: 'Both',
+        partnerType,
         status: 'Active',
         partnerId: bUser.contactId || (bUser.role === 'PORTAL_USER' ? `partner_${bUser.loginId}` : undefined),
         createdAt: new Date().toISOString().split('T')[0],
@@ -147,6 +153,10 @@ export const registerAndLogin = async (
 ): Promise<{ success: boolean; message: string; user?: UserAccount }> => {
   // 1. Live PostgreSQL backend registration
   try {
+    const contactType = input.partnerType
+      ? (input.partnerType.toUpperCase() as 'CUSTOMER' | 'VENDOR' | 'BOTH')
+      : (input.role === 'User' ? 'CUSTOMER' : undefined);
+
     const backendRes = await apiRequest<{ user: any; message?: string }>('/auth/register', {
       method: 'POST',
       body: JSON.stringify({
@@ -155,6 +165,7 @@ export const registerAndLogin = async (
         email: input.email.trim(),
         password: input.password || 'password123',
         role: mapFrontendRole(input.role),
+        contactType,
       }),
     });
 

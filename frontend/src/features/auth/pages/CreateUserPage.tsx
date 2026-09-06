@@ -14,6 +14,7 @@ export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCan
     loginId: '',
     email: '',
     role: 'Accountant',
+    partnerType: 'Customer',
     password: '',
     confirmPassword: '',
   });
@@ -29,7 +30,11 @@ export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCan
   };
 
   const handleRoleSelect = (role: UserRole) => {
-    setFormData((prev) => ({ ...prev, role }));
+    setFormData((prev) => ({
+      ...prev,
+      role,
+      partnerType: role === 'User' ? (prev.partnerType || 'Customer') : undefined,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -199,12 +204,72 @@ export const CreateUserPage: React.FC<CreateUserPageProps> = ({ onSuccess, onCan
                       className={`btn btn-sm ${isSelected ? 'btn-primary' : 'btn-outline'}`}
                       style={{ justifyContent: 'center' }}
                     >
-                      <span>{r}</span>
+                      <span>{r === 'User' ? 'Portal User' : r}</span>
                     </button>
                   );
                 })}
               </div>
             </div>
+
+            {formData.role === 'User' && (
+              <div
+                className="form-group"
+                style={{
+                  backgroundColor: 'var(--color-bg)',
+                  padding: '16px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--color-border)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <label className="form-label" style={{ margin: 0, fontWeight: 700 }}>
+                    Portal Contact Scope (Strict Type)
+                  </label>
+                  <span className="badge-pill badge-neutral" style={{ fontSize: '11px' }}>
+                    Mandatory Selection
+                  </span>
+                </div>
+                <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 12px 0' }}>
+                  Strictly defines what transactions this portal user can view and manage:
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                  {(
+                    [
+                      { id: 'Customer', label: '👤 Customer Only', desc: 'Can view & pay Sales Invoices' },
+                      { id: 'Vendor', label: '🚚 Vendor Only', desc: 'Can view & settle Purchase Bills' },
+                      { id: 'Both', label: '🔄 Both (Dual)', desc: 'Full Customer + Vendor access' },
+                    ] as const
+                  ).map((opt) => {
+                    const isSelected = (formData.partnerType || 'Customer') === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, partnerType: opt.id }))}
+                        className={`btn btn-sm ${isSelected ? 'btn-primary' : 'btn-outline'}`}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          padding: '12px 8px',
+                          height: 'auto',
+                          textAlign: 'center',
+                          gap: '4px',
+                          borderColor: isSelected ? 'var(--color-primary)' : 'var(--color-border)',
+                          backgroundColor: isSelected ? 'var(--color-primary-light)' : 'transparent',
+                          color: isSelected ? 'var(--color-primary)' : 'var(--color-text-primary)',
+                        }}
+                      >
+                        <strong style={{ fontSize: '13px' }}>{opt.label}</strong>
+                        <span style={{ fontSize: '10px', opacity: 0.85, fontWeight: 'normal', lineHeight: 1.2 }}>
+                          {opt.desc}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
               <div className="form-group">

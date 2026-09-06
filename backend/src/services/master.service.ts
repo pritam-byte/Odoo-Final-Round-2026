@@ -46,13 +46,15 @@ export class MasterService {
     cost: number;
     type: ProductType;
     image?: string;
+    maxQuantity?: number;
   }) {
     return prisma.product.create({
       data: {
         ...data,
         salesPrice: new Prisma.Decimal(data.salesPrice),
         cost: new Prisma.Decimal(data.cost),
-      },
+        maxQuantity: (data as any).maxQuantity !== undefined && (data as any).maxQuantity !== null ? Number((data as any).maxQuantity) : null,
+      } as any,
     });
   }
 

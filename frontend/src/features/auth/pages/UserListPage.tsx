@@ -46,7 +46,7 @@ export const UserListPage: React.FC<UserListPageProps> = ({ onNavigateToCreate }
     }
   };
 
-  const handleSaveUser = async (updatedData: { name: string; email: string; role: UserRole; status: 'Active' | 'Inactive' }) => {
+  const handleSaveUser = async (updatedData: { name: string; email: string; role: UserRole; partnerType?: 'Customer' | 'Vendor' | 'Both'; status: 'Active' | 'Inactive' }) => {
     if (!selectedUser) return;
     const res = await updateUserAccountApi(selectedUser.id, updatedData);
     if (res.success) {

@@ -55,6 +55,15 @@ export const SalesOrdersPage: React.FC<{ onNavigate: (route: string) => void }> 
       return;
     }
 
+    for (const line of lines) {
+      const prod = products.find((p) => p.id === line.productId);
+      const qty = Number(line.quantity) || 0;
+      if (prod?.maxQuantity && prod.maxQuantity > 0 && qty > prod.maxQuantity) {
+        setError(`Cannot save order: Product "${prod.name}" quantity (${qty}) exceeds the maximum allowed limit of ${prod.maxQuantity}. Please adjust before saving.`);
+        return;
+      }
+    }
+
     const partner = contacts.find((c) => c.id === partnerId) || contacts[0];
     const total = lines.reduce((s: number, l: OrderLine) => s + l.total, 0);
 

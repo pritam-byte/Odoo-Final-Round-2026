@@ -52,7 +52,7 @@ function getStoredPayments(): any[] {
 
 export const getMyScopedDocuments = (documentType?: DocumentType): PortalDocument[] => {
   const current = getStoredUser();
-  const partnerType = current?.partnerType || 'Both';
+  const partnerType = current?.partnerType || 'Customer';
   const currentPartnerId = getScopedPartnerId();
   const contacts = getStoredContacts();
   const invoices = getStoredInvoices();
@@ -159,7 +159,7 @@ export const getMyScopedDocumentById = (id: string): PortalDocument | null => {
 
 export const getMyPayments = (): PortalPayment[] => {
   const current = getStoredUser();
-  const partnerType = current?.partnerType || 'Both';
+  const partnerType = current?.partnerType || 'Customer';
   const currentPartnerId = getScopedPartnerId();
   const contacts = getStoredContacts();
   const payments = getStoredPayments();

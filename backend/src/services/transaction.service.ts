@@ -3,6 +3,18 @@ import { AccountingEngine } from "./accounting.service.js";
 import { Prisma } from "@prisma/client";
 
 export class TransactionService {
+  private static async validateProductLimits(lines: Array<{ productId: string; qty: number }>) {
+    for (const line of lines) {
+      if (!line.productId) continue;
+      const prod = await prisma.product.findUnique({ where: { id: line.productId } });
+      if (prod && (prod as any).maxQuantity && (prod as any).maxQuantity > 0 && line.qty > (prod as any).maxQuantity) {
+        throw new Error(
+          `Quantity (${line.qty}) exceeds the maximum allowed limit of ${(prod as any).maxQuantity} for product "${prod.name}". Please reduce the quantity.`
+        );
+      }
+    }
+  }
+
   // --- PURCHASE ORDERS ---
   static async createPurchaseOrder(data: {
     vendorId: string;
@@ -10,6 +22,7 @@ export class TransactionService {
     paymentTerms?: string;
     lines: Array<{ productId: string; analyticId?: string; qty: number; unitPrice: number }>;
   }) {
+    await TransactionService.validateProductLimits(data.lines);
     const totalAmount = data.lines.reduce((sum, l) => sum + l.qty * l.unitPrice, 0);
     const count = await prisma.purchaseOrder.count();
     const poNo = `P${(count + 1).toString().padStart(5, "0")}`;
@@ -95,6 +108,7 @@ export class TransactionService {
     dueDate: Date;
     lines: Array<{ productId: string; accountId: string; analyticId?: string; qty: number; unitPrice: number }>;
   }) {
+    await TransactionService.validateProductLimits(data.lines);
     const totalAmount = data.lines.reduce((sum, l) => sum + l.qty * l.unitPrice, 0);
     const count = await prisma.vendorBill.count();
     const billNo = `Bill/${new Date().getFullYear()}/${(count + 1).toString().padStart(4, "0")}`;
@@ -125,18 +139,63 @@ export class TransactionService {
   }
 
   static async confirmVendorBill(billId: string) {
-    return prisma.$transaction(async (tx) => {
-      const bill = await tx.vendorBill.findUnique({
-        where: { id: billId },
-        include: { lines: true },
+    // --- BUDGET ENFORCEMENT (outside transaction so we can throw cleanly) ---
+    const bill = await prisma.vendorBill.findUnique({
+      where: { id: billId },
+      include: { lines: true },
+    });
+    if (!bill) throw new Error("Vendor Bill not found");
+    if (bill.status === "CONFIRMED") throw new Error("Bill is already confirmed");
+
+    for (const line of bill.lines) {
+      if (!line.analyticId) continue;
+
+      const budget = await prisma.budget.findFirst({
+        where: {
+          analyticId: line.analyticId,
+          type: "EXPENSE",
+          status: "CONFIRMED",
+          startDate: { lte: bill.billDate },
+          endDate: { gte: bill.billDate },
+        },
       });
 
-      if (!bill) throw new Error("Vendor Bill not found");
-      if (bill.status === "CONFIRMED") throw new Error("Bill is already confirmed");
+      if (!budget) continue;
 
+      // Sum all already-confirmed bill lines for this analytic in the budget period
+      const spentLines = await prisma.vendorBillLine.findMany({
+        where: {
+          analyticId: line.analyticId,
+          bill: {
+            id: { not: billId }, // exclude this bill itself
+            status: "CONFIRMED",
+            billDate: { gte: budget.startDate, lte: budget.endDate },
+          },
+        },
+      });
+      const alreadySpent = spentLines.reduce(
+        (acc, l) => acc.add(l.subtotal),
+        new Prisma.Decimal(0)
+      );
+      const remaining = budget.committedAmount.sub(alreadySpent);
+
+      if (line.subtotal.gt(remaining)) {
+        const analyticRecord = await prisma.analytic.findUnique({ where: { id: line.analyticId } });
+        const analyticName = analyticRecord?.name ?? line.analyticId;
+        throw new Error(
+          `BUDGET_EXCEEDED: Bill line exceeds the approved budget for analytic "${analyticName}". ` +
+          `Budget limit: ₹${budget.committedAmount.toFixed(2)}, ` +
+          `already spent: ₹${alreadySpent.toFixed(2)}, ` +
+          `remaining: ₹${remaining.toFixed(2)}, ` +
+          `this line: ₹${line.subtotal.toFixed(2)}.`
+        );
+      }
+    }
+
+    // --- ACCOUNTING POST ---
+    return prisma.$transaction(async (tx) => {
       const totalNum = bill.totalAmount.toNumber();
 
-      // Trigger Accounting Engine: Purchase Expense (Dr) / Creditor A/c (Cr)
       const journalEntry = await AccountingEngine.postAutomatedJournalEntry(tx, {
         journalName: "Purchase",
         partnerId: bill.vendorId,
@@ -164,6 +223,7 @@ export class TransactionService {
     soDate: Date;
     lines: Array<{ productId: string; qty: number; unitPrice: number }>;
   }) {
+    await TransactionService.validateProductLimits(data.lines);
     const totalAmount = data.lines.reduce((sum, l) => sum + l.qty * l.unitPrice, 0);
     const count = await prisma.salesOrder.count();
     const soNo = `S${(count + 1).toString().padStart(5, "0")}`;
@@ -196,6 +256,7 @@ export class TransactionService {
     dueDate: Date;
     lines: Array<{ productId: string; accountId: string; analyticId?: string; qty: number; unitPrice: number }>;
   }) {
+    await TransactionService.validateProductLimits(data.lines);
     const totalAmount = data.lines.reduce((sum, l) => sum + l.qty * l.unitPrice, 0);
     const count = await prisma.customerInvoice.count();
     const invoiceNo = `INV/${new Date().getFullYear()}/${(count + 1).toString().padStart(4, "0")}`;
@@ -226,18 +287,63 @@ export class TransactionService {
   }
 
   static async confirmCustomerInvoice(invoiceId: string) {
-    return prisma.$transaction(async (tx) => {
-      const invoice = await tx.customerInvoice.findUnique({
-        where: { id: invoiceId },
-        include: { lines: true },
+    // --- BUDGET ENFORCEMENT (outside transaction so we can throw cleanly) ---
+    const invoice = await prisma.customerInvoice.findUnique({
+      where: { id: invoiceId },
+      include: { lines: true },
+    });
+    if (!invoice) throw new Error("Customer Invoice not found");
+    if (invoice.status === "CONFIRMED") throw new Error("Invoice is already confirmed");
+
+    for (const line of invoice.lines) {
+      if (!line.analyticId) continue;
+
+      const budget = await prisma.budget.findFirst({
+        where: {
+          analyticId: line.analyticId,
+          type: "INCOME",
+          status: "CONFIRMED",
+          startDate: { lte: invoice.invoiceDate },
+          endDate: { gte: invoice.invoiceDate },
+        },
       });
 
-      if (!invoice) throw new Error("Customer Invoice not found");
-      if (invoice.status === "CONFIRMED") throw new Error("Invoice is already confirmed");
+      if (!budget) continue;
 
+      // Sum already-confirmed invoice lines for this analytic in the budget period
+      const earnedLines = await prisma.customerInvoiceLine.findMany({
+        where: {
+          analyticId: line.analyticId,
+          invoice: {
+            id: { not: invoiceId }, // exclude this invoice itself
+            status: "CONFIRMED",
+            invoiceDate: { gte: budget.startDate, lte: budget.endDate },
+          },
+        },
+      });
+      const alreadyEarned = earnedLines.reduce(
+        (acc, l) => acc.add(l.subtotal),
+        new Prisma.Decimal(0)
+      );
+      const remaining = budget.committedAmount.sub(alreadyEarned);
+
+      if (line.subtotal.gt(remaining)) {
+        const analyticRecord = await prisma.analytic.findUnique({ where: { id: line.analyticId } });
+        const analyticName = analyticRecord?.name ?? line.analyticId;
+        throw new Error(
+          `BUDGET_EXCEEDED: Invoice line exceeds the approved income budget for analytic "${analyticName}". ` +
+          `Budget target: ₹${budget.committedAmount.toFixed(2)}, ` +
+          `already earned: ₹${alreadyEarned.toFixed(2)}, ` +
+          `remaining: ₹${remaining.toFixed(2)}, ` +
+          `this line: ₹${line.subtotal.toFixed(2)}.`
+        );
+      }
+    }
+
+    // --- ACCOUNTING POST ---
+    return prisma.$transaction(async (tx) => {
       const totalNum = invoice.totalAmount.toNumber();
 
-      // Trigger Accounting Engine: Debtor A/c (Dr) / Sales Income (Cr)
       const journalEntry = await AccountingEngine.postAutomatedJournalEntry(tx, {
         journalName: "Sales",
         partnerId: invoice.customerId,

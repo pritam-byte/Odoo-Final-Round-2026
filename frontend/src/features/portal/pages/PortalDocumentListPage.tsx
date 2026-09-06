@@ -17,7 +17,7 @@ export const PortalDocumentListPage: React.FC<PortalDocumentListPageProps> = ({
   onNavigate,
 }) => {
   const currentUser = getStoredUser();
-  const pType = currentUser?.partnerType || 'Both';
+  const pType = currentUser?.partnerType || 'Customer';
 
   const [statusFilter, setStatusFilter] = useState<'ALL' | UserDocumentStatus>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');

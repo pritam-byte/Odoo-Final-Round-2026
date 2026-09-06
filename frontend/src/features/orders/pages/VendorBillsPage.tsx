@@ -53,6 +53,7 @@ export const VendorBillsPage: React.FC<{ onNavigate: (route: string) => void }> 
   const [dueDate, setDueDate] = useState(new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0]);
   const [lines, setLines] = useState<OrderLine[]>([]);
   const [error, setError] = useState('');
+  const [budgetError, setBudgetError] = useState<string | null>(null);
 
   // Check whether order lines exceed approved budget
   const checkBudgetExceeded = (targetLines: OrderLine[]) => {
@@ -97,10 +98,19 @@ export const VendorBillsPage: React.FC<{ onNavigate: (route: string) => void }> 
     setIsCreateModalOpen(true);
   };
 
-  const handleSaveBill = (status: 'Draft' | 'Confirmed') => {
+  const handleSaveBill = async (status: 'Draft' | 'Confirmed') => {
     if (lines.length === 0) {
       setError('Please add at least one line item to this bill.');
       return;
+    }
+
+    for (const line of lines) {
+      const prod = products.find((p) => p.id === line.productId);
+      const qty = Number(line.quantity) || 0;
+      if (prod?.maxQuantity && prod.maxQuantity > 0 && qty > prod.maxQuantity) {
+        setError(`Cannot save bill: Product "${prod.name}" quantity (${qty}) exceeds the maximum allowed limit of ${prod.maxQuantity}. Please adjust before saving.`);
+        return;
+      }
     }
 
     const partner = contacts.find((c) => c.id === partnerId) || contacts[0];
@@ -118,7 +128,12 @@ export const VendorBillsPage: React.FC<{ onNavigate: (route: string) => void }> 
     });
 
     if (status === 'Confirmed') {
-      confirmBill(created.id);
+      const result = await confirmBill(created.id);
+      if (!result.success) {
+        setBudgetError(result.error || 'Failed to confirm bill.');
+        setIsCreateModalOpen(false);
+        return;
+      }
     }
 
     setIsCreateModalOpen(false);
@@ -299,9 +314,14 @@ export const VendorBillsPage: React.FC<{ onNavigate: (route: string) => void }> 
                   <Button
                     variant="primary"
                     size="sm"
-                    onClick={() => {
-                      confirmBill(viewingBill.id);
-                      setViewingBill({ ...viewingBill, status: 'Confirmed' });
+                    onClick={async () => {
+                      const result = await confirmBill(viewingBill.id);
+                      if (result.success) {
+                        setViewingBill({ ...viewingBill, status: 'Confirmed' });
+                      } else {
+                        setBudgetError(result.error || 'Failed to confirm bill.');
+                        setViewingBill(null);
+                      }
                     }}
                     leftIcon={<CheckCircle2 size={14} />}
                   >
@@ -650,6 +670,36 @@ export const VendorBillsPage: React.FC<{ onNavigate: (route: string) => void }> 
           <LineItemsTable lines={lines} onChange={setLines} defaultAccountType="Expense" />
         </form>
       </Modal>
+      {/* Budget Exceeded Error Modal */}
+      {budgetError && (
+        <Modal
+          isOpen={true}
+          onClose={() => setBudgetError(null)}
+          title={
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#b91c1c' }}>
+              <AlertTriangle size={18} />
+              <span>Budget Limit Exceeded — Bill Blocked</span>
+            </div>
+          }
+          maxWidth="520px"
+          footer={
+            <Button variant="primary" onClick={() => setBudgetError(null)}>
+              OK, Go Back
+            </Button>
+          }
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ padding: '14px 16px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', fontSize: '13px', color: '#991b1b', lineHeight: '1.6' }}>
+              {budgetError.replace('BUDGET_EXCEEDED: ', '')}
+            </div>
+            <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+              This bill has <strong>not been confirmed</strong>. Please either reduce the bill amount to stay within
+              the remaining budget, or go to <strong>Accounting → Budgets</strong> and revise the committed
+              budget amount before confirming.
+            </p>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
