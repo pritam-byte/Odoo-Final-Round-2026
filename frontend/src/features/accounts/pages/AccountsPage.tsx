@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Plus, Check, ArrowLeft } from 'lucide-react';
+import { Plus, Check, ArrowLeft, Search } from 'lucide-react';
 import { useAccountingStore, Account, AccountCategory } from '../../accounting/store';
 import { Button } from '../../../components/ui/Button';
 import { Modal } from '../../../components/ui/Modal';
 import { FormField } from '../../../components/ui/FormField';
 import { DataTable, Column } from '../../../components/ui/DataTable';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
+import { CustomSelect } from '../../../components/ui/CustomSelect';
 
 export const AccountsPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { accounts, addAccount } = useAccountingStore();
@@ -115,31 +116,37 @@ export const AccountsPage: React.FC<{ onNavigate: (route: string) => void }> = (
       </div>
 
       <div className="card-panel">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, maxWidth: '500px' }}>
-            <input
-              type="text"
-              className="form-input search-bar-input"
-              style={{ flex: 1 }}
-              placeholder="Search by code, account name or category..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '320px', maxWidth: '640px' }}>
+            <div className="search-bar-wrapper" style={{ flex: 1, position: 'relative' }}>
+              <div className="search-bar-icon" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-light)', pointerEvents: 'none' }}>
+                <Search size={15} strokeWidth={1.75} />
+              </div>
+              <input
+                type="text"
+                className="form-input"
+                style={{ paddingLeft: '36px', width: '100%', height: '38px', borderRadius: 'var(--radius-sm)' }}
+                placeholder="Search by code, account name or category..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
 
-            <select
-              className="form-input select-filter"
+            <CustomSelect
               value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-            >
-              <option value="all">All Types</option>
-              <option value="Asset">Assets</option>
-              <option value="Liability">Liabilities</option>
-              <option value="Bank">Bank</option>
-              <option value="Cash">Cash</option>
-              <option value="Capital">Capital / Equity</option>
-              <option value="Income">Income</option>
-              <option value="Expense">Expense</option>
-            </select>
+              onChange={(v) => setSelectedType(v)}
+              options={[
+                { value: 'all', label: 'All Types' },
+                { value: 'Asset', label: 'Assets' },
+                { value: 'Liability', label: 'Liabilities' },
+                { value: 'Bank', label: 'Bank' },
+                { value: 'Cash', label: 'Cash' },
+                { value: 'Capital', label: 'Capital / Equity' },
+                { value: 'Income', label: 'Income' },
+                { value: 'Expense', label: 'Expense' },
+              ]}
+              width={180}
+            />
           </div>
 
           <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
@@ -195,20 +202,20 @@ export const AccountsPage: React.FC<{ onNavigate: (route: string) => void }> = (
             <label className="form-label" htmlFor="acc-category">
               Account Category / Classification Type
             </label>
-            <select
-              id="acc-category"
-              className="form-input select-filter"
+            <CustomSelect<AccountCategory>
               value={type}
-              onChange={(e) => setType(e.target.value as AccountCategory)}
-            >
-              <option value="Asset">Asset (Receivables, Current Assets, Equipment)</option>
-              <option value="Liability">Liability (Payables, Loans, Provisions)</option>
-              <option value="Bank">Bank (Checking / Savings Operating Accounts)</option>
-              <option value="Capital">Capital (Shareholder Equity / Capital Fund)</option>
-              <option value="Cash">Cash (Petty Cash Drawer / Vault)</option>
-              <option value="Income">Income (Operating Sales & Revenue)</option>
-              <option value="Expense">Expense (Direct Cost & Operational Expenses)</option>
-            </select>
+              onChange={(v) => setType(v)}
+              options={[
+                { value: 'Asset', label: 'Asset (Receivables, Current Assets, Equipment)' },
+                { value: 'Liability', label: 'Liability (Payables, Loans, Provisions)' },
+                { value: 'Bank', label: 'Bank (Checking / Savings Operating Accounts)' },
+                { value: 'Capital', label: 'Capital (Shareholder Equity / Capital Fund)' },
+                { value: 'Cash', label: 'Cash (Petty Cash Drawer / Vault)' },
+                { value: 'Income', label: 'Income (Operating Sales & Revenue)' },
+                { value: 'Expense', label: 'Expense (Direct Cost & Operational Expenses)' },
+              ]}
+              width="100%"
+            />
           </div>
 
           <FormField
