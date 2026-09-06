@@ -8,6 +8,7 @@ import {
   Briefcase,
   User as UserIcon,
   X,
+  Menu,
   FileText,
   Receipt,
   Wallet,
@@ -32,6 +33,8 @@ export interface HeaderProps {
     role?: string;
   };
   onLogout?: () => void;
+  onToggleMobileMenu?: () => void;
+  isMobileMenuOpen?: boolean;
 }
 
 interface StaffNotification {
@@ -49,6 +52,8 @@ export const Header: React.FC<HeaderProps> = ({
   onNavigate,
   user = { name: 'Pritam Admin', email: 'admin@urban-furniture.com', role: 'Admin' },
   onLogout,
+  onToggleMobileMenu,
+  isMobileMenuOpen = false,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -354,6 +359,23 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="top-navbar">
       {/* Brand / Logo (Left) */}
       <div className="navbar-left">
+        {onToggleMobileMenu && (
+          <button
+            type="button"
+            className="mobile-menu-toggle btn-ghost"
+            onClick={onToggleMobileMenu}
+            aria-label="Toggle navigation menu"
+            style={{
+              padding: '6px',
+              borderRadius: 'var(--radius-sm)',
+              color: 'var(--color-text-primary)',
+              display: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        )}
         <BrandLogo
           height={38}
           onClick={() => handleNavigatePath('/dashboard')}
@@ -364,7 +386,7 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Search Bar, Live Clock, Notifications, User Profile & Logout */}
       <div className="navbar-center-right">
         {/* Search Bar Container */}
-        <div className="search-bar-wrapper" ref={searchContainerRef} style={{ position: 'relative' }}>
+        <div className="search-bar-wrapper header-search-wrapper" ref={searchContainerRef} style={{ position: 'relative' }}>
           <div className="search-bar-icon">
             <Search size={15} strokeWidth={1.75} />
           </div>
@@ -931,7 +953,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Live Clock */}
-        <div className="navbar-clock" title="Current Local Time (Live)">
+        <div className="navbar-clock header-clock" title="Current Local Time (Live)">
           <Clock size={14} strokeWidth={1.75} style={{ color: 'var(--color-primary)' }} />
           <span>{currentTime || 'Loading...'}</span>
         </div>
@@ -993,39 +1015,54 @@ export const Header: React.FC<HeaderProps> = ({
                 animation: 'fadeIn 0.15s ease',
               }}
             >
-              {/* Header */}
+              {/* Notifications Header */}
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '6px 14px 10px',
+                  padding: '8px 14px',
                   borderBottom: '1px solid var(--color-border)',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Bell size={15} color="var(--color-primary)" />
-                  <strong style={{ fontSize: '13px', color: 'var(--color-text-primary)' }}>
-                    System Notifications
-                  </strong>
+                  <Bell size={14} style={{ color: 'var(--color-primary)' }} />
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                    Notifications
+                  </span>
+                  {unreadCount > 0 && (
+                    <span
+                      className="badge-pill badge-warning"
+                      style={{ fontSize: '10px', padding: '1px 5px' }}
+                    >
+                      {unreadCount} new
+                    </span>
+                  )}
                 </div>
                 {unreadCount > 0 && (
                   <button
                     type="button"
                     onClick={() => setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))}
-                    className="btn-ghost"
-                    style={{ fontSize: '11px', color: 'var(--color-primary)', fontWeight: 600, padding: 0 }}
+                    style={{
+                      fontSize: '11px',
+                      color: 'var(--color-primary)',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      border: 'none',
+                      background: 'none',
+                      padding: 0,
+                    }}
                   >
                     Mark all read
                   </button>
                 )}
               </div>
 
-              {/* Notification Items */}
-              <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
+              {/* Notifications List */}
+              <div style={{ maxHeight: '340px', overflowY: 'auto' }}>
                 {notifications.length === 0 ? (
-                  <div style={{ padding: '20px', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '12px' }}>
-                    No new notifications
+                  <div style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                    <p style={{ fontSize: '12px', margin: 0 }}>No notifications yet</p>
                   </div>
                 ) : (
                   notifications.map((notif) => (
@@ -1082,6 +1119,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* User Card with Role and Sign Out */}
         <div
+          className="header-user-card"
           style={{
             display: 'flex',
             alignItems: 'center',

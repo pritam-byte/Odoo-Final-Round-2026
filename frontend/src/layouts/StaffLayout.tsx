@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '../components/ui/Header';
 import { Sidebar } from '../components/ui/Sidebar';
 import { UserRole } from '../features/auth/schemas';
@@ -24,12 +24,31 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({
   userRole = 'Admin',
   onLogout,
 }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Automatically close mobile menu when navigating routes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [currentPath]);
+
   return (
     <div className="app-container">
-      <Header user={user} onLogout={onLogout} onNavigate={onNavigate} />
+      <Header
+        user={user}
+        onLogout={onLogout}
+        onNavigate={onNavigate}
+        onToggleMobileMenu={() => setIsMobileMenuOpen((prev) => !prev)}
+        isMobileMenuOpen={isMobileMenuOpen}
+      />
 
       <div className="layout-body">
-        <Sidebar currentPath={currentPath} onNavigate={onNavigate} userRole={userRole} />
+        <Sidebar
+          currentPath={currentPath}
+          onNavigate={onNavigate}
+          userRole={userRole}
+          isMobileOpen={isMobileMenuOpen}
+          onCloseMobile={() => setIsMobileMenuOpen(false)}
+        />
 
         <main className="main-content">
           {children}

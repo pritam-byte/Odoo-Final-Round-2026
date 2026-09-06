@@ -8,6 +8,7 @@ import {
   Wallet,
   LogOut,
   X,
+  Menu,
   ArrowRight,
 } from 'lucide-react';
 import { UserAccount } from '../features/auth/schemas';
@@ -43,12 +44,18 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
   const [isNotifOpen, setIsNotifOpen] = useState<boolean>(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const notifContainerRef = useRef<HTMLDivElement>(null);
 
   const currentUser = user || getStoredUser() || CURRENT_USER;
   const pType = currentUser.partnerType || 'Both';
+
+  // Automatically close mobile menu on tab change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [activeNav]);
 
   // Persona-tailored initial notifications
   const [notifications, setNotifications] = useState<PortalNotification[]>(() => {
@@ -276,6 +283,21 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
       <header className="top-navbar">
         {/* Brand Left */}
         <div className="navbar-left">
+          <button
+            type="button"
+            className="mobile-menu-toggle btn-ghost"
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+            aria-label="Toggle navigation menu"
+            style={{
+              padding: '6px',
+              borderRadius: 'var(--radius-sm)',
+              color: 'var(--color-text-primary)',
+              display: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
           <BrandLogo
             height={38}
             onClick={() => onNavigate?.('dashboard')}
@@ -286,7 +308,7 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
         {/* Right Section: Search, Notification Bell, User Profile, Logout */}
         <div className="navbar-center-right">
           {/* Search Bar with Popover Suggestions */}
-          <div className="search-bar-wrapper" ref={searchContainerRef} style={{ position: 'relative' }}>
+          <div className="search-bar-wrapper header-search-wrapper" ref={searchContainerRef} style={{ position: 'relative' }}>
             <div className="search-bar-icon">
               <Search size={15} strokeWidth={1.75} />
             </div>
@@ -816,6 +838,7 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
 
           {/* User Badge */}
           <div
+            className="header-user-card"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -863,8 +886,15 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
 
       {/* Body: Left Sidebar + Main Content */}
       <div className="layout-body">
+        {isMobileMenuOpen && (
+          <div
+            className="sidebar-backdrop"
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
+        )}
         {/* Left Sidebar */}
-        <aside className="left-sidebar">
+        <aside className={`left-sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
           <div className="sidebar-group">
             <span className="sidebar-group-title">My Self-Service</span>
             {navItems.map((item) => {
@@ -876,6 +906,7 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
                   className={`sidebar-item ${isActive ? 'active' : ''}`}
                   onClick={(e) => {
                     e.preventDefault();
+                    setIsMobileMenuOpen(false);
                     onNavigate?.(item.id);
                   }}
                 >
