@@ -34,7 +34,7 @@ export const RegisterPaymentModal: React.FC<RegisterPaymentModalProps> = ({
   const [partnerId, setPartnerId] = useState<string>(defaultPartnerId || contacts[0]?.id || '');
   const [linkedDocId, setLinkedDocId] = useState<string>(defaultDocId || '');
   const [amount, setAmount] = useState<number>(defaultAmount || 10000);
-  const [paymentVia, setPaymentVia] = useState<'Bank' | 'Cash'>('Bank');
+  const [paymentVia, setPaymentVia] = useState<'Bank' | 'Cash' | 'Razorpay'>('Bank');
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [reference, setReference] = useState<string>('');
   const [error, setError] = useState<string>('');
@@ -288,11 +288,12 @@ export const RegisterPaymentModal: React.FC<RegisterPaymentModalProps> = ({
 
           <div className="form-group">
             <label className="form-label">Payment Account Method</label>
-            <CustomSelect<'Bank' | 'Cash'>
+            <CustomSelect<'Bank' | 'Cash' | 'Razorpay'>
               value={paymentVia}
               onChange={(val) => setPaymentVia(val)}
               options={[
-                { value: 'Bank', label: 'Bank Account (Electronic)' },
+                { value: 'Bank', label: 'Bank Account (Electronic / Wire)' },
+                { value: 'Razorpay', label: 'Razorpay Gateway (Online / UPI)' },
                 { value: 'Cash', label: 'Cash Account (Register)' },
               ]}
               width="100%"

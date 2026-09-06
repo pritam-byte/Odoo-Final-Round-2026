@@ -14,6 +14,7 @@ import {
   Calendar,
   ShieldCheck,
   Package,
+  Zap,
 } from 'lucide-react';
 import { PortalPayment, DocumentLineItem } from '../schemas';
 import { getMyScopedDocuments } from '../api';
@@ -476,12 +477,20 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                   Payment Method
                 </span>
                 <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  {paymentVia === 'Bank' ? (
+                  {paymentVia === 'Razorpay' ? (
+                    <Zap size={14} style={{ color: '#0d9488' }} />
+                  ) : paymentVia === 'Bank' ? (
                     <Building2 size={14} style={{ color: 'var(--color-primary)' }} />
                   ) : (
                     <Banknote size={14} style={{ color: 'var(--color-primary)' }} />
                   )}
-                  <span>{paymentVia === 'Bank' ? 'Bank Transfer / Online' : 'Cash / Counter'}</span>
+                  <span>
+                    {paymentVia === 'Razorpay'
+                      ? 'Razorpay Online (UPI / Cards)'
+                      : paymentVia === 'Bank'
+                      ? 'Bank Transfer / Online'
+                      : 'Cash / Counter'}
+                  </span>
                 </div>
               </div>
             </div>

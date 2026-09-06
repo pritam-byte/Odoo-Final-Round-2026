@@ -1,5 +1,5 @@
 export type PaymentDirection = 'Receive' | 'Send' | 'RECEIVE' | 'SEND';
-export type PaymentMethodType = 'Bank' | 'Cash' | 'BANK' | 'CASH';
+export type PaymentMethodType = 'Bank' | 'Cash' | 'BANK' | 'CASH' | 'Razorpay' | 'RAZORPAY';
 
 export interface PaymentRecordDTO {
   id: string;
@@ -7,7 +7,7 @@ export interface PaymentRecordDTO {
   date: string;
   partnerId: string;
   partnerName: string;
-  paymentVia: 'Bank' | 'Cash';
+  paymentVia: 'Bank' | 'Cash' | 'Razorpay';
   amount: number;
   sourceDocType?: 'Invoice' | 'Bill';
   sourceDocId?: string;

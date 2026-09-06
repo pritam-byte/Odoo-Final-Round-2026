@@ -7,6 +7,7 @@ import PortalDashboardPage from '../features/portal/pages/PortalDashboardPage';
 import PortalDocumentListPage from '../features/portal/pages/PortalDocumentListPage';
 import PortalDocumentDetailPage from '../features/portal/pages/PortalDocumentDetailPage';
 import PortalPaymentHistoryPage from '../features/portal/pages/PortalPaymentHistoryPage';
+import PortalPayNowPage from '../features/portal/pages/PortalPayNowPage';
 import UserListPage from '../features/auth/pages/UserListPage';
 import CreateUserPage from '../features/auth/pages/CreateUserPage';
 import { UserAccount } from '../features/auth/schemas';
@@ -147,6 +148,7 @@ export const AppRouter: React.FC = () => {
         {portalView === 'invoices' && <PortalDocumentListPage documentType="invoice" onNavigate={handlePortalNavigate} />}
         {portalView === 'bills' && <PortalDocumentListPage documentType="bill" onNavigate={handlePortalNavigate} />}
         {portalView === 'payments' && <PortalPaymentHistoryPage />}
+        {portalView === 'pay' && <PortalPayNowPage documentId={selectedDocId} onNavigate={handlePortalNavigate} />}
         {portalView === 'detail' && selectedDocId && (
           <PortalDocumentDetailPage documentId={selectedDocId} onBack={() => setPortalView(lastDocumentView)} />
         )}

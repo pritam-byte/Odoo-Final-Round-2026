@@ -20,30 +20,29 @@ import {
 const router = Router();
 
 router.use(authenticate);
-router.use(authorizeRoles("ADMIN", "ACCOUNTANT"));
 
-// Purchase pipeline
-router.get("/purchase-orders", getPurchaseOrders);
-router.post("/purchase-orders", createPO);
-router.post("/purchase-orders/:id/confirm", confirmPO);
+// Purchase pipeline (Staff only)
+router.get("/purchase-orders", authorizeRoles("ADMIN", "ACCOUNTANT"), getPurchaseOrders);
+router.post("/purchase-orders", authorizeRoles("ADMIN", "ACCOUNTANT"), createPO);
+router.post("/purchase-orders/:id/confirm", authorizeRoles("ADMIN", "ACCOUNTANT"), confirmPO);
 
-router.get("/vendor-bills", getVendorBills);
-router.post("/vendor-bills", createBill);
-router.post("/vendor-bills/:id/confirm", confirmBill);
+router.get("/vendor-bills", authorizeRoles("ADMIN", "ACCOUNTANT"), getVendorBills);
+router.post("/vendor-bills", authorizeRoles("ADMIN", "ACCOUNTANT"), createBill);
+router.post("/vendor-bills/:id/confirm", authorizeRoles("ADMIN", "ACCOUNTANT"), confirmBill);
 
-// Sales pipeline
-router.get("/sales-orders", getSalesOrders);
-router.post("/sales-orders", createSO);
+// Sales pipeline (Staff only)
+router.get("/sales-orders", authorizeRoles("ADMIN", "ACCOUNTANT"), getSalesOrders);
+router.post("/sales-orders", authorizeRoles("ADMIN", "ACCOUNTANT"), createSO);
 
-router.get("/customer-invoices", getCustomerInvoices);
-router.post("/customer-invoices", createInvoice);
-router.post("/customer-invoices/:id/confirm", confirmInvoice);
+router.get("/customer-invoices", authorizeRoles("ADMIN", "ACCOUNTANT"), getCustomerInvoices);
+router.post("/customer-invoices", authorizeRoles("ADMIN", "ACCOUNTANT"), createInvoice);
+router.post("/customer-invoices/:id/confirm", authorizeRoles("ADMIN", "ACCOUNTANT"), confirmInvoice);
 
-// Payment
-router.get("/payments", getPayments);
-router.post("/payments", makePayment);
+// Payment endpoints (Accessible by Staff and Portal Customers)
+router.get("/payments", authorizeRoles("ADMIN", "ACCOUNTANT", "PORTAL_USER"), getPayments);
+router.post("/payments", authorizeRoles("ADMIN", "ACCOUNTANT", "PORTAL_USER"), makePayment);
 
-// Journal Entries
-router.get("/journal-entries", getJournalEntries);
+// Journal Entries (Staff only)
+router.get("/journal-entries", authorizeRoles("ADMIN", "ACCOUNTANT"), getJournalEntries);
 
 export default router;

@@ -10,6 +10,7 @@ import {
   X,
   Menu,
   ArrowRight,
+  Zap,
 } from 'lucide-react';
 import { UserAccount } from '../features/auth/schemas';
 import { getStoredUser, CURRENT_USER } from '../lib/auth';
@@ -192,6 +193,15 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
             icon: <Receipt size={17} strokeWidth={1.75} />,
           },
         ]),
+    ...(pType !== 'Vendor'
+      ? [
+          {
+            id: 'pay',
+            label: 'Instant Pay (Razorpay)',
+            icon: <Zap size={17} strokeWidth={1.75} style={{ color: '#0d9488' }} />,
+          },
+        ]
+      : []),
     {
       id: 'payments',
       label: 'Payment History',

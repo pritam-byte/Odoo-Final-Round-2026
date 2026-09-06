@@ -32,7 +32,7 @@ export interface PortalPayment {
   documentType: DocumentType;
   amount: number;
   date: string;
-  paymentMethod: 'Bank' | 'Cash';
+  paymentMethod: 'Bank' | 'Cash' | 'Razorpay';
   reference: string;
   partnerName?: string;
   note?: string;

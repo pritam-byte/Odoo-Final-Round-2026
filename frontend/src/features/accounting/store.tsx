@@ -193,7 +193,7 @@ export interface PaymentRecord {
   date: string;
   partnerId: string;
   partnerName: string;
-  paymentVia: 'Bank' | 'Cash';
+  paymentVia: 'Bank' | 'Cash' | 'Razorpay';
   amount: number;
   sourceDocType: 'Invoice' | 'Bill';
   sourceDocId: string;
@@ -268,7 +268,7 @@ export interface AccountingStoreContextType {
   invoices: CustomerInvoice[];
   addInvoice: (inv: Omit<CustomerInvoice, 'id' | 'invoiceNumber' | 'amountPaid' | 'amountDue'>) => CustomerInvoice;
   confirmInvoice: (id: string) => void;
-  payInvoice: (id: string, amount: number, paymentVia: 'Bank' | 'Cash', date: string) => void;
+  payInvoice: (id: string, amount: number, paymentVia: 'Bank' | 'Cash' | 'Razorpay', date: string) => void;
 
   // Purchases & Bills
   purchaseOrders: PurchaseOrder[];
@@ -278,7 +278,7 @@ export interface AccountingStoreContextType {
   bills: VendorBill[];
   addBill: (b: Omit<VendorBill, 'id' | 'billNumber' | 'amountPaid' | 'amountDue'>) => VendorBill;
   confirmBill: (id: string) => void;
-  payBill: (id: string, amount: number, paymentVia: 'Bank' | 'Cash', date: string) => void;
+  payBill: (id: string, amount: number, paymentVia: 'Bank' | 'Cash' | 'Razorpay', date: string) => void;
 
   // Payments
   payments: PaymentRecord[];
@@ -1123,7 +1123,7 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
     });
   };
 
-  const payInvoice = (id: string, amount: number, paymentVia: 'Bank' | 'Cash', date: string) => {
+  const payInvoice = (id: string, amount: number, paymentVia: 'Bank' | 'Cash' | 'Razorpay', date: string) => {
     setInvoices((prev) =>
       prev.map((inv) => {
         if (inv.id === id) {
@@ -1152,9 +1152,9 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
               paymentType: 'RECEIVE',
               partnerId,
               amount,
-              paymentVia: paymentVia.toUpperCase(),
+              paymentVia: paymentVia === 'Cash' ? 'CASH' : 'BANK',
               customerInvoiceId: id,
-              note: `Payment for ${inv.invoiceNumber}`,
+              note: paymentVia === 'Razorpay' ? `Online Razorpay Payment for ${inv.invoiceNumber}` : `Payment for ${inv.invoiceNumber}`,
             }),
           }).then((res) => {
             if (res.success) {
@@ -1272,7 +1272,7 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
     });
   };
 
-  const payBill = (id: string, amount: number, paymentVia: 'Bank' | 'Cash', date: string) => {
+  const payBill = (id: string, amount: number, paymentVia: 'Bank' | 'Cash' | 'Razorpay', date: string) => {
     setBills((prev) =>
       prev.map((b) => {
         if (b.id === id) {
@@ -1301,9 +1301,9 @@ export const AccountingStoreProvider: React.FC<{ children: React.ReactNode }> = 
               paymentType: 'SEND',
               partnerId,
               amount,
-              paymentVia: paymentVia.toUpperCase(),
+              paymentVia: paymentVia === 'Cash' ? 'CASH' : 'BANK',
               vendorBillId: id,
-              note: `Payment for ${b.billNumber}`,
+              note: paymentVia === 'Razorpay' ? `Online Razorpay Payment for ${b.billNumber}` : `Payment for ${b.billNumber}`,
             }),
           }).then((res) => {
             if (res.success) {

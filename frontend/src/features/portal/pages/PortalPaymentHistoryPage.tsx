@@ -13,7 +13,7 @@ export const PortalPaymentHistoryPage: React.FC = () => {
   const [payments, setPayments] = useState<PortalPayment[]>(() => getMyPayments());
   const [selectedPayment, setSelectedPayment] = useState<PortalPayment | null>(null);
 
-  const [methodFilter, setMethodFilter] = useState<'ALL' | 'Bank' | 'Cash'>('ALL');
+  const [methodFilter, setMethodFilter] = useState<'ALL' | 'Bank' | 'Cash' | 'Razorpay'>('ALL');
   const [typeFilter, setTypeFilter] = useState<'ALL' | 'invoice' | 'bill'>('ALL');
   const [dateFilter, setDateFilter] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -102,16 +102,17 @@ export const PortalPaymentHistoryPage: React.FC = () => {
               />
             )}
 
-            <CustomSelect<'ALL' | 'Bank' | 'Cash'>
+            <CustomSelect<'ALL' | 'Bank' | 'Cash' | 'Razorpay'>
               value={methodFilter}
               onChange={(val) => setMethodFilter(val)}
               options={[
                 { value: 'ALL', label: 'All Methods' },
+                { value: 'Razorpay', label: '⚡ Razorpay Online' },
                 { value: 'Bank', label: 'Bank Transfer' },
                 { value: 'Cash', label: 'Cash / Counter' },
               ]}
               size="sm"
-              width="145px"
+              width="160px"
             />
 
             <CustomDatePicker

@@ -13,24 +13,23 @@ import {
 
 const router = Router();
 
-// Protect all master data routes
+// Protect master data routes
 router.use(authenticate);
-router.use(authorizeRoles("ADMIN", "ACCOUNTANT"));
 
-// Contact endpoints
+// Contacts (Readable by all authenticated users, writeable by Staff)
 router.get("/contacts", getContacts);
-router.post("/contacts", createContact);
+router.post("/contacts", authorizeRoles("ADMIN", "ACCOUNTANT"), createContact);
 
-// Product endpoints
+// Products (Readable by all authenticated users, writeable by Staff)
 router.get("/products", getProducts);
-router.post("/products", createProduct);
+router.post("/products", authorizeRoles("ADMIN", "ACCOUNTANT"), createProduct);
 
 // Analytics endpoints
-router.get("/analytics", getAnalytics);
-router.post("/analytics", createAnalytic);
+router.get("/analytics", authorizeRoles("ADMIN", "ACCOUNTANT"), getAnalytics);
+router.post("/analytics", authorizeRoles("ADMIN", "ACCOUNTANT"), createAnalytic);
 
 // Chart of Accounts & Journals lookups
-router.get("/accounts", getAccounts);
-router.get("/journals", getJournals);
+router.get("/accounts", authorizeRoles("ADMIN", "ACCOUNTANT"), getAccounts);
+router.get("/journals", authorizeRoles("ADMIN", "ACCOUNTANT"), getJournals);
 
 export default router;
