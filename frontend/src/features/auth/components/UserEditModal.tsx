@@ -44,21 +44,24 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({ user, onClose, onS
       }}
     >
       <div
-        className="card-panel"
+        className="card-panel custom-modal-box"
         style={{
           width: '100%',
           maxWidth: '520px',
-          margin: '20px',
-          padding: '28px',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          margin: 'auto',
+          padding: '24px',
           boxShadow: 'var(--shadow-lg)'
         }}
       >
-        <div className="card-header" style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '14px' }}>
+        <div className="card-header" style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <h3 className="card-title" style={{ fontSize: '18px' }}>
+            <h3 className="card-title" style={{ fontSize: '18px', margin: 0 }}>
               Edit User: {user.name}
             </h3>
-            <p className="card-subtitle">Manage role, permissions & account state</p>
+            <p className="card-subtitle" style={{ margin: '2px 0 0 0' }}>Manage role, permissions & account state</p>
           </div>
           <button
             type="button"
@@ -131,7 +134,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({ user, onClose, onS
 
           <div className="form-group">
             <label className="form-label">Account Status</label>
-            <div style={{ display: 'flex', gap: '12px' }}>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <label
                 style={{
                   display: 'flex',
@@ -187,6 +190,8 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({ user, onClose, onS
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '10px',
               marginTop: '4px'
             }}
           >
@@ -214,6 +219,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({ user, onClose, onS
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'flex-end',
+              flexWrap: 'wrap',
               gap: '10px',
               marginTop: '12px',
               paddingTop: '16px',

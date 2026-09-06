@@ -255,14 +255,14 @@ export const VendorBillsPage: React.FC<{ onNavigate: (route: string) => void }> 
           isOpen={true}
           onClose={() => setViewingBill(null)}
           title={
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingRight: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingRight: '20px', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                 <span style={{ fontWeight: 700, fontSize: '18px' }}>Vendor Bill: {viewingBill.billNumber}</span>
                 {getPaymentStatusBadge(viewingBill)}
               </div>
 
               {/* Smart Buttons */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 {viewingBill.poNumber && (
                   <Button
                     variant="outline"
@@ -293,8 +293,8 @@ export const VendorBillsPage: React.FC<{ onNavigate: (route: string) => void }> 
           }
           maxWidth="820px"
           footer={
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {viewingBill.status === 'Draft' && (
                   <Button
                     variant="primary"
@@ -375,6 +375,7 @@ export const VendorBillsPage: React.FC<{ onNavigate: (route: string) => void }> 
 
             {/* Bill Header Info */}
             <div
+              className="responsive-modal-grid-4"
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(4, 1fr)',
@@ -408,6 +409,7 @@ export const VendorBillsPage: React.FC<{ onNavigate: (route: string) => void }> 
 
             {/* Financial Summary & Disbursement Breakdown */}
             <div
+              className="responsive-modal-grid-4"
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(4, 1fr)',
@@ -606,7 +608,7 @@ export const VendorBillsPage: React.FC<{ onNavigate: (route: string) => void }> 
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <Many2OneSelect
               label="Vendor Name (Many-to-One)"
               options={contacts.map((c) => ({ id: c.id, name: c.name, subtitle: c.email }))}
@@ -624,7 +626,7 @@ export const VendorBillsPage: React.FC<{ onNavigate: (route: string) => void }> 
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div className="form-group">
               <label className="form-label">Bill Date *</label>
               <CustomDatePicker

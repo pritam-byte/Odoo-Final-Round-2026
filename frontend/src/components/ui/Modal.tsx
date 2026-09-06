@@ -35,18 +35,19 @@ export const Modal: React.FC<ModalProps> = ({
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
-        backdropFilter: 'blur(2px)',
+        backgroundColor: 'rgba(0, 0, 0, 0.45)',
+        backdropFilter: 'blur(3px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 1000,
         padding: '16px',
+        overflowY: 'auto',
       }}
       onClick={onClose}
     >
       <div
-        className="card-panel"
+        className="card-panel custom-modal-card custom-modal-box"
         style={{
           width: '100%',
           maxWidth,
@@ -55,20 +56,22 @@ export const Modal: React.FC<ModalProps> = ({
           maxHeight: '90vh',
           display: 'flex',
           flexDirection: 'column',
+          overflow: 'hidden',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
         <div
+          className="modal-header-bar"
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '20px 24px',
+            padding: '18px 24px',
             borderBottom: '1px solid var(--color-border)',
           }}
         >
-          <h3 className="card-title" style={{ fontSize: '18px' }}>
+          <h3 className="card-title" style={{ fontSize: '18px', margin: 0 }}>
             {title}
           </h3>
           <button
@@ -83,11 +86,22 @@ export const Modal: React.FC<ModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>{children}</div>
+        <div
+          className="modal-body-content"
+          style={{
+            padding: '24px',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            flex: 1,
+          }}
+        >
+          {children}
+        </div>
 
         {/* Modal Footer */}
         {footer && (
           <div
+            className="modal-footer-bar"
             style={{
               padding: '16px 24px',
               borderTop: '1px solid var(--color-border)',
@@ -98,6 +112,7 @@ export const Modal: React.FC<ModalProps> = ({
               backgroundColor: 'var(--color-surface-hover)',
               borderBottomLeftRadius: 'var(--radius-lg)',
               borderBottomRightRadius: 'var(--radius-lg)',
+              flexWrap: 'wrap',
             }}
           >
             {footer}

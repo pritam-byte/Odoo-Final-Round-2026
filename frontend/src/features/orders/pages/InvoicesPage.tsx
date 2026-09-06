@@ -210,8 +210,8 @@ export const InvoicesPage: React.FC<{ onNavigate: (route: string) => void }> = (
           title={`Customer Invoice: ${viewingInvoice.invoiceNumber}`}
           maxWidth="750px"
           footer={
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {viewingInvoice.status === 'Draft' && (
                   <Button
                     variant="primary"
@@ -267,7 +267,7 @@ export const InvoicesPage: React.FC<{ onNavigate: (route: string) => void }> = (
           }
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', padding: '12px', backgroundColor: 'var(--color-bg)', borderRadius: '6px' }}>
+            <div className="responsive-modal-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', padding: '12px', backgroundColor: 'var(--color-bg)', borderRadius: '6px' }}>
               <div>
                 <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', display: 'block' }}>Customer:</span>
                 <span style={{ fontWeight: 600 }}>{viewingInvoice.partnerName}</span>
@@ -290,7 +290,7 @@ export const InvoicesPage: React.FC<{ onNavigate: (route: string) => void }> = (
             </div>
 
             {/* Financial Summary */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+            <div className="responsive-modal-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
               <div className="card-panel" style={{ padding: '12px' }}>
                 <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Total Amount:</span>
                 <span style={{ fontSize: '16px', fontWeight: 700 }}>₹{viewingInvoice.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
@@ -374,7 +374,7 @@ export const InvoicesPage: React.FC<{ onNavigate: (route: string) => void }> = (
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <Many2OneSelect
               label="Customer (Debtor Account Dr)"
               options={contacts.map((c) => ({ id: c.id, name: c.name, subtitle: c.email }))}
@@ -392,7 +392,7 @@ export const InvoicesPage: React.FC<{ onNavigate: (route: string) => void }> = (
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div className="form-group">
               <label className="form-label">Invoice Date *</label>
               <CustomDatePicker

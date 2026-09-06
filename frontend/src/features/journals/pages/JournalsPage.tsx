@@ -152,7 +152,7 @@ export const JournalsPage: React.FC<{ onNavigate: (route: string) => void }> = (
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '14px' }}>
+          <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '14px' }}>
             <FormField
               label="Journal Code"
               value={code}

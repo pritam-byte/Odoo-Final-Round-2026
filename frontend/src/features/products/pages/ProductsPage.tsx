@@ -334,7 +334,7 @@ export const ProductsPage: React.FC<{ onNavigate: (route: string) => void }> = (
           />
 
           {/* Sales Price & Cost */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <FormField
               label="Sales Price (₹)"
               type="number"

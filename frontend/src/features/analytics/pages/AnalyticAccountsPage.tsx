@@ -199,7 +199,7 @@ export const AnalyticAccountsPage: React.FC<{ onNavigate: (route: string) => voi
               const percent = totalCommitted > 0 ? Math.round((totalAchieved / totalCommitted) * 100) : 0;
 
               return (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+                <div className="responsive-modal-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
                   <div style={{ padding: '12px', backgroundColor: 'var(--color-bg)', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
                     <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', display: 'block' }}>TYPE</span>
                     <span className={`badge-pill ${selectedAnalytic.type === 'Income' ? 'badge-completed' : 'badge-pending'}`} style={{ marginTop: '4px', display: 'inline-block' }}>
@@ -227,7 +227,7 @@ export const AnalyticAccountsPage: React.FC<{ onNavigate: (route: string) => voi
 
             {/* Linked Budgets Table */}
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
                 <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
                   Linked Budgets for this Cost Center
                 </h4>
@@ -249,45 +249,47 @@ export const AnalyticAccountsPage: React.FC<{ onNavigate: (route: string) => voi
                   No budget targets currently assigned to this analytic center.
                 </div>
               ) : (
-                <table className="custom-table" style={{ backgroundColor: '#ffffff', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
-                  <thead>
-                    <tr>
-                      <th>Budget Name</th>
-                      <th>Period</th>
-                      <th style={{ textAlign: 'right' }}>Committed Target ($)</th>
-                      <th style={{ textAlign: 'right' }}>Achieved ($)</th>
-                      <th style={{ textAlign: 'right' }}>Achieved %</th>
-                      <th style={{ textAlign: 'center' }}>State</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {getLinkedBudgets(selectedAnalytic.id).map((b) => {
-                      const achieved = getBudgetAchievedAmount(b);
-                      const committed = Math.max(1, b.committedAmount);
-                      const percent = Math.min(100, Math.round((achieved / committed) * 100));
+                <div className="table-responsive-wrapper">
+                  <table className="custom-table" style={{ backgroundColor: '#ffffff', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
+                    <thead>
+                      <tr>
+                        <th>Budget Name</th>
+                        <th>Period</th>
+                        <th style={{ textAlign: 'right' }}>Committed Target ($)</th>
+                        <th style={{ textAlign: 'right' }}>Achieved ($)</th>
+                        <th style={{ textAlign: 'right' }}>Achieved %</th>
+                        <th style={{ textAlign: 'center' }}>State</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {getLinkedBudgets(selectedAnalytic.id).map((b) => {
+                        const achieved = getBudgetAchievedAmount(b);
+                        const committed = Math.max(1, b.committedAmount);
+                        const percent = Math.min(100, Math.round((achieved / committed) * 100));
 
-                      return (
-                        <tr key={b.id}>
-                          <td style={{ fontWeight: 600, color: 'var(--color-primary)' }}>{b.name}</td>
-                          <td style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-                            {b.startDate} to {b.endDate}
-                          </td>
-                          <td style={{ textAlign: 'right', fontWeight: 600 }}>₹{b.committedAmount.toLocaleString()}</td>
-                          <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--color-primary)' }}>
-                            ₹{achieved.toLocaleString()}
-                          </td>
-                          <td style={{ textAlign: 'right', fontWeight: 600 }}>{percent}%</td>
-                          <td style={{ textAlign: 'center' }}>
-                            <StatusBadge
-                              status={b.state === 'Confirmed' ? 'completed' : b.state === 'Revised' ? 'pending' : b.state === 'Cancelled' ? 'danger' : 'neutral'}
-                              label={b.state}
-                            />
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                        return (
+                          <tr key={b.id}>
+                            <td style={{ fontWeight: 600, color: 'var(--color-primary)' }}>{b.name}</td>
+                            <td style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                              {b.startDate} to {b.endDate}
+                            </td>
+                            <td style={{ textAlign: 'right', fontWeight: 600 }}>₹{b.committedAmount.toLocaleString()}</td>
+                            <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--color-primary)' }}>
+                              ₹{achieved.toLocaleString()}
+                            </td>
+                            <td style={{ textAlign: 'right', fontWeight: 600 }}>{percent}%</td>
+                            <td style={{ textAlign: 'center' }}>
+                              <StatusBadge
+                                status={b.state === 'Confirmed' ? 'completed' : b.state === 'Revised' ? 'pending' : b.state === 'Cancelled' ? 'danger' : 'neutral'}
+                                label={b.state}
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           </div>
@@ -317,7 +319,7 @@ export const AnalyticAccountsPage: React.FC<{ onNavigate: (route: string) => voi
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', gap: '14px' }}>
+          <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '130px 1fr', gap: '14px' }}>
             <FormField
               label="Analytic Code"
               value={code}

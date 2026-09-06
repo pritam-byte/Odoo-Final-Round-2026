@@ -285,7 +285,7 @@ export const JournalEntriesPage: React.FC<{ onNavigate: (route: string) => void 
           }
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', padding: '12px', backgroundColor: 'var(--color-bg)', borderRadius: '6px' }}>
+            <div className="responsive-modal-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', padding: '12px', backgroundColor: 'var(--color-bg)', borderRadius: '6px' }}>
               <div>
                 <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', display: 'block' }}>Date:</span>
                 <span style={{ fontWeight: 600 }}>{viewingEntry.date}</span>
@@ -304,41 +304,45 @@ export const JournalEntriesPage: React.FC<{ onNavigate: (route: string) => void 
               </div>
             </div>
 
-            <table className="custom-table">
-              <thead>
-                <tr>
-                  <th>Account</th>
-                  <th>Partner</th>
-                  <th style={{ textAlign: 'right' }}>Debit (₹)</th>
-                  <th style={{ textAlign: 'right' }}>Credit (₹)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {viewingEntry.lines.map((l) => (
-                  <tr key={l.id}>
-                    <td style={{ fontWeight: 500 }}>{l.accountName}</td>
-                    <td style={{ color: 'var(--color-text-secondary)' }}>{l.partnerName || '—'}</td>
-                    <td style={{ textAlign: 'right', fontWeight: l.debit > 0 ? 600 : 400 }}>
-                      {l.debit > 0 ? `₹${l.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
+            <div className="table-responsive-wrapper">
+              <table className="custom-table">
+                <thead>
+                  <tr>
+                    <th>Account</th>
+                    <th>Partner</th>
+                    <th style={{ textAlign: 'right' }}>Debit (₹)</th>
+                    <th style={{ textAlign: 'right' }}>Credit (₹)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {viewingEntry.lines.map((l) => (
+                    <tr key={l.id}>
+                      <td style={{ fontWeight: 500 }}>{l.accountName}</td>
+                      <td style={{ color: 'var(--color-text-secondary)' }}>{l.partnerName || '—'}</td>
+                      <td style={{ textAlign: 'right', fontWeight: l.debit > 0 ? 600 : 400 }}>
+                        {l.debit > 0 ? `₹${l.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
+                      </td>
+                      <td style={{ textAlign: 'right', fontWeight: l.credit > 0 ? 600 : 400 }}>
+                        {l.credit > 0 ? `₹${l.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr style={{ fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
+                    <td colSpan={2} style={{ textAlign: 'right', color: 'var(--color-text-muted)' }}>
+                      BALANCED SUM:
                     </td>
-                    <td style={{ textAlign: 'right', fontWeight: l.credit > 0 ? 600 : 400 }}>
-                      {l.credit > 0 ? `₹${l.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
+                    <td style={{ textAlign: 'right', color: 'var(--color-primary)' }}>
+                      ₹{viewingEntry.totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </td>
+                    <td style={{ textAlign: 'right', color: 'var(--color-primary)' }}>
+                      ₹{viewingEntry.totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </td>
                   </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr style={{ fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
-                  <td colSpan={2} style={{ textAlign: 'right', color: 'var(--color-text-muted)' }}>
-                    BALANCED SUM:
-                  </td>
-                  <td style={{ textAlign: 'right', color: 'var(--color-primary)' }}>₹{viewingEntry.totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                  </td>
-                  <td style={{ textAlign: 'right', color: 'var(--color-primary)' }}>₹{viewingEntry.totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
+                </tfoot>
+              </table>
+            </div>
           </div>
         </Modal>
       )}
@@ -391,7 +395,7 @@ export const JournalEntriesPage: React.FC<{ onNavigate: (route: string) => void 
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+          <div className="responsive-form-grid-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
             <div className="form-group">
               <label className="form-label">Accounting Date *</label>
               <CustomDatePicker
@@ -434,16 +438,17 @@ export const JournalEntriesPage: React.FC<{ onNavigate: (route: string) => void 
               </Button>
             </div>
 
-            <table className="custom-table" style={{ border: '1px solid var(--color-border)', borderRadius: '6px' }}>
-              <thead>
-                <tr>
-                  <th style={{ minWidth: '180px' }}>Account</th>
-                  <th style={{ minWidth: '140px' }}>Partner</th>
-                  <th style={{ width: '120px', textAlign: 'right' }}>Debit (₹)</th>
-                  <th style={{ width: '120px', textAlign: 'right' }}>Credit (₹)</th>
-                  <th style={{ width: '40px' }}></th>
-                </tr>
-              </thead>
+            <div className="table-responsive-wrapper">
+              <table className="custom-table" style={{ border: '1px solid var(--color-border)', borderRadius: '6px' }}>
+                <thead>
+                  <tr>
+                    <th style={{ minWidth: '180px' }}>Account</th>
+                    <th style={{ minWidth: '140px' }}>Partner</th>
+                    <th style={{ width: '120px', textAlign: 'right' }}>Debit (₹)</th>
+                    <th style={{ width: '120px', textAlign: 'right' }}>Credit (₹)</th>
+                    <th style={{ width: '40px' }}></th>
+                  </tr>
+                </thead>
               <tbody>
                 {lines.map((line, idx) => (
                   <tr key={line.id}>
@@ -538,6 +543,7 @@ export const JournalEntriesPage: React.FC<{ onNavigate: (route: string) => void 
                 </tr>
               </tfoot>
             </table>
+          </div>
 
             {!isBalanced && (
               <span style={{ fontSize: '12px', color: 'var(--color-danger)', fontWeight: 600 }}>

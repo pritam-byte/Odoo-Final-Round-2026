@@ -376,7 +376,7 @@ export const ContactsPage: React.FC<{ onNavigate: (route: string) => void }> = (
               onChange={(e) => setStreet(e.target.value)}
             />
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <FormField
                 placeholder="City (e.g. Mumbai)"
                 value={city}
@@ -389,7 +389,7 @@ export const ContactsPage: React.FC<{ onNavigate: (route: string) => void }> = (
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <FormField
                 placeholder="Country (e.g. India)"
                 value={country}

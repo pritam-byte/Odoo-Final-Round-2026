@@ -186,6 +186,7 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
             {/* Summary Box */}
             <div
+              className="responsive-modal-grid-2"
               style={{
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
@@ -332,7 +333,7 @@ export const DemoBankPaymentForm: React.FC<DemoBankPaymentFormProps> = ({
                 </button>
 
                 {/* Option 2: Bank Transfer & Option 3: Cash */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <div className="responsive-modal-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('Bank')}
