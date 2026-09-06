@@ -4,6 +4,8 @@ import { useAccountingStore } from '../../accounting/store';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { FormField } from '../../../components/ui/FormField';
+import { CustomSelect } from '../../../components/ui/CustomSelect';
+import { CustomDatePicker } from '../../../components/ui/CustomDatePicker';
 
 export interface RegisterPaymentModalProps {
   isOpen: boolean;
@@ -177,7 +179,7 @@ export const RegisterPaymentModal: React.FC<RegisterPaymentModalProps> = ({
           <span>Register Payment & Update Ledger</span>
         </div>
       }
-      maxWidth="540px"
+      maxWidth="620px"
       footer={
         <>
           <Button variant="outline" onClick={onClose} leftIcon={<ArrowLeft size={15} />}>
@@ -235,17 +237,15 @@ export const RegisterPaymentModal: React.FC<RegisterPaymentModalProps> = ({
         {/* Partner Select */}
         <div className="form-group">
           <label className="form-label">{paymentType === 'Receive' ? 'Customer Account' : 'Vendor / Supplier'}</label>
-          <select
-            className="form-input select-filter"
+          <CustomSelect<string>
             value={partnerId}
-            onChange={(e) => handlePartnerChange(e.target.value)}
-          >
-            {contacts.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} ({c.type})
-              </option>
-            ))}
-          </select>
+            onChange={(val) => handlePartnerChange(val)}
+            options={contacts.map((c) => ({
+              value: c.id,
+              label: `${c.name} (${c.type})`,
+            }))}
+            width="100%"
+          />
         </div>
 
         {/* Optional Linked Open Document */}
@@ -256,24 +256,23 @@ export const RegisterPaymentModal: React.FC<RegisterPaymentModalProps> = ({
               {paymentType === 'Receive' ? `${openInvoices.length} unpaid invoices` : `${openBills.length} unpaid bills`}
             </span>
           </label>
-          <select
-            className="form-input select-filter"
+          <CustomSelect<string>
             value={linkedDocId}
-            onChange={(e) => handleDocChange(e.target.value)}
-          >
-            <option value="">-- Direct Payment (General Balance) --</option>
-            {paymentType === 'Receive'
-              ? openInvoices.map((inv) => (
-                  <option key={inv.id} value={inv.id}>
-                    {inv.invoiceNumber} — {inv.partnerName} (Due: ₹{inv.amountDue.toLocaleString()})
-                  </option>
-                ))
-              : openBills.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.billNumber} — {b.partnerName} (Due: ₹{b.amountDue.toLocaleString()})
-                  </option>
-                ))}
-          </select>
+            onChange={(val) => handleDocChange(val)}
+            options={[
+              { value: '', label: '-- Direct Payment (General Balance) --' },
+              ...(paymentType === 'Receive'
+                ? openInvoices.map((inv) => ({
+                    value: inv.id,
+                    label: `${inv.invoiceNumber} — ${inv.partnerName} (Due: ₹${inv.amountDue.toLocaleString()})`,
+                  }))
+                : openBills.map((b) => ({
+                    value: b.id,
+                    label: `${b.billNumber} — ${b.partnerName} (Due: ₹${b.amountDue.toLocaleString()})`,
+                  }))),
+            ]}
+            width="100%"
+          />
         </div>
 
         {/* Amount & Method */}
@@ -289,26 +288,29 @@ export const RegisterPaymentModal: React.FC<RegisterPaymentModalProps> = ({
 
           <div className="form-group">
             <label className="form-label">Payment Account Method</label>
-            <select
-              className="form-input select-filter"
+            <CustomSelect<'Bank' | 'Cash'>
               value={paymentVia}
-              onChange={(e) => setPaymentVia(e.target.value as 'Bank' | 'Cash')}
-            >
-              <option value="Bank">Bank Account (Electronic)</option>
-              <option value="Cash">Cash Account (Register)</option>
-            </select>
+              onChange={(val) => setPaymentVia(val)}
+              options={[
+                { value: 'Bank', label: 'Bank Account (Electronic)' },
+                { value: 'Cash', label: 'Cash Account (Register)' },
+              ]}
+              width="100%"
+            />
           </div>
         </div>
 
         {/* Date & Reference */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-          <FormField
-            label="Payment Date"
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-          />
+          <div className="form-group">
+            <label className="form-label">Payment Date *</label>
+            <CustomDatePicker
+              value={date}
+              onChange={(newDate) => setDate(newDate)}
+              placeholder="Payment Date"
+              width="100%"
+            />
+          </div>
 
           <FormField
             label="Reference / Memo Note"

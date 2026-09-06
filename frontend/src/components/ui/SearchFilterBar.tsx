@@ -1,6 +1,7 @@
 import React from 'react';
-import { Search, ChevronDown, Plus } from 'lucide-react';
+import { Search, Plus } from 'lucide-react';
 import { Button } from './Button';
+import { CustomSelect } from './CustomSelect';
 
 export interface FilterOption {
   label: string;
@@ -57,26 +58,16 @@ export const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
         </div>
 
         {/* Filter Dropdown */}
-        {filterOptions.length > 0 && (
-          <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
-            <select
-              className="select-filter"
-              value={selectedFilter}
-              onChange={(e) => onFilterChange?.(e.target.value)}
-              style={{ paddingRight: '28px', appearance: 'none' }}
-            >
-              {filterOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={14}
-              strokeWidth={1.75}
-              style={{ position: 'absolute', right: '10px', pointerEvents: 'none', color: 'var(--color-text-muted)' }}
-            />
-          </div>
+        {filterOptions.length > 0 && selectedFilter !== undefined && onFilterChange && (
+          <CustomSelect<string>
+            value={selectedFilter}
+            onChange={onFilterChange}
+            options={filterOptions.map((opt) => ({
+              value: opt.value,
+              label: opt.label,
+            }))}
+            width="auto"
+          />
         )}
       </div>
 

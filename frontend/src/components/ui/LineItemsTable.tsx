@@ -2,6 +2,7 @@ import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { OrderLine, useAccountingStore } from '../../features/accounting/store';
 import { Button } from './Button';
+import { CustomSelect } from './CustomSelect';
 
 export interface LineItemsTableProps {
   lines: OrderLine[];
@@ -121,18 +122,16 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
                     {readOnly ? (
                       <span style={{ fontWeight: 500 }}>{line.productName}</span>
                     ) : (
-                      <select
-                        className="form-input select-filter"
-                        style={{ padding: '6px 10px', fontSize: '13px' }}
+                      <CustomSelect<string>
+                        size="sm"
                         value={line.productId}
-                        onChange={(e) => handleLineChange(idx, 'productId', e.target.value)}
-                      >
-                        {products.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name} ({p.type})
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val) => handleLineChange(idx, 'productId', val)}
+                        options={products.map((p) => ({
+                          value: p.id,
+                          label: `${p.name} (${p.type})`,
+                        }))}
+                        width="100%"
+                      />
                     )}
                   </td>
 
@@ -142,18 +141,16 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
                       {readOnly ? (
                         <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>{line.accountName}</span>
                       ) : (
-                        <select
-                          className="form-input select-filter"
-                          style={{ padding: '6px 10px', fontSize: '13px' }}
+                        <CustomSelect<string>
+                          size="sm"
                           value={line.accountId}
-                          onChange={(e) => handleLineChange(idx, 'accountId', e.target.value)}
-                        >
-                          {accounts.map((a) => (
-                            <option key={a.id} value={a.id}>
-                              {a.code} - {a.name}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(val) => handleLineChange(idx, 'accountId', val)}
+                          options={accounts.map((a) => ({
+                            value: a.id,
+                            label: `${a.code} - ${a.name}`,
+                          }))}
+                          width="100%"
+                        />
                       )}
                     </td>
                   )}
@@ -165,19 +162,19 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
                         {line.analyticName || '—'}
                       </span>
                     ) : (
-                      <select
-                        className="form-input select-filter"
-                        style={{ padding: '6px 10px', fontSize: '13px' }}
+                      <CustomSelect<string>
+                        size="sm"
                         value={line.analyticId || ''}
-                        onChange={(e) => handleLineChange(idx, 'analyticId', e.target.value)}
-                      >
-                        <option value="">None</option>
-                        {analytics.map((an) => (
-                          <option key={an.id} value={an.id}>
-                            {an.name}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val) => handleLineChange(idx, 'analyticId', val)}
+                        options={[
+                          { value: '', label: 'None' },
+                          ...analytics.map((an) => ({
+                            value: an.id,
+                            label: an.name,
+                          })),
+                        ]}
+                        width="100%"
+                      />
                     )}
                   </td>
 

@@ -448,33 +448,31 @@ export const JournalEntriesPage: React.FC<{ onNavigate: (route: string) => void 
                 {lines.map((line, idx) => (
                   <tr key={line.id}>
                     <td>
-                      <select
-                        className="form-input select-filter"
-                        style={{ padding: '6px 8px', fontSize: '12px' }}
+                      <CustomSelect<string>
+                        size="sm"
                         value={line.accountId}
-                        onChange={(e) => handleLineFieldChange(idx, 'accountId', e.target.value)}
-                      >
-                        {accounts.map((a) => (
-                          <option key={a.id} value={a.id}>
-                            {a.code} - {a.name}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(newAccId) => handleLineFieldChange(idx, 'accountId', newAccId)}
+                        options={accounts.map((a) => ({
+                          value: a.id,
+                          label: `${a.code} - ${a.name}`,
+                        }))}
+                        width="100%"
+                      />
                     </td>
                     <td>
-                      <select
-                        className="form-input select-filter"
-                        style={{ padding: '6px 8px', fontSize: '12px' }}
+                      <CustomSelect<string>
+                        size="sm"
                         value={line.partnerId || ''}
-                        onChange={(e) => handleLineFieldChange(idx, 'partnerId', e.target.value)}
-                      >
-                        <option value="">None</option>
-                        {contacts.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(newPartnerId) => handleLineFieldChange(idx, 'partnerId', newPartnerId)}
+                        options={[
+                          { value: '', label: 'None' },
+                          ...contacts.map((c) => ({
+                            value: c.id,
+                            label: c.name,
+                          })),
+                        ]}
+                        width="100%"
+                      />
                     </td>
                     <td>
                       <input

@@ -13,6 +13,7 @@ import { useAccountingStore } from '../../accounting/store';
 import { Button } from '../../../components/ui/Button';
 import { AccountantNav } from '../../../components/ui/AccountantNav';
 import { checkBackendHealth } from '../../../lib/apiClient';
+import { CustomSelect } from '../../../components/ui/CustomSelect';
 
 export const SettingsPage: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const { isBackendConnected, isSyncing, refreshFromBackend, accounts, journals } = useAccountingStore();
@@ -165,29 +166,31 @@ export const SettingsPage: React.FC<{ onNavigate: (route: string) => void }> = (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div className="form-group">
                 <label className="form-label">Base Currency</label>
-                <select
-                  className="form-input select-filter"
+                <CustomSelect<string>
                   value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                >
-                  <option value="INR (₹)">Indian Rupee (INR ₹)</option>
-                  <option value="USD (₹)">US Dollar (USD $)</option>
-                  <option value="EUR (€)">Euro (EUR €)</option>
-                </select>
+                  onChange={(val) => setCurrency(val)}
+                  options={[
+                    { value: 'INR (₹)', label: 'Indian Rupee (INR ₹)' },
+                    { value: 'USD ($)', label: 'US Dollar (USD $)' },
+                    { value: 'EUR (€)', label: 'Euro (EUR €)' },
+                  ]}
+                  width="100%"
+                />
               </div>
 
               <div className="form-group">
                 <label className="form-label">Tax Configuration</label>
-                <select
-                  className="form-input select-filter"
+                <CustomSelect<string>
                   value={taxRate}
-                  onChange={(e) => setTaxRate(e.target.value)}
-                >
-                  <option value="18% (GST Standard)">18% (GST Standard)</option>
-                  <option value="12% (GST Reduced)">12% (GST Reduced)</option>
-                  <option value="5% (GST Lower)">5% (GST Lower)</option>
-                  <option value="0% (Exempt)">0% (Exempt)</option>
-                </select>
+                  onChange={(val) => setTaxRate(val)}
+                  options={[
+                    { value: '18% (GST Standard)', label: '18% (GST Standard)' },
+                    { value: '12% (GST Reduced)', label: '12% (GST Reduced)' },
+                    { value: '5% (GST Lower)', label: '5% (GST Lower)' },
+                    { value: '0% (Exempt)', label: '0% (Exempt)' },
+                  ]}
+                  width="100%"
+                />
               </div>
             </div>
 
